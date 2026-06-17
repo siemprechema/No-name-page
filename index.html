@@ -124,7 +124,7 @@
         #art-canvas {
             display: block; max-width: 100%; max-height: 80vh; 
             cursor: crosshair; touch-action: none;
-            background-color: white; /* Base color backup */
+            background-color: white; 
         }
 
         /* === ACTION BAR === */
@@ -254,11 +254,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('art-canvas');
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // Eliminado willReadFrequently para reactivar la aceleración por GPU (mucho más rápido)
+            const ctx = canvas.getContext('2d'); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
             
             let isDrawing = false;
             let currentZoom = 1;
+            let needsRedraw = true; // Control de Smart Sleep
             
             const paths = []; 
             let rawPointsBuffer = []; 
@@ -289,6 +291,7 @@
                     canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
                 }
                 resetZoom();
+                needsRedraw = true;
             }
 
             function fillBackground() {
@@ -308,9 +311,11 @@
 
             function startPosition(e) {
                 isDrawing = true;
+                needsRedraw = true;
                 const coords = getCoordinates(e);
                 rawPointsBuffer = [[coords.x, coords.y]]; 
                 
+                // Inicializamos la estructura de datos para el caché
                 paths.push({
                     type: brushTypeInput.value,
                     color: brushColorInput.value,
@@ -318,18 +323,24 @@
                     spacing: parseInt(brushSpacingInput.value),
                     fidelity: parseInt(strokeFidelityInput.value),
                     blur: parseInt(brushBlurInput.value),
-                    particles: particlesCheck.checked,
-                    points: [] 
+                    hasParticles: particlesCheck.checked,
+                    points: [], 
+                    stamps: [], // Caché de posiciones modulares pre-calculadas
+                    particlesArr: [], // Caché de partículas pre-calculadas para la línea
+                    lastStampPoint: null // Ayuda al cálculo de distancia
                 });
             }
 
             function endPosition() {
                 isDrawing = false;
+                needsRedraw = true; // Forzamos un último render
             }
 
+            // Aquí sucede la magia matemática, SOLO cuando mueves el mouse.
             function draw(e) {
                 if (!isDrawing) return;
                 e.preventDefault();
+                needsRedraw = true;
 
                 const coords = getCoordinates(e);
                 const rawX = coords.x;
@@ -351,13 +362,52 @@
                 }
 
                 currentPath.points.push([smoothX, smoothY]);
+
+                // PRE-CÁLCULO GEOMÉTRICO (Optimizacion principal)
+                if (currentPath.type !== 'line') {
+                    if (!currentPath.lastStampPoint) {
+                        currentPath.lastStampPoint = [smoothX, smoothY];
+                        currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                    } else {
+                        let lastX = currentPath.lastStampPoint[0];
+                        let lastY = currentPath.lastStampPoint[1];
+                        let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                        
+                        if (dist >= currentPath.spacing) {
+                            let stampsCount = Math.floor(dist / currentPath.spacing);
+                            for (let j = 1; j <= stampsCount; j++) {
+                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount);
+                                let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX);
+                                let seed = (currentPath.points.length * 100) + j;
+                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
+                            }
+                            currentPath.lastStampPoint = [smoothX, smoothY];
+                        }
+                    }
+                } else {
+                    // Pre-cálculo de partículas para línea continua (cada 4 puntos para no saturar)
+                    if (currentPath.hasParticles && currentPath.points.length % 4 === 0) {
+                        let seed = currentPath.points.length * 10;
+                        currentPath.particlesArr.push({ x: smoothX, y: smoothY, seed: seed });
+                    }
+                }
             }
 
+            // EL MOTOR DE RENDERIZADO ALIGERADO
             function renderAllPaths() {
+                requestAnimationFrame(renderAllPaths);
+
+                const motionType = motionTypeInput.value;
+                
+                // SISTEMA SMART SLEEP: Si no hay movimiento y no estamos dibujando, omite el render
+                if (motionType === 'none' && !isDrawing && !needsRedraw) {
+                    return; 
+                }
+
                 ctx.save();
                 fillBackground();
 
-                const motionType = motionTypeInput.value;
                 const time = performance.now();
 
                 if (motionType === 'scroll') {
@@ -375,7 +425,11 @@
                 }
 
                 ctx.restore();
-                requestAnimationFrame(renderAllPaths);
+
+                // Apagamos el redibujado si terminamos de trazar en modo estático
+                if (motionType === 'none' && !isDrawing) {
+                    needsRedraw = false;
+                }
             }
 
             function renderPattern(x, y) {
@@ -388,15 +442,6 @@
             function renderPath(path) {
                 if (path.points.length < 1) return;
 
-                const ctxPath = ctx;
-                ctxPath.save();
-                ctxPath.filter = `blur(${path.blur}px)`;
-                ctxPath.lineWidth = path.size;
-                ctxPath.lineCap = 'round';
-                ctxPath.lineJoin = 'round';
-                ctxPath.strokeStyle = path.color;
-
-                const points = path.points;
                 const motionType = motionTypeInput.value;
                 const time = performance.now();
 
@@ -405,61 +450,50 @@
                     const pulseFreq = 0.003;
                     const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
                     currentSize = path.size * scaleFactor;
-                    ctxPath.lineWidth = currentSize;
-                    
-                    if (path.blur > 0) {
-                        const blurPulse = path.blur * scaleFactor;
-                        ctxPath.filter = `blur(${blurPulse}px)`;
-                    }
                 }
 
-                if (path.type === 'line') {
-                    ctxPath.beginPath();
-                    ctxPath.moveTo(points[0][0], points[0][1]);
-                    for(let i = 1; i < points.length; i++) {
-                        ctxPath.lineTo(points[i][0], points[i][1]);
-                    }
-                    ctxPath.stroke();
+                ctx.save();
+                // Optimización del Blur (sólo aplicarlo si es mayor a 0, consume mucha GPU)
+                if (path.blur > 0) {
+                    let activeBlur = motionType === 'pulse' ? path.blur * (currentSize/path.size) : path.blur;
+                    ctx.filter = `blur(${activeBlur}px)`;
+                }
+                
+                ctx.lineWidth = currentSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = path.color;
 
-                    // Partículas para línea continua (cada ciertos puntos para no saturar)
-                    if (path.particles) {
-                        for(let i = 0; i < points.length; i += 4) {
-                            drawScatterParticles(path, points[i][0], points[i][1], currentSize, i * 10);
+                // 1. Dibujar línea continua (si aplica)
+                if (path.type === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(path.points[0][0], path.points[0][1]);
+                    for(let i = 1; i < path.points.length; i++) {
+                        ctx.lineTo(path.points[i][0], path.points[i][1]);
+                    }
+                    ctx.stroke();
+
+                    // Dibujar partículas pre-calculadas de la línea
+                    if (path.hasParticles && path.particlesArr) {
+                        for(let i = 0; i < path.particlesArr.length; i++) {
+                            let p = path.particlesArr[i];
+                            drawScatterParticles(path, p.x, p.y, currentSize, p.seed);
                         }
                     }
                 } 
-                else {
-                    const spacing = path.spacing;
-                    let lastX = points[0][0];
-                    let lastY = points[0][1];
-                    drawStampOnPoint(path, lastX, lastY, 0, currentSize, 0); 
-
-                    for(let i = 1; i < points.length; i++) {
-                        const x = points[i][0];
-                        const y = points[i][1];
-                        const dist = Math.hypot(x - lastX, y - lastY);
-
-                        if (dist >= spacing) {
-                            const stampsCount = Math.floor(dist / spacing);
-                            for(let j = 1; j <= stampsCount; j++) {
-                                const nextX = lastX + (x - lastX) * (j / stampsCount);
-                                const nextY = lastY + (y - lastY) * (j / stampsCount);
-                                const angle = Math.atan2(y - lastY, x - lastX); 
-                                // Pasamos un identificador único para el movimiento de la partícula
-                                const seedBase = (i * 100) + j;
-                                drawStampOnPoint(path, nextX, nextY, angle, currentSize, seedBase);
-                            }
-                            lastX = x;
-                            lastY = y;
-                        }
+                // 2. Dibujar formas modulares usando el Caché pre-calculado
+                else if (path.stamps) {
+                    for(let i = 0; i < path.stamps.length; i++) {
+                        let s = path.stamps[i];
+                        drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed);
                     }
                 }
-                ctxPath.restore();
+                
+                ctx.restore();
             }
 
             function drawStampOnPoint(path, x, y, angle, size, seedBase) {
                 const type = path.type;
-                const color = path.color;
                 
                 ctx.save();
                 ctx.translate(x, y);
@@ -470,13 +504,11 @@
                     ctx.rotate(angle); 
                 }
 
-                ctx.fillStyle = color;
+                ctx.fillStyle = path.color;
                 
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); ctx.fill();
                 } else if (type === 'square') {
-                    // Múltiples cuadrados simulando un sello rugoso
-                    // Usamos pseudo-random basado en el seedBase para que la textura sea estática pero irregular
                     for(let i = 0; i < 3; i++) {
                         ctx.save();
                         let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; 
@@ -496,7 +528,6 @@
                 } else if (type === 'bee') {
                     ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐝", 0, 0);
                 } else if (type === 'disordered') {
-                    // Rectángulos aleatorios para simular cerdas
                     for(let i = 0; i < 5; i++) {
                         ctx.save();
                         let rA = Math.abs(Math.sin(seedBase + i * 13));
@@ -513,7 +544,7 @@
 
                 ctx.restore();
 
-                if(path.particles) drawScatterParticles(path, x, y, size, seedBase);
+                if(path.hasParticles) drawScatterParticles(path, x, y, size, seedBase);
             }
 
             function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
@@ -530,21 +561,17 @@
                 ctx.closePath(); ctx.fill();
             }
 
-            // Partículas con movimiento lento y orgánico
             function drawScatterParticles(path, x, y, size, seedBase) {
                 ctx.save();
                 ctx.fillStyle = path.color;
-                ctx.filter = 'blur(1px)';
                 
-                const time = performance.now() * 0.001; // Tiempo ralentizado para el drift
+                const time = performance.now() * 0.001; 
 
                 for(let k = 0; k < 3; k++) { 
-                    // Pseudo-aleatoriedad para mantener la posición base estable
                     let seed = seedBase * 13.1 + k * 43.5;
                     let rA = Math.abs(Math.sin(seed));
                     let rB = Math.abs(Math.cos(seed * 1.3));
 
-                    // Drift suave animado usando el tiempo
                     let driftX = Math.sin(time + seed) * size * 0.3;
                     let driftY = Math.cos(time * 0.8 + seed * 1.2) * size * 0.3;
 
@@ -559,9 +586,7 @@
                 ctx.restore();
             }
 
-            // Export PNG Logic
             function exportArtwork() {
-                // Forzamos un renderizado limpio antes de exportar
                 const dataURL = canvas.toDataURL('image/png', 1.0);
                 const link = document.createElement('a');
                 link.download = `22-DDM_Artwork_${new Date().getTime()}.png`;
@@ -576,10 +601,11 @@
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
 
-            // UI Listeners
+            // UI Listeners (disparan re-render)
             formatSelect.addEventListener('change', initCanvas);
-            bgColorInput.addEventListener('input', fillBackground);
-            btnClear.addEventListener('click', () => paths.length = 0); 
+            bgColorInput.addEventListener('input', () => { needsRedraw = true; });
+            motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            btnClear.addEventListener('click', () => { paths.length = 0; needsRedraw = true; }); 
             btnExport.addEventListener('click', exportArtwork);
 
             // Zoom Controls
