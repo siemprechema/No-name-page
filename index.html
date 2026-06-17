@@ -12,7 +12,6 @@
             --text-color: #111111;
             --border-color: #d1d1d1;
             --accent-color: #bdf271; 
-            --accent-hover: #a8e05a;
             --font-main: 'Acumin Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 12px; 
             --radius-round: 50px;
@@ -33,7 +32,7 @@
 
         .app-container { display: flex; width: 100%; height: 100%; }
 
-        /* === SIDEBAR (SOFT UI / ENGLISH UI) === */
+        /* === SIDEBAR === */
         .sidebar {
             width: 340px; min-width: 340px; height: 100%;
             border-right: 1px solid var(--border-color);
@@ -77,7 +76,6 @@
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px;}
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
 
-        /* Sliders */
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; }
         input[type="range"]::-webkit-slider-thumb { 
             -webkit-appearance: none; height: 18px; width: 18px; 
@@ -150,8 +148,7 @@
         <aside class="sidebar">
             <header class="header-brand">
                 <h1>22-DDM</h1>
-                <p>Not a Experiment Tool</p>
-            </header>
+                <p>Experimental tool</p> </header>
 
             <section class="module-section">
                 <h2 class="module-title">1. Brush Settings</h2>
@@ -181,6 +178,13 @@
                 <div class="control-group">
                     <label>Object Spacing</label>
                     <input type="range" id="brush-spacing" min="1" max="150" value="30">
+                </div>
+
+                <div class="control-group">
+                    <div class="flex-label">
+                        <label>Fidelity (Smooth &rarr; Accurate)</label>
+                    </div>
+                    <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
                 </div>
             </section>
 
@@ -250,6 +254,7 @@
             const brushColor = document.getElementById('brush-color');
             const brushSize = document.getElementById('brush-size');
             const brushSpacing = document.getElementById('brush-spacing');
+            const strokeFidelity = document.getElementById('stroke-fidelity');
             const brushBlur = document.getElementById('brush-blur');
             const particlesCheck = document.getElementById('particles');
             const formatSelect = document.getElementById('canvas-format');
@@ -311,19 +316,25 @@
                 const spacing = parseInt(brushSpacing.value);
                 const dist = Math.hypot(x - lastX, y - lastY);
 
+                // Lógica de Fidelidad: Si es 100 (Accurate) umbral es 0. Si es 1 (Smooth) umbral es mayor.
+                const fidelityVal = parseInt(strokeFidelity.value);
+                const smoothThreshold = (100 - fidelityVal) * 0.15; 
+
                 if (type === 'line') {
-                    ctx.filter = `blur(${brushBlur.value}px)`;
-                    ctx.lineWidth = brushSize.value;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    ctx.strokeStyle = brushColor.value;
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(x, y);
-                    lastX = x; lastY = y;
-                    
-                    if(particlesCheck.checked) drawParticles(x, y);
+                    if (dist >= smoothThreshold) {
+                        ctx.filter = `blur(${brushBlur.value}px)`;
+                        ctx.lineWidth = brushSize.value;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.strokeStyle = brushColor.value;
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        lastX = x; lastY = y;
+                        
+                        if(particlesCheck.checked) drawParticles(x, y);
+                    }
                 } 
                 else {
                     if (dist >= spacing) {
@@ -401,16 +412,33 @@
                 ctx.fill();
             }
 
+            // Ajuste 3: Partículas orgánicas/irregulares
             function drawParticles(x, y) {
                 const size = parseInt(brushSize.value);
                 ctx.save();
                 ctx.fillStyle = brushColor.value;
+                ctx.filter = `blur(${Math.max(0, brushBlur.value - 2)}px)`; // Ligero desenfoque natural
+                
                 for(let i = 0; i < 3; i++) { 
+                    // Esparce las partículas
                     let px = x + (Math.random() - 0.5) * size * 2.5;
                     let py = y + (Math.random() - 0.5) * size * 2.5;
-                    let pSize = Math.random() * (size * 0.15); 
+                    let baseSize = Math.random() * (size * 0.15) + 1; // Tamaño base de la mancha
+                    
                     ctx.beginPath();
-                    ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                    // Crea un polígono irregular de entre 4 y 7 puntos para simular tinta real
+                    let points = Math.floor(Math.random() * 4) + 4; 
+                    for(let j = 0; j < points; j++) {
+                        let angle = (j / points) * Math.PI * 2;
+                        // Radio aleatorio para deformar la figura
+                        let radius = baseSize * (0.4 + Math.random() * 0.8); 
+                        let vx = px + Math.cos(angle) * radius;
+                        let vy = py + Math.sin(angle) * radius;
+                        
+                        if(j === 0) ctx.moveTo(vx, vy);
+                        else ctx.lineTo(vx, vy);
+                    }
+                    ctx.closePath();
                     ctx.fill();
                 }
                 ctx.restore();
