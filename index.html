@@ -57,7 +57,6 @@
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
         
-        /* Checkbox styling */
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
         .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text-color); }
         .checkbox-group label { margin-bottom: 0; cursor: pointer; }
@@ -135,6 +134,16 @@
         .btn-outline:hover { background-color: #eaeaea; }
         .btn-solid { background-color: var(--text-color); color: white; }
         .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
+        
+        /* Botón de grabación */
+        .btn-record { background-color: #333; color: white; }
+        .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
+        
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
     </style>
 </head>
 <body>
@@ -174,7 +183,10 @@
                 </div>
                 
                 <div class="control-group">
-                    <label>Size / Thickness</label>
+                    <div class="flex-label">
+                        <label>Size / Thickness</label>
+                        <label style="text-transform: none; font-size: 10px;">[ ] to adjust</label>
+                    </div>
                     <input type="range" id="brush-size" min="5" max="100" value="25">
                 </div>
 
@@ -254,7 +266,8 @@
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear">Clear Canvas</button>
-                <button class="btn btn-solid" id="btn-export">Export Artwork</button>
+                <button class="btn btn-solid" id="btn-export">Export Image (PNG)</button>
+                <button class="btn btn-record" id="btn-record">Record Animation</button>
             </div>
         </main>
     </div>
@@ -270,7 +283,13 @@
             let needsRedraw = true; 
             
             const paths = []; 
+            const redoStack = []; // Nuevo: Historial para rehacer
             let rawPointsBuffer = []; 
+
+            // Variables para grabación de video
+            let mediaRecorder;
+            let recordedChunks = [];
+            let isRecording = false;
 
             // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
@@ -284,8 +303,8 @@
             const formatSelect = document.getElementById('canvas-format');
             const btnClear = document.getElementById('btn-clear');
             const btnExport = document.getElementById('btn-export');
+            const btnRecord = document.getElementById('btn-record'); // Botón de video
             
-            // Stroke Elements
             const enableOutlineInput = document.getElementById('enable-outline');
             const outlineColorInput = document.getElementById('outline-color');
             const outlineWidthInput = document.getElementById('outline-width');
@@ -323,10 +342,11 @@
             function startPosition(e) {
                 isDrawing = true;
                 needsRedraw = true;
+                redoStack.length = 0; // Si dibujas algo nuevo, se borra el historial de "Rehacer"
+                
                 const coords = getCoordinates(e);
                 rawPointsBuffer = [[coords.x, coords.y]]; 
                 
-                // Guardar las propiedades completas del trazo actual
                 paths.push({
                     type: brushTypeInput.value,
                     color: brushColorInput.value,
@@ -340,7 +360,7 @@
                     points: [], 
                     stamps: [], 
                     lastStampPoint: null,
-                    createdAt: performance.now() // Nuevo: Tiempo exacto de creación para efectos
+                    createdAt: performance.now() 
                 });
             }
 
@@ -375,7 +395,6 @@
 
                 currentPath.points.push([smoothX, smoothY]);
 
-                // PRE-CÁLCULO GEOMÉTRICO (Formas modulares)
                 if (currentPath.type !== 'line') {
                     if (!currentPath.lastStampPoint) {
                         currentPath.lastStampPoint = [smoothX, smoothY];
@@ -405,8 +424,7 @@
 
                 const motionType = motionTypeInput.value;
                 
-                // Si no hay animación y no se está dibujando, se detiene el render (Ahorra GPU)
-                if (motionType === 'none' && !isDrawing && !needsRedraw) {
+                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) {
                     return; 
                 }
 
@@ -432,7 +450,6 @@
                 
                 ctx.save();
 
-                // === EFECTOS DE MOVIMIENTO ===
                 if (motionType === 'pulse') {
                     const pulseFreq = 0.003;
                     const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
@@ -444,15 +461,13 @@
                     ctx.translate(vibX, vibY);
                 }
                 else if (motionType === 'wave') {
-                    // Crea un movimiento fluido y orgánico basado en la "edad" del trazo para desfase
                     const waveX = Math.sin(time * 0.002 + path.createdAt) * 8;
                     const waveY = Math.cos(time * 0.0015 + path.createdAt) * 8;
                     ctx.translate(waveX, waveY);
                 }
                 else if (motionType === 'gravity') {
-                    // Calcula el tiempo que ha pasado desde que se creó el trazo
                     const age = Math.max(0, time - path.createdAt);
-                    const dropY = age * 0.02; // Velocidad de derretimiento/caída
+                    const dropY = age * 0.02; 
                     ctx.translate(0, dropY);
                 }
                 
@@ -464,9 +479,7 @@
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // 1. DIBUJAR LÍNEA CONTINUA
                 if (path.type === 'line') {
-                    // Si el contorno está activado, dibujamos primero una línea más gruesa atrás
                     if (path.hasOutline) {
                         ctx.lineWidth = currentSize + (path.outlineWidth * 2);
                         ctx.strokeStyle = path.outlineColor;
@@ -478,7 +491,6 @@
                         ctx.stroke();
                     }
 
-                    // Línea principal (Color sólido)
                     ctx.lineWidth = currentSize;
                     ctx.strokeStyle = path.color;
                     ctx.beginPath();
@@ -488,7 +500,6 @@
                     }
                     ctx.stroke();
                 } 
-                // 2. DIBUJAR FORMAS MODULARES
                 else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) {
                         let s = path.stamps[i];
@@ -587,12 +598,48 @@
                 ctx.closePath(); ctx.fill();
             }
 
-            function exportArtwork() {
+            function exportImage() {
                 const dataURL = canvas.toDataURL('image/png', 1.0);
                 const link = document.createElement('a');
-                link.download = `22-DDM_Artwork_${new Date().getTime()}.png`;
+                link.download = `22-DDM_Static_${new Date().getTime()}.png`;
                 link.href = dataURL;
                 link.click();
+            }
+
+            // --- LÓGICA DE GRABACIÓN DE VIDEO ---
+            function toggleRecording() {
+                if (isRecording) {
+                    // Detener grabación
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    btnRecord.textContent = 'Record Animation';
+                    btnRecord.classList.remove('recording');
+                } else {
+                    // Iniciar grabación (60 FPS)
+                    const stream = canvas.captureStream(60); 
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                    recordedChunks = [];
+                    
+                    mediaRecorder.ondataavailable = function(e) {
+                        if (e.data.size > 0) recordedChunks.push(e.data);
+                    };
+                    
+                    mediaRecorder.onstop = function() {
+                        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `22-DDM_Animated_${new Date().getTime()}.webm`;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url); // Liberar memoria
+                    };
+                    
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btnRecord.textContent = 'Stop Recording...';
+                    btnRecord.classList.add('recording');
+                    needsRedraw = true; // Fuerza a renderizar cuadros aunque esté estático
+                }
             }
 
             // Pointer Event Listeners 
@@ -602,14 +649,37 @@
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
 
-            // Undo / Deshacer (Cmd+Z o Ctrl+Z)
+            // --- ATAJOS DE TECLADO ---
             document.addEventListener('keydown', (e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+                // Deshacer (Cmd/Ctrl + Z) y evitar conflicto con Shift
+                if (modifier && e.key === 'z' && !e.shiftKey) {
                     e.preventDefault(); 
                     if (paths.length > 0) {
-                        paths.pop(); 
+                        redoStack.push(paths.pop()); 
                         needsRedraw = true; 
                     }
+                }
+                
+                // Rehacer (Cmd/Ctrl + Shift + Z) o (Cmd/Ctrl + Y)
+                if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) {
+                    e.preventDefault();
+                    if (redoStack.length > 0) {
+                        paths.push(redoStack.pop());
+                        needsRedraw = true;
+                    }
+                }
+
+                // Tamaño del pincel con [ y ]
+                if (e.key === '[') {
+                    let newVal = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2);
+                    brushSizeInput.value = newVal;
+                }
+                if (e.key === ']') {
+                    let newVal = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2);
+                    brushSizeInput.value = newVal;
                 }
             });
 
@@ -617,8 +687,13 @@
             formatSelect.addEventListener('change', initCanvas);
             bgColorInput.addEventListener('input', () => { needsRedraw = true; });
             motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
-            btnClear.addEventListener('click', () => { paths.length = 0; needsRedraw = true; }); 
-            btnExport.addEventListener('click', exportArtwork);
+            btnClear.addEventListener('click', () => { 
+                paths.length = 0; 
+                redoStack.length = 0; 
+                needsRedraw = true; 
+            }); 
+            btnExport.addEventListener('click', exportImage);
+            btnRecord.addEventListener('click', toggleRecording); // Botón de video conectado
 
             // Zoom Controls
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
