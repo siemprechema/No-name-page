@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No experiment time</title>
     <style>
-        /* === ESTILO SUIZO - VARIABLES === */
+        /* === VARIABLES & TYPOGRAPHY === */
         :root {
-            --bg-color: #fdfdfd;
-            --text-color: #000000;
-            --border-color: #000000;
-            --accent-color: #e0ff00;
-            --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --bg-color: #f7f7f7;
+            --panel-bg: #ffffff;
+            --text-color: #111111;
+            --border-color: #d1d1d1;
+            --accent-color: #bdf271; /* Verde neón suave */
+            --accent-hover: #a8e05a;
+            /* Usamos Acumin Pro con fallbacks seguros */
+            --font-main: 'Acumin Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            --radius-soft: 12px; /* <-- Aquí redondeamos la interfaz */
+            --radius-round: 50px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            border-radius: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: var(--font-main);
@@ -29,99 +29,119 @@
             height: 100vh;
             overflow: hidden;
             font-size: 14px;
+            -webkit-font-smoothing: antialiased;
         }
 
         .app-container { display: flex; width: 100%; height: 100%; }
 
-        /* === BARRA LATERAL === */
+        /* === BARRA LATERAL (SOFT UI) === */
         .sidebar {
-            width: 320px; min-width: 320px; height: 100%;
-            border-right: 2px solid var(--border-color);
+            width: 340px; min-width: 340px; height: 100%;
+            border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column;
-            background-color: #ffffff; overflow-y: auto; z-index: 10;
+            background-color: var(--panel-bg); overflow-y: auto; z-index: 10;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.03);
         }
 
         .header-brand {
-            padding: 24px; border-bottom: 2px solid var(--border-color);
-            background-color: var(--text-color); color: white;
+            padding: 24px; border-bottom: 1px solid var(--border-color);
+            background-color: var(--panel-bg);
         }
 
-        .header-brand h1 { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.5px; }
-        .header-brand p { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        .header-brand h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-brand p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 6px; }
 
         .module-section { padding: 24px; border-bottom: 1px solid var(--border-color); }
-        .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 0.5px; }
+        .module-title { font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 18px; letter-spacing: 0.5px; color: #333;}
 
-        /* === CONTROLES SUIZOS === */
-        .control-group { margin-bottom: 16px; }
-        .control-group label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; }
-        .flex-label { display: flex; justify-content: space-between; }
+        /* === CONTROLES REDONDEADOS === */
+        .control-group { margin-bottom: 18px; }
+        .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
+        .flex-label { display: flex; justify-content: space-between; align-items: center; }
 
         select, input[type="color"] {
-            width: 100%; padding: 10px; border: 2px solid var(--border-color);
-            background: transparent; font-family: var(--font-main); font-size: 12px; text-transform: uppercase; cursor: pointer; outline: none;
+            width: 100%; padding: 12px; border: 1.5px solid var(--border-color);
+            background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
+            cursor: pointer; outline: none; border-radius: var(--radius-soft);
+            transition: border-color 0.2s ease;
         }
+        
+        select:focus { border-color: var(--text-color); }
         
         select {
             appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-            background-repeat: no-repeat; background-position-x: 98%; background-position-y: 50%;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%;
         }
 
-        input[type="color"] { height: 40px; padding: 2px; }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: none; border-right: 2px solid var(--border-color); }
+        input[type="color"] { height: 44px; padding: 4px; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px;}
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
 
-        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 8px;}
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--text-color); cursor: pointer; margin-top: -6px; }
-        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--text-color); }
+        /* Sliders más amigables */
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; }
+        input[type="range"]::-webkit-slider-thumb { 
+            -webkit-appearance: none; height: 18px; width: 18px; 
+            background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -7px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e0e0e0; border-radius: 2px; }
 
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; }
-        .checkbox-wrapper input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border: 2px solid var(--border-color); cursor: pointer; }
-        .checkbox-wrapper input[type="checkbox"]:checked { background-color: var(--text-color); }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .checkbox-wrapper input[type="checkbox"] { 
+            appearance: none; width: 20px; height: 20px; border: 1.5px solid var(--border-color); 
+            cursor: pointer; border-radius: 6px; transition: all 0.2s;
+        }
+        .checkbox-wrapper input[type="checkbox"]:checked { 
+            background-color: var(--text-color); border-color: var(--text-color);
+            background-image: url('data:image/svg+xml;utf8,<svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
+        }
 
-        /* === ÁREA DEL LIENZO Y ZOOM === */
+        /* === ÁREA DEL LIENZO === */
         .canvas-area {
-            flex-grow: 1; display: flex; flex-direction: column; background-color: #e5e5e5; position: relative; overflow: hidden;
+            flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden;
         }
 
         .zoom-toolbar {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 2px; background: var(--text-color); border: 2px solid var(--border-color); z-index: 5;
+            position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px;
+            border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 5;
+            backdrop-filter: blur(5px);
         }
         .zoom-toolbar button {
-            background: white; border: none; padding: 8px 16px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase;
+            background: transparent; border: none; padding: 8px 16px; font-family: var(--font-main); 
+            font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round);
+            transition: background 0.2s;
         }
-        .zoom-toolbar button:hover { background: var(--accent-color); }
+        .zoom-toolbar button:hover { background: #f0f0f0; }
 
         .canvas-container {
-            flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px 20px 20px; overflow: auto;
+            flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto;
         }
 
-        /* Envoltorio para manejar el Zoom correctamente */
         .canvas-wrapper {
-            transition: transform 0.2s ease-out;
-            transform-origin: center center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-out; transform-origin: center center;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden;
         }
 
         #art-canvas {
-            background-color: #bdf271;
-            display: block;
-            /* Estos valores iniciales se sobreescriben con JS, pero aseguran que no se desborde */
-            max-width: 100%; max-height: 80vh; cursor: crosshair;
+            display: block; max-width: 100%; max-height: 80vh; 
+            cursor: crosshair; touch-action: none;
         }
 
         /* === BARRA DE EXPORTACIÓN === */
         .action-bar {
-            padding: 24px; border-top: 2px solid var(--border-color); background-color: white; display: flex; gap: 16px; justify-content: flex-end; z-index: 10;
+            padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); 
+            display: flex; gap: 16px; justify-content: flex-end; z-index: 10;
         }
-        .btn { padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 12px; text-transform: uppercase; cursor: pointer; border: 2px solid var(--border-color); transition: all 0.2s ease; }
-        .btn-outline { background-color: transparent; color: var(--text-color); }
-        .btn-outline:hover { background-color: #f0f0f0; }
+        .btn { 
+            padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 13px; 
+            cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none;
+        }
+        .btn-outline { background-color: var(--bg-color); color: var(--text-color); border: 1.5px solid var(--border-color); }
+        .btn-outline:hover { background-color: #eaeaea; }
         .btn-solid { background-color: var(--text-color); color: white; }
-        .btn-solid:hover { background-color: var(--accent-color); color: var(--text-color); border-color: var(--accent-color); }
+        .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
     </style>
 </head>
 <body>
@@ -135,47 +155,59 @@
             </header>
 
             <section class="module-section">
-                <h2 class="module-title">1. Pincel & Trazo</h2>
+                <h2 class="module-title">1. Configuración de Pincel</h2>
                 
-                <div class="control-group">
-                    <label>Color del Pincel</label>
-                    <input type="color" id="brush-color" value="#000000">
-                </div>
-
                 <div class="control-group">
                     <label>Tipo de Pincel</label>
                     <select id="brush-type">
-                        <option value="line">Básico (Línea Continua)</option>
-                        <option value="modular">Modular (Hormigas/Objetos)</option>
+                        <option value="line">Línea Continua</option>
+                        <option value="ant">Modular: Hormigas 🐜</option>
+                        <option value="bee">Modular: Abejas 🐝</option>
+                        <option value="star">Modular: Estrellas ★</option>
+                        <option value="square">Modular: Cuadrados ■</option>
+                        <option value="dot">Modular: Puntos ●</option>
                     </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Color del Pincel</label>
+                    <input type="color" id="brush-color" value="#111111">
                 </div>
                 
                 <div class="control-group">
-                    <label>Grosor / Densidad</label>
-                    <input type="range" id="brush-size" min="1" max="50" value="10">
+                    <label>Tamaño / Grosor</label>
+                    <input type="range" id="brush-size" min="5" max="100" value="25">
                 </div>
 
                 <div class="control-group">
                     <div class="flex-label">
-                        <label>Fidelidad</label>
-                        <label>Smooth &rarr; Accurate</label>
+                        <label>Distancia entre Objetos</label>
                     </div>
-                    <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
-                </div>
-
-                <div class="control-group checkbox-wrapper">
-                    <input type="checkbox" id="particles">
-                    <label for="particles" style="margin-bottom:0;">Partículas Extra</label>
+                    <input type="range" id="brush-spacing" min="1" max="150" value="30">
                 </div>
             </section>
 
             <section class="module-section">
-                <h2 class="module-title">2. Lienzo & Fondo</h2>
+                <h2 class="module-title">2. Efectos Especiales</h2>
+                
                 <div class="control-group">
-                    <label>Formato (Relación de Aspecto)</label>
+                    <label>Desenfoque (Blur)</label>
+                    <input type="range" id="brush-blur" min="0" max="20" value="0">
+                </div>
+
+                <div class="control-group checkbox-wrapper">
+                    <input type="checkbox" id="particles">
+                    <label for="particles" style="margin-bottom:0; font-size:13px;">Aventar Partículas</label>
+                </div>
+            </section>
+
+            <section class="module-section" style="border-bottom: none;">
+                <h2 class="module-title">3. Lienzo & Fondo</h2>
+                <div class="control-group">
+                    <label>Formato de Lienzo</label>
                     <select id="canvas-format">
-                        <option value="3:4">Vertical 3:4 (Retrato)</option>
-                        <option value="16:9">Horizontal 16:9 (Pantalla)</option>
+                        <option value="3:4">Vertical 3:4</option>
+                        <option value="16:9">Horizontal 16:9</option>
                     </select>
                 </div>
                 <div class="control-group">
@@ -183,29 +215,13 @@
                     <input type="color" id="bg-color" value="#bdf271">
                 </div>
             </section>
-
-            <section class="module-section" style="border-bottom: none;">
-                <h2 class="module-title">3. Motion Setup</h2>
-                <div class="control-group">
-                    <label>Modo de Animación</label>
-                    <select>
-                        <option>Estático (Dibujo libre)</option>
-                        <option>Scroll Continuo</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Velocidad</label>
-                    <input type="range" min="1" max="100" value="50">
-                </div>
-            </section>
         </aside>
 
         <main class="canvas-area">
-            
             <div class="zoom-toolbar">
-                <button id="btn-zoom-out">-</button>
-                <button id="btn-zoom-fit">FIT SCREEN</button>
-                <button id="btn-zoom-in">+</button>
+                <button id="btn-zoom-out">Menos Zoom</button>
+                <button id="btn-zoom-fit">Ajustar Pantalla</button>
+                <button id="btn-zoom-in">Más Zoom</button>
             </div>
 
             <div class="canvas-container" id="canvas-container">
@@ -216,117 +232,221 @@
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear">Limpiar Lienzo</button>
-                <button class="btn btn-solid">Exportar</button>
+                <button class="btn btn-solid">Exportar Arte</button>
             </div>
         </main>
     </div>
 
     <script>
-        // === LÓGICA JAVASCRIPT PRINCIPAL ===
-        const canvas = document.getElementById('art-canvas');
-        const ctx = canvas.getContext('2d');
-        const canvasWrapper = document.getElementById('canvas-wrapper');
-        
-        let isDrawing = false;
-        let currentZoom = 1;
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('art-canvas');
+            const ctx = canvas.getContext('2d');
+            const canvasWrapper = document.getElementById('canvas-wrapper');
+            
+            let isDrawing = false;
+            let currentZoom = 1;
+            let lastX = 0;
+            let lastY = 0;
 
-        // Referencias a UI
-        const brushColorInput = document.getElementById('brush-color');
-        const brushSizeInput = document.getElementById('brush-size');
-        const bgColorInput = document.getElementById('bg-color');
-        const formatSelect = document.getElementById('canvas-format');
-        const btnClear = document.getElementById('btn-clear');
+            // Inputs UI
+            const brushType = document.getElementById('brush-type');
+            const brushColor = document.getElementById('brush-color');
+            const brushSize = document.getElementById('brush-size');
+            const brushSpacing = document.getElementById('brush-spacing');
+            const brushBlur = document.getElementById('brush-blur');
+            const particlesCheck = document.getElementById('particles');
+            const formatSelect = document.getElementById('canvas-format');
+            const bgColorInput = document.getElementById('bg-color');
+            const btnClear = document.getElementById('btn-clear');
 
-        // Inicializar Canvas
-        function initCanvas() {
-            const format = formatSelect.value;
-            // Definimos resoluciones internas altas para que no se pixele
-            if(format === '3:4') {
-                canvas.width = 1200;
-                canvas.height = 1600;
-                canvas.style.aspectRatio = "3/4";
-                canvas.style.maxHeight = "80vh"; 
-                canvas.style.maxWidth = "auto";
-            } else {
-                canvas.width = 1920;
-                canvas.height = 1080;
-                canvas.style.aspectRatio = "16/9";
-                canvas.style.maxHeight = "auto";
-                canvas.style.maxWidth = "80vw";
+            function initCanvas() {
+                const format = formatSelect.value;
+                if(format === '3:4') {
+                    canvas.width = 1200; canvas.height = 1600;
+                    canvas.style.aspectRatio = "3/4";
+                    canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto";
+                } else {
+                    canvas.width = 1920; canvas.height = 1080;
+                    canvas.style.aspectRatio = "16/9";
+                    canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
+                }
+                fillBackground();
+                resetZoom();
             }
-            fillBackground();
-            resetZoom();
-        }
 
-        function fillBackground() {
-            ctx.fillStyle = bgColorInput.value;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            canvas.style.backgroundColor = bgColorInput.value;
-        }
+            function fillBackground() {
+                ctx.fillStyle = bgColorInput.value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
-        // Lógica de Dibujo con Mouse/Tableta
-        function startPosition(e) {
-            isDrawing = true;
-            draw(e);
-        }
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;   
+                const scaleY = canvas.height / rect.height; 
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
+            }
 
-        function endPosition() {
-            isDrawing = false;
-            ctx.beginPath(); // Resetea el trazo para que la próxima línea no se conecte
-        }
+            function startPosition(e) {
+                isDrawing = true;
+                const coords = getCoordinates(e);
+                lastX = coords.x;
+                lastY = coords.y;
+                drawStamp(lastX, lastY, 0); // Dibuja el primer sello al tocar
+            }
 
-        function draw(e) {
-            if (!isDrawing) return;
+            function endPosition() {
+                isDrawing = false;
+                ctx.beginPath();
+            }
 
-            // Calcular coordenadas correctas respetando el zoom y la resolución interna
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;   
-            const scaleY = canvas.height / rect.height; 
+            // === EL MOTOR DE DIBUJO MODULAR Y EFECTOS ===
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
 
-            const x = (e.clientX - rect.left) * scaleX;
-            const y = (e.clientY - rect.top) * scaleY;
+                const coords = getCoordinates(e);
+                const x = coords.x;
+                const y = coords.y;
+                
+                const type = brushType.value;
+                const spacing = parseInt(brushSpacing.value);
 
-            ctx.lineWidth = brushSizeInput.value;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = brushColorInput.value;
+                // Calcular la distancia entre el último punto y el actual
+                const dist = Math.hypot(x - lastX, y - lastY);
 
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
+                if (type === 'line') {
+                    // Lógica para línea continua (se ignora el espaciado)
+                    ctx.filter = `blur(${brushBlur.value}px)`;
+                    ctx.lineWidth = brushSize.value;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeStyle = brushColor.value;
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    lastX = x; lastY = y;
+                    
+                    if(particlesCheck.checked) drawParticles(x, y);
+                } 
+                else {
+                    // Lógica para pinceles Modulares (Hormigas, estrellas, etc)
+                    if (dist >= spacing) {
+                        // Interpolar para que no queden huecos si mueves el mouse muy rápido
+                        const stampsCount = Math.floor(dist / spacing);
+                        for(let i = 1; i <= stampsCount; i++) {
+                            const nextX = lastX + (x - lastX) * (i / stampsCount);
+                            const nextY = lastY + (y - lastY) * (i / stampsCount);
+                            const angle = Math.atan2(y - lastY, x - lastX); // Calcula la rotación
+                            drawStamp(nextX, nextY, angle);
+                        }
+                        lastX = x;
+                        lastY = y;
+                    }
+                }
+            }
 
-        // Eventos de dibujo
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', endPosition);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseleave', endPosition); // Corta el trazo si sales del canvas
+            function drawStamp(x, y, angle) {
+                const type = brushType.value;
+                const size = parseInt(brushSize.value);
+                const color = brushColor.value;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                // Si son hormigas o abejas, rotan para seguir la línea.
+                if(type === 'ant' || type === 'bee') {
+                    ctx.rotate(angle + Math.PI / 2); 
+                } else if(type === 'star' || type === 'square') {
+                    ctx.rotate(angle); // Rotación ligera según el trazo
+                }
 
-        // Eventos UI
-        formatSelect.addEventListener('change', initCanvas);
-        bgColorInput.addEventListener('input', fillBackground);
-        btnClear.addEventListener('click', fillBackground);
+                ctx.filter = `blur(${brushBlur.value}px)`;
+                ctx.fillStyle = color;
+                
+                if(type === 'dot') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (type === 'square') {
+                    ctx.fillRect(-size/2, -size/2, size, size);
+                } else if (type === 'star') {
+                    drawStar(0, 0, 5, size/2, size/4);
+                } else if (type === 'ant') {
+                    ctx.font = `${size}px sans-serif`;
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("🐜", 0, 0);
+                } else if (type === 'bee') {
+                    ctx.font = `${size}px sans-serif`;
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("🐝", 0, 0);
+                }
 
-        // Lógica de Zoom
-        function applyZoom() {
-            canvasWrapper.style.transform = `scale(${currentZoom})`;
-        }
-        function resetZoom() {
-            currentZoom = 1;
-            applyZoom();
-        }
-        document.getElementById('btn-zoom-in').addEventListener('click', () => {
-            currentZoom += 0.2; applyZoom();
+                ctx.restore();
+
+                if(particlesCheck.checked) drawParticles(x, y);
+            }
+
+            function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let x = cx; let y = cy;
+                let step = Math.PI / spikes;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                for (let i = 0; i < spikes; i++) {
+                    x = cx + Math.cos(rot) * outerRadius;
+                    y = cy + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    x = cx + Math.cos(rot) * innerRadius;
+                    y = cy + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                ctx.lineTo(cx, cy - outerRadius);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            function drawParticles(x, y) {
+                const size = parseInt(brushSize.value);
+                ctx.save();
+                ctx.fillStyle = brushColor.value;
+                for(let i = 0; i < 3; i++) { // Dibuja 3 partículas por cada "paso"
+                    // Esparce las partículas alrededor del trazo
+                    let px = x + (Math.random() - 0.5) * size * 2.5;
+                    let py = y + (Math.random() - 0.5) * size * 2.5;
+                    let pSize = Math.random() * (size * 0.15); // Partículas pequeñas
+                    ctx.beginPath();
+                    ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            // Listeners de Dibujo
+            canvas.addEventListener('pointerdown', startPosition);
+            canvas.addEventListener('pointerup', endPosition);
+            canvas.addEventListener('pointermove', draw);
+            canvas.addEventListener('pointerleave', endPosition);
+            canvas.addEventListener('pointercancel', endPosition);
+
+            // Listeners UI
+            formatSelect.addEventListener('change', initCanvas);
+            bgColorInput.addEventListener('input', fillBackground);
+            btnClear.addEventListener('click', fillBackground);
+
+            // Funciones de Zoom
+            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
+            function resetZoom() { currentZoom = 1; applyZoom(); }
+            document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); });
+            document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } });
+            document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
+
+            initCanvas();
         });
-        document.getElementById('btn-zoom-out').addEventListener('click', () => {
-            if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); }
-        });
-        document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
-
-        // Iniciar
-        initCanvas();
-
     </script>
 </body>
 </html>
