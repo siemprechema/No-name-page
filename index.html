@@ -216,6 +216,7 @@
                         <label>Smooth &rarr; Accurate</label>
                     </div>
                     <input type="range" id="stroke-fidelity" min="1" max="100" value="70">
+                    <p style="font-size: 10px; color: #777; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° straight lines.</p>
                 </div>
             </section>
 
@@ -283,15 +284,13 @@
             let needsRedraw = true; 
             
             const paths = []; 
-            const redoStack = []; // Nuevo: Historial para rehacer
+            const redoStack = []; 
             let rawPointsBuffer = []; 
 
-            // Variables para grabación de video
             let mediaRecorder;
             let recordedChunks = [];
             let isRecording = false;
 
-            // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
             const brushColorInput = document.getElementById('brush-color');
             const bgColorInput = document.getElementById('bg-color');
@@ -303,7 +302,7 @@
             const formatSelect = document.getElementById('canvas-format');
             const btnClear = document.getElementById('btn-clear');
             const btnExport = document.getElementById('btn-export');
-            const btnRecord = document.getElementById('btn-record'); // Botón de video
+            const btnRecord = document.getElementById('btn-record'); 
             
             const enableOutlineInput = document.getElementById('enable-outline');
             const outlineColorInput = document.getElementById('outline-color');
@@ -342,7 +341,7 @@
             function startPosition(e) {
                 isDrawing = true;
                 needsRedraw = true;
-                redoStack.length = 0; // Si dibujas algo nuevo, se borra el historial de "Rehacer"
+                redoStack.length = 0; 
                 
                 const coords = getCoordinates(e);
                 rawPointsBuffer = [[coords.x, coords.y]]; 
@@ -360,6 +359,7 @@
                     points: [], 
                     stamps: [], 
                     lastStampPoint: null,
+                    origin: [coords.x, coords.y], // Almacenamos el punto de inicio para la tecla Shift
                     createdAt: performance.now() 
                 });
             }
@@ -374,15 +374,31 @@
                 e.preventDefault();
                 needsRedraw = true;
 
+                const currentPath = paths[paths.length - 1];
                 const coords = getCoordinates(e);
-                const rawX = coords.x;
-                const rawY = coords.y;
+                
+                let rawX = coords.x;
+                let rawY = coords.y;
+
+                // === LÓGICA DE TECLA SHIFT (ÁNGULOS DE 45°/90°) ===
+                if (e.shiftKey) {
+                    const startX = currentPath.origin[0];
+                    const startY = currentPath.origin[1];
+                    const dx = rawX - startX;
+                    const dy = rawY - startY;
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Redondear a múltiplos de 45° (Pi / 4)
+                    const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+                    const dist = Math.hypot(dx, dy);
+                    
+                    rawX = startX + Math.cos(snapAngle) * dist;
+                    rawY = startY + Math.sin(snapAngle) * dist;
+                }
                 
                 rawPointsBuffer.push([rawX, rawY]);
 
-                const currentPath = paths[paths.length - 1];
                 const fidelityVal = 101 - currentPath.fidelity; 
-                
                 const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
                 let smoothX = rawX;
                 let smoothY = rawY;
@@ -606,16 +622,13 @@
                 link.click();
             }
 
-            // --- LÓGICA DE GRABACIÓN DE VIDEO ---
             function toggleRecording() {
                 if (isRecording) {
-                    // Detener grabación
                     mediaRecorder.stop();
                     isRecording = false;
                     btnRecord.textContent = 'Record Animation';
                     btnRecord.classList.remove('recording');
                 } else {
-                    // Iniciar grabación (60 FPS)
                     const stream = canvas.captureStream(60); 
                     mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
                     recordedChunks = [];
@@ -631,30 +644,27 @@
                         link.download = `22-DDM_Animated_${new Date().getTime()}.webm`;
                         link.href = url;
                         link.click();
-                        URL.revokeObjectURL(url); // Liberar memoria
+                        URL.revokeObjectURL(url); 
                     };
                     
                     mediaRecorder.start();
                     isRecording = true;
                     btnRecord.textContent = 'Stop Recording...';
                     btnRecord.classList.add('recording');
-                    needsRedraw = true; // Fuerza a renderizar cuadros aunque esté estático
+                    needsRedraw = true; 
                 }
             }
 
-            // Pointer Event Listeners 
             canvas.addEventListener('pointerdown', startPosition);
             canvas.addEventListener('pointerup', endPosition);
             canvas.addEventListener('pointermove', draw);
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
 
-            // --- ATAJOS DE TECLADO ---
             document.addEventListener('keydown', (e) => {
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
                 const modifier = isMac ? e.metaKey : e.ctrlKey;
 
-                // Deshacer (Cmd/Ctrl + Z) y evitar conflicto con Shift
                 if (modifier && e.key === 'z' && !e.shiftKey) {
                     e.preventDefault(); 
                     if (paths.length > 0) {
@@ -663,7 +673,6 @@
                     }
                 }
                 
-                // Rehacer (Cmd/Ctrl + Shift + Z) o (Cmd/Ctrl + Y)
                 if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) {
                     e.preventDefault();
                     if (redoStack.length > 0) {
@@ -672,7 +681,6 @@
                     }
                 }
 
-                // Tamaño del pincel con [ y ]
                 if (e.key === '[') {
                     let newVal = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2);
                     brushSizeInput.value = newVal;
@@ -683,7 +691,6 @@
                 }
             });
 
-            // UI Listeners
             formatSelect.addEventListener('change', initCanvas);
             bgColorInput.addEventListener('input', () => { needsRedraw = true; });
             motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
@@ -693,16 +700,14 @@
                 needsRedraw = true; 
             }); 
             btnExport.addEventListener('click', exportImage);
-            btnRecord.addEventListener('click', toggleRecording); // Botón de video conectado
+            btnRecord.addEventListener('click', toggleRecording); 
 
-            // Zoom Controls
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
             function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); });
             document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } });
             document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
 
-            // Iniciar
             initCanvas();
             requestAnimationFrame(renderAllPaths); 
         });
