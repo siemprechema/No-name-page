@@ -300,4 +300,250 @@
                 
                 paths.push({
                     type: brushTypeInput.value,
-                    color: brush
+                    color: brushColorInput.value,
+                    size: parseInt(brushSizeInput.value),
+                    spacing: parseInt(brushSpacingInput.value),
+                    fidelity: parseInt(strokeFidelityInput.value),
+                    blur: parseInt(brushBlurInput.value),
+                    points: [], 
+                    stamps: [], 
+                    lastStampPoint: null 
+                });
+            }
+
+            function endPosition() {
+                isDrawing = false;
+                needsRedraw = true; 
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                needsRedraw = true;
+
+                const coords = getCoordinates(e);
+                const rawX = coords.x;
+                const rawY = coords.y;
+                
+                rawPointsBuffer.push([rawX, rawY]);
+
+                const currentPath = paths[paths.length - 1];
+                const fidelityVal = 101 - currentPath.fidelity; 
+                
+                const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
+                let smoothX = rawX;
+                let smoothY = rawY;
+
+                if (rawPointsBuffer.length > 1) {
+                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
+                    smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                }
+
+                currentPath.points.push([smoothX, smoothY]);
+
+                // PRE-CÁLCULO GEOMÉTRICO (Formas modulares)
+                if (currentPath.type !== 'line') {
+                    if (!currentPath.lastStampPoint) {
+                        currentPath.lastStampPoint = [smoothX, smoothY];
+                        currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                    } else {
+                        let lastX = currentPath.lastStampPoint[0];
+                        let lastY = currentPath.lastStampPoint[1];
+                        let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                        
+                        if (dist >= currentPath.spacing) {
+                            let stampsCount = Math.floor(dist / currentPath.spacing);
+                            for (let j = 1; j <= stampsCount; j++) {
+                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount);
+                                let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX);
+                                let seed = (currentPath.points.length * 100) + j;
+                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
+                            }
+                            currentPath.lastStampPoint = [smoothX, smoothY];
+                        }
+                    }
+                }
+            }
+
+            function renderAllPaths() {
+                requestAnimationFrame(renderAllPaths);
+
+                const motionType = motionTypeInput.value;
+                
+                // Si no hay animación y no se está dibujando, se detiene el render (Ahorra GPU)
+                if (motionType === 'none' && !isDrawing && !needsRedraw) {
+                    return; 
+                }
+
+                ctx.save();
+                fillBackground();
+
+                paths.forEach(renderPath);
+
+                ctx.restore();
+
+                // Apagar el redibujado si se acaba de soltar el click en modo estático
+                if (motionType === 'none' && !isDrawing) {
+                    needsRedraw = false;
+                }
+            }
+
+            function renderPath(path) {
+                if (path.points.length < 1) return;
+
+                const motionType = motionTypeInput.value;
+                const time = performance.now();
+
+                let currentSize = path.size;
+                
+                ctx.save();
+
+                // === EFECTOS DE MOVIMIENTO ===
+                if (motionType === 'pulse') {
+                    const pulseFreq = 0.003;
+                    const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
+                    currentSize = path.size * scaleFactor;
+                } 
+                else if (motionType === 'vibrate') {
+                    // Desplazamiento caótico sutil (+/- 2.5px) para dar sensación de vibración
+                    const vibX = (Math.random() - 0.5) * 5;
+                    const vibY = (Math.random() - 0.5) * 5;
+                    ctx.translate(vibX, vibY);
+                }
+                
+                // Filtro Blur
+                if (path.blur > 0) {
+                    let activeBlur = motionType === 'pulse' ? path.blur * (currentSize/path.size) : path.blur;
+                    ctx.filter = `blur(${activeBlur}px)`;
+                }
+                
+                ctx.lineWidth = currentSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = path.color;
+
+                // 1. Dibujar línea continua (Regresamos al método clásico 100% compatible)
+                if (path.type === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(path.points[0][0], path.points[0][1]);
+                    for(let i = 1; i < path.points.length; i++) {
+                        ctx.lineTo(path.points[i][0], path.points[i][1]);
+                    }
+                    ctx.stroke();
+                } 
+                // 2. Dibujar formas modulares
+                else if (path.stamps) {
+                    for(let i = 0; i < path.stamps.length; i++) {
+                        let s = path.stamps[i];
+                        drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed);
+                    }
+                }
+                
+                ctx.restore();
+            }
+
+            function drawStampOnPoint(path, x, y, angle, size, seedBase) {
+                const type = path.type;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                
+                if(type === 'ant' || type === 'bee') {
+                    ctx.rotate(angle + Math.PI / 2); 
+                } else if(type === 'star' || type === 'square') {
+                    ctx.rotate(angle); 
+                }
+
+                ctx.fillStyle = path.color;
+                
+                if(type === 'dot') {
+                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); ctx.fill();
+                } else if (type === 'square') {
+                    for(let i = 0; i < 3; i++) {
+                        ctx.save();
+                        let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; 
+                        let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5;
+                        
+                        const randomRot = (rA - 0.5) * 0.8;
+                        const posOffX = (rA - 0.5) * size * 0.4;
+                        const posOffY = (rB - 0.5) * size * 0.4;
+                        ctx.rotate(randomRot);
+                        ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
+                        ctx.restore();
+                    }
+                } else if (type === 'star') {
+                    drawStar(0, 0, 5, size/2, size/4);
+                } else if (type === 'ant') {
+                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐜", 0, 0);
+                } else if (type === 'bee') {
+                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐝", 0, 0);
+                } else if (type === 'disordered') {
+                    for(let i = 0; i < 5; i++) {
+                        ctx.save();
+                        let rA = Math.abs(Math.sin(seedBase + i * 13));
+                        let rB = Math.abs(Math.cos(seedBase + i * 17));
+                        
+                        const randomW = size * (0.8 + rA * 0.4);
+                        const randomH = size * (0.4 + rB * 1.5);
+                        const posOffX = (rA - 0.5) * size * 0.3;
+                        const posOffY = (rB - 0.5) * size * 0.3;
+                        ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
+                        ctx.restore();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+                let rot = Math.PI / 2 * 3;
+                let step = Math.PI / spikes;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy - outerRadius);
+                for (let i = 0; i < spikes; i++) {
+                    ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+                    rot += step;
+                    ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
+                    rot += step;
+                }
+                ctx.closePath(); ctx.fill();
+            }
+
+            function exportArtwork() {
+                const dataURL = canvas.toDataURL('image/png', 1.0);
+                const link = document.createElement('a');
+                link.download = `22-DDM_Artwork_${new Date().getTime()}.png`;
+                link.href = dataURL;
+                link.click();
+            }
+
+            // Pointer Event Listeners 
+            canvas.addEventListener('pointerdown', startPosition);
+            canvas.addEventListener('pointerup', endPosition);
+            canvas.addEventListener('pointermove', draw);
+            canvas.addEventListener('pointerleave', endPosition);
+            canvas.addEventListener('pointercancel', endPosition);
+
+            // UI Listeners
+            formatSelect.addEventListener('change', initCanvas);
+            bgColorInput.addEventListener('input', () => { needsRedraw = true; });
+            motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            btnClear.addEventListener('click', () => { paths.length = 0; needsRedraw = true; }); 
+            btnExport.addEventListener('click', exportArtwork);
+
+            // Zoom Controls
+            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
+            function resetZoom() { currentZoom = 1; applyZoom(); }
+            document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); });
+            document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } });
+            document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
+
+            // Iniciar
+            initCanvas();
+            requestAnimationFrame(renderAllPaths); 
+        });
+    </script>
+</body>
+</html>
