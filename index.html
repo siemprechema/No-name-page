@@ -218,9 +218,11 @@
                 <div class="control-group">
                     <label>Stroke Motion Effect</label>
                     <select id="motion-type">
-                        <option value="none">None (Static)</option>
-                        <option value="vibrate">Vibration (Jitter)</option>
+                        <option value="none">Static</option>
+                        <option value="vibrate">Vibration</option>
                         <option value="pulse">Pulse</option>
+                        <option value="wave">Wave</option>
+                        <option value="gravity">Gravity</option>
                     </select>
                 </div>
             </section>
@@ -273,7 +275,7 @@
             // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
             const brushColorInput = document.getElementById('brush-color');
-            const bgColorInput = document.getElementById('bg-color'); // Fondo movido
+            const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size');
             const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity');
@@ -337,7 +339,8 @@
                     outlineWidth: parseInt(outlineWidthInput.value),
                     points: [], 
                     stamps: [], 
-                    lastStampPoint: null 
+                    lastStampPoint: null,
+                    createdAt: performance.now() // Nuevo: Tiempo exacto de creación para efectos
                 });
             }
 
@@ -439,6 +442,18 @@
                     const vibX = (Math.random() - 0.5) * 5;
                     const vibY = (Math.random() - 0.5) * 5;
                     ctx.translate(vibX, vibY);
+                }
+                else if (motionType === 'wave') {
+                    // Crea un movimiento fluido y orgánico basado en la "edad" del trazo para desfase
+                    const waveX = Math.sin(time * 0.002 + path.createdAt) * 8;
+                    const waveY = Math.cos(time * 0.0015 + path.createdAt) * 8;
+                    ctx.translate(waveX, waveY);
+                }
+                else if (motionType === 'gravity') {
+                    // Calcula el tiempo que ha pasado desde que se creó el trazo
+                    const age = Math.max(0, time - path.createdAt);
+                    const dropY = age * 0.02; // Velocidad de derretimiento/caída
+                    ctx.translate(0, dropY);
                 }
                 
                 if (path.blur > 0) {
@@ -551,7 +566,6 @@
                 ctx.restore();
             }
             
-            // Función auxiliar para contornear formas básicas modulares (Dot, Star)
             function strokeShape(path) {
                 ctx.lineWidth = path.outlineWidth;
                 ctx.strokeStyle = path.outlineColor;
