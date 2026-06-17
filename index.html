@@ -56,6 +56,11 @@
         .control-group { margin-bottom: 18px; }
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Checkbox styling */
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text-color); }
+        .checkbox-group label { margin-bottom: 0; cursor: pointer; }
 
         select, input[type="color"] {
             width: 100%; padding: 12px; border: 1.5px solid var(--border-color);
@@ -159,13 +164,28 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Brush Color</label>
+                    <label>Brush Color (Fill)</label>
                     <input type="color" id="brush-color" value="#111111">
                 </div>
                 
                 <div class="control-group">
                     <label>Size / Thickness</label>
                     <input type="range" id="brush-size" min="5" max="100" value="25">
+                </div>
+
+                <div class="control-group" style="background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enable-outline">
+                        <label for="enable-outline">Enable Stroke Outline</label>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size: 10px;">Outline Color</label>
+                        <input type="color" id="outline-color" value="#ffffff" style="height: 36px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px;">Outline Width</label>
+                        <input type="range" id="outline-width" min="1" max="25" value="4">
+                    </div>
                 </div>
 
                 <div class="control-group">
@@ -261,6 +281,11 @@
             const bgColorInput = document.getElementById('bg-color');
             const btnClear = document.getElementById('btn-clear');
             const btnExport = document.getElementById('btn-export');
+            
+            // Stroke Elements
+            const enableOutlineInput = document.getElementById('enable-outline');
+            const outlineColorInput = document.getElementById('outline-color');
+            const outlineWidthInput = document.getElementById('outline-width');
 
             function initCanvas() {
                 const format = formatSelect.value;
@@ -298,6 +323,7 @@
                 const coords = getCoordinates(e);
                 rawPointsBuffer = [[coords.x, coords.y]]; 
                 
+                // Guardar las propiedades completas del trazo actual
                 paths.push({
                     type: brushTypeInput.value,
                     color: brushColorInput.value,
@@ -305,6 +331,9 @@
                     spacing: parseInt(brushSpacingInput.value),
                     fidelity: parseInt(strokeFidelityInput.value),
                     blur: parseInt(brushBlurInput.value),
+                    hasOutline: enableOutlineInput.checked,
+                    outlineColor: outlineColorInput.value,
+                    outlineWidth: parseInt(outlineWidthInput.value),
                     points: [], 
                     stamps: [], 
                     lastStampPoint: null 
@@ -384,7 +413,6 @@
 
                 ctx.restore();
 
-                // Apagar el redibujado si se acaba de soltar el click en modo estático
                 if (motionType === 'none' && !isDrawing) {
                     needsRedraw = false;
                 }
@@ -407,25 +435,36 @@
                     currentSize = path.size * scaleFactor;
                 } 
                 else if (motionType === 'vibrate') {
-                    // Desplazamiento caótico sutil (+/- 2.5px) para dar sensación de vibración
                     const vibX = (Math.random() - 0.5) * 5;
                     const vibY = (Math.random() - 0.5) * 5;
                     ctx.translate(vibX, vibY);
                 }
                 
-                // Filtro Blur
                 if (path.blur > 0) {
                     let activeBlur = motionType === 'pulse' ? path.blur * (currentSize/path.size) : path.blur;
                     ctx.filter = `blur(${activeBlur}px)`;
                 }
                 
-                ctx.lineWidth = currentSize;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
-                ctx.strokeStyle = path.color;
 
-                // 1. Dibujar línea continua (Regresamos al método clásico 100% compatible)
+                // 1. DIBUJAR LÍNEA CONTINUA
                 if (path.type === 'line') {
+                    // Si el contorno está activado, dibujamos primero una línea más gruesa atrás
+                    if (path.hasOutline) {
+                        ctx.lineWidth = currentSize + (path.outlineWidth * 2);
+                        ctx.strokeStyle = path.outlineColor;
+                        ctx.beginPath();
+                        ctx.moveTo(path.points[0][0], path.points[0][1]);
+                        for(let i = 1; i < path.points.length; i++) {
+                            ctx.lineTo(path.points[i][0], path.points[i][1]);
+                        }
+                        ctx.stroke();
+                    }
+
+                    // Línea principal (Color sólido)
+                    ctx.lineWidth = currentSize;
+                    ctx.strokeStyle = path.color;
                     ctx.beginPath();
                     ctx.moveTo(path.points[0][0], path.points[0][1]);
                     for(let i = 1; i < path.points.length; i++) {
@@ -433,7 +472,7 @@
                     }
                     ctx.stroke();
                 } 
-                // 2. Dibujar formas modulares
+                // 2. DIBUJAR FORMAS MODULARES
                 else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) {
                         let s = path.stamps[i];
@@ -460,41 +499,63 @@
                 
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); ctx.fill();
+                    if(path.hasOutline) strokeShape(path);
                 } else if (type === 'square') {
                     for(let i = 0; i < 3; i++) {
                         ctx.save();
                         let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; 
                         let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5;
-                        
                         const randomRot = (rA - 0.5) * 0.8;
                         const posOffX = (rA - 0.5) * size * 0.4;
                         const posOffY = (rB - 0.5) * size * 0.4;
+                        
                         ctx.rotate(randomRot);
                         ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
+                        if(path.hasOutline) {
+                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
+                            ctx.strokeRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
+                        }
                         ctx.restore();
                     }
                 } else if (type === 'star') {
                     drawStar(0, 0, 5, size/2, size/4);
-                } else if (type === 'ant') {
-                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐜", 0, 0);
-                } else if (type === 'bee') {
-                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐝", 0, 0);
+                    if(path.hasOutline) strokeShape(path);
+                } else if (type === 'ant' || type === 'bee') {
+                    const emoji = type === 'ant' ? "🐜" : "🐝";
+                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; 
+                    if(path.hasOutline) {
+                        ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
+                        ctx.strokeText(emoji, 0, 0);
+                    }
+                    ctx.fillText(emoji, 0, 0);
                 } else if (type === 'disordered') {
                     for(let i = 0; i < 5; i++) {
                         ctx.save();
                         let rA = Math.abs(Math.sin(seedBase + i * 13));
                         let rB = Math.abs(Math.cos(seedBase + i * 17));
-                        
                         const randomW = size * (0.8 + rA * 0.4);
                         const randomH = size * (0.4 + rB * 1.5);
                         const posOffX = (rA - 0.5) * size * 0.3;
                         const posOffY = (rB - 0.5) * size * 0.3;
+                        
                         ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
+                        if(path.hasOutline) {
+                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
+                            ctx.strokeRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
+                        }
                         ctx.restore();
                     }
                 }
 
                 ctx.restore();
+            }
+            
+            // Función auxiliar para contornear formas básicas modulares (Dot, Star)
+            function strokeShape(path) {
+                ctx.lineWidth = path.outlineWidth;
+                ctx.strokeStyle = path.outlineColor;
+                ctx.lineJoin = 'miter'; 
+                ctx.stroke();
             }
 
             function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
@@ -525,6 +586,17 @@
             canvas.addEventListener('pointermove', draw);
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
+
+            // Undo / Deshacer (Cmd+Z o Ctrl+Z)
+            document.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                    e.preventDefault(); // Evita que el navegador haga un undo en un input text
+                    if (paths.length > 0) {
+                        paths.pop(); // Borra el último trazo
+                        needsRedraw = true; // Actualiza el canvas
+                    }
+                }
+            });
 
             // UI Listeners
             formatSelect.addEventListener('change', initCanvas);
