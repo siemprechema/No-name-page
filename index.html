@@ -32,16 +32,17 @@
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* === CURSOR DINÁMICO === */
+        /* === CURSOR DINÁMICO (OPTIMIZADO PARA GPU) === */
         #dynamic-cursor {
             position: fixed;
+            top: 0; left: 0; /* Reset para usar transform */
             pointer-events: none;
             border: 1.5px solid #111111;
             box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
             border-radius: 50%;
-            transform: translate(-50%, -50%);
             z-index: 9999;
             display: none;
+            will-change: transform; /* Le avisa al navegador que esto se moverá mucho */
         }
 
         /* === MENÚ MÓVIL (TOGGLE) === */
@@ -207,22 +208,10 @@
         /* === MEDIA QUERIES (MOBILE RESPONSIVE) === */
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
-            
-            .sidebar {
-                position: absolute;
-                left: -340px; /* Ocultar fuera de la pantalla */
-                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 5px 0 20px rgba(0,0,0,0.2);
-            }
-            
+            .sidebar { position: absolute; left: -340px; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 20px rgba(0,0,0,0.2); }
             .sidebar.active { left: 0; }
-            
             .canvas-area { width: 100vw; }
-            
-            .zoom-toolbar {
-                top: 16px; left: auto; right: 16px; transform: none;
-            }
-
+            .zoom-toolbar { top: 16px; left: auto; right: 16px; transform: none; }
             .action-bar { flex-direction: column; padding: 16px; }
             .btn { width: 100%; }
         }
@@ -272,7 +261,7 @@
                 <h2 class="module-title">1. Color & Style Settings</h2>
                 
                 <div class="control-group" id="brush-type-group">
-                    <label>Brush Type (Only in Brush Mode)</label>
+                    <label>Brush Type</label>
                     <select id="brush-type">
                         <option value="line">Continuous Line</option>
                         <option value="ant">Modular: Ants</option>
@@ -319,7 +308,7 @@
 
                 <div class="control-group">
                     <label>Object Spacing (Modular)</label>
-                    <input type="range" id="brush-spacing" min="1" max="150" value="30">
+                    <input type="range" id="brush-spacing" min="10" max="150" value="30"> 
                 </div>
 
                 <div class="control-group" id="brush-fidelity-group">
@@ -388,7 +377,7 @@
             const canvas = document.getElementById('art-canvas');
             const ctx = canvas.getContext('2d'); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
-            const customCursor = document.getElementById('dynamic-cursor'); // NUEVO
+            const customCursor = document.getElementById('dynamic-cursor');
             
             let isDrawing = false;
             let currentZoom = 1;
@@ -418,18 +407,15 @@
             const motionTypeInput = document.getElementById('motion-type');
             const formatSelect = document.getElementById('canvas-format');
             
-            // Buttons
             const btnClear = document.getElementById('btn-clear');
             const btnExport = document.getElementById('btn-export');
             const btnRecord = document.getElementById('btn-record'); 
-            const btnUndo = document.getElementById('btn-undo'); // NUEVO
-            const btnRedo = document.getElementById('btn-redo'); // NUEVO
+            const btnUndo = document.getElementById('btn-undo'); 
+            const btnRedo = document.getElementById('btn-redo'); 
             
-            // Mobile Menu
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn'); // NUEVO
-            const sidebar = document.getElementById('sidebar'); // NUEVO
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn'); 
+            const sidebar = document.getElementById('sidebar'); 
 
-            // Elementos UI de Color
             const fillSwatch = document.getElementById('color-fill-swatch');
             const strokeSwatch = document.getElementById('color-stroke-swatch');
             const fillColorInput = document.getElementById('fill-color-input');
@@ -441,17 +427,9 @@
             const applyNoneBtn = document.getElementById('apply-none-btn');
             const toolButtons = document.querySelectorAll('.tool-btn');
             
-            // --- Lógica del Menú Móvil ---
-            mobileMenuBtn.addEventListener('click', () => {
-                sidebar.classList.toggle('active');
-            });
-            
-            // Cerrar menú si tocan el canvas en móviles
-            canvas.addEventListener('pointerdown', () => {
-                if(window.innerWidth <= 900) { sidebar.classList.remove('active'); }
-            });
+            mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
+            canvas.addEventListener('pointerdown', () => { if(window.innerWidth <= 900) { sidebar.classList.remove('active'); } });
 
-            // --- Cambio de Herramientas ---
             toolButtons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     toolButtons.forEach(b => { b.classList.remove('btn-solid'); b.classList.add('btn-outline'); });
@@ -463,7 +441,6 @@
                     document.getElementById('brush-size-group').style.opacity = opacity;
                     document.getElementById('brush-fidelity-group').style.opacity = opacity;
                     
-                    // Resetear el cursor cuando cambias de herramienta
                     if(currentMode !== 'brush') { customCursor.style.display = 'none'; canvas.style.cursor = 'crosshair'; }
                 });
             });
@@ -489,7 +466,6 @@
                 return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
             }
 
-            // --- Lógica de la interfaz de color ---
             function updateColorUI() {
                 fillSwatch.style.backgroundColor = colorState.fill.active ? colorState.fill.color : 'white';
                 strokeSwatch.style.backgroundColor = colorState.stroke.active ? colorState.stroke.color : 'white';
@@ -521,27 +497,18 @@
                 const tempActive = colorState.fill.active; colorState.fill.active = colorState.stroke.active; colorState.stroke.active = tempActive;
                 updateColorUI();
             });
-
             resetColorsBtn.addEventListener('click', (e) => {
                 e.stopPropagation(); colorState.fill = { color: '#111111', active: true }; colorState.stroke = { color: '#ffffff', active: false, width: colorState.stroke.width }; updateColorUI();
             });
-
             applyNoneBtn.addEventListener('click', () => {
                 if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI();
             });
 
-            // --- Undo & Redo Lógica ---
-            function executeUndo() {
-                if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; }
-            }
-            function executeRedo() {
-                if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; }
-            }
+            function executeUndo() { if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; } }
+            function executeRedo() { if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; } }
             btnUndo.addEventListener('click', executeUndo);
             btnRedo.addEventListener('click', executeRedo);
 
-
-            // --- Lógica de Dibujo ---
             function startPosition(e) {
                 isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const coords = getCoordinates(e);
@@ -566,12 +533,10 @@
             function endPosition() { isDrawing = false; needsRedraw = true; }
 
             function draw(e) {
-                // LÓGICA DE CURSOR DINÁMICO
+                // OPTIMIZACIÓN DEL CURSOR: translate3d empuja el proceso a la GPU
                 if (currentMode === 'brush') {
                     canvas.style.cursor = 'none';
                     customCursor.style.display = 'block';
-                    customCursor.style.left = e.clientX + 'px';
-                    customCursor.style.top = e.clientY + 'px';
                     
                     const rect = canvas.getBoundingClientRect();
                     const scaleX = rect.width / canvas.width;
@@ -579,6 +544,7 @@
                     
                     customCursor.style.width = visualSize + 'px';
                     customCursor.style.height = visualSize + 'px';
+                    customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
                 }
 
                 if (!isDrawing) return;
@@ -604,6 +570,14 @@
                         const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
                         smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
                         smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                        
+                        // --- OPTIMIZACIÓN DE RENDIMIENTO: DECIMACIÓN DE PUNTOS ---
+                        // Ignoramos micro-movimientos para no saturar la memoria con arrays gigantes
+                        if (currentPath.points.length > 0) {
+                            const lastP = currentPath.points[currentPath.points.length - 1];
+                            const dist = Math.hypot(smoothX - lastP[0], smoothY - lastP[1]);
+                            if (dist < 3) return; // Si se movió menos de 3px, ignoramos.
+                        }
                     }
                     currentPath.points.push([smoothX, smoothY]);
 
