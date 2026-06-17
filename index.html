@@ -167,6 +167,11 @@
                     <label>Brush Color (Fill)</label>
                     <input type="color" id="brush-color" value="#111111">
                 </div>
+
+                <div class="control-group">
+                    <label>Background Color</label>
+                    <input type="color" id="bg-color" value="#bdf271">
+                </div>
                 
                 <div class="control-group">
                     <label>Size / Thickness</label>
@@ -221,17 +226,13 @@
             </section>
 
             <section class="module-section" style="border-bottom: none;">
-                <h2 class="module-title">3. Canvas & Background</h2>
+                <h2 class="module-title">3. Canvas Format</h2>
                 <div class="control-group">
-                    <label>Canvas Format</label>
+                    <label>Canvas Orientation</label>
                     <select id="canvas-format">
                         <option value="3:4">Vertical 3:4</option>
                         <option value="16:9">Horizontal 16:9</option>
                     </select>
-                </div>
-                <div class="control-group">
-                    <label>Background Color</label>
-                    <input type="color" id="bg-color" value="#bdf271">
                 </div>
             </section>
         </aside>
@@ -272,13 +273,13 @@
             // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
             const brushColorInput = document.getElementById('brush-color');
+            const bgColorInput = document.getElementById('bg-color'); // Fondo movido
             const brushSizeInput = document.getElementById('brush-size');
             const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity');
             const brushBlurInput = document.getElementById('brush-blur');
             const motionTypeInput = document.getElementById('motion-type');
             const formatSelect = document.getElementById('canvas-format');
-            const bgColorInput = document.getElementById('bg-color');
             const btnClear = document.getElementById('btn-clear');
             const btnExport = document.getElementById('btn-export');
             
@@ -590,10 +591,10 @@
             // Undo / Deshacer (Cmd+Z o Ctrl+Z)
             document.addEventListener('keydown', (e) => {
                 if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-                    e.preventDefault(); // Evita que el navegador haga un undo en un input text
+                    e.preventDefault(); 
                     if (paths.length > 0) {
-                        paths.pop(); // Borra el último trazo
-                        needsRedraw = true; // Actualiza el canvas
+                        paths.pop(); 
+                        needsRedraw = true; 
                     }
                 }
             });
