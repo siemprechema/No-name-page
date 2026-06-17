@@ -148,7 +148,8 @@
         <aside class="sidebar">
             <header class="header-brand">
                 <h1>22-DDM</h1>
-                <p>Experimental tool</p> </header>
+                <p>Experimental tool</p>
+            </header>
 
             <section class="module-section">
                 <h2 class="module-title">1. Brush Settings</h2>
@@ -157,11 +158,12 @@
                     <label>Brush Type</label>
                     <select id="brush-type">
                         <option value="line">Continuous Line</option>
-                        <option value="ant">Ants</option>
-                        <option value="bee">Bees</option>
-                        <option value="star">Stars</option>
-                        <option value="square">Squares</option>
-                        <option value="dot">Dots</option>
+                        <option value="ant">Modular: Ants</option>
+                        <option value="bee">Modular: Bees</option>
+                        <option value="star">Modular: Stars</option>
+                        <option value="square">Modular: Rough Squares (New!)</option>
+                        <option value="dot">Modular: Dots</option>
+                        <option value="disordered">Modular: Disordered Rectangles (New!)</option>
                     </select>
                 </div>
 
@@ -176,15 +178,16 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Object Spacing</label>
+                    <label>Object Spacing (Modular)</label>
                     <input type="range" id="brush-spacing" min="1" max="150" value="30">
                 </div>
 
                 <div class="control-group">
                     <div class="flex-label">
-                        <label>Fidelity (Smooth &rarr; Accurate)</label>
+                        <label>Fidelity (Line Smoother)</label>
+                        <label>Smooth &rarr; Accurate</label>
                     </div>
-                    <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
+                    <input type="range" id="stroke-fidelity" min="1" max="100" value="70">
                 </div>
             </section>
 
@@ -192,13 +195,22 @@
                 <h2 class="module-title">2. Special Effects</h2>
                 
                 <div class="control-group">
-                    <label>Blur Intensity</label>
+                    <label>Desenfoque (Blur)</label>
                     <input type="range" id="brush-blur" min="0" max="20" value="0">
                 </div>
 
                 <div class="control-group checkbox-wrapper">
                     <input type="checkbox" id="particles">
                     <label for="particles" style="margin-bottom:0; font-size:13px;">Scatter Particles</label>
+                </div>
+
+                <div class="control-group">
+                    <label>Stroke Motion Effect (New!)</label>
+                    <select id="motion-type">
+                        <option value="none">None (Static)</option>
+                        <option value="scroll">Diagonal Continuous Scroll</option>
+                        <option value="pulse">Pulse</option>
+                    </select>
                 </div>
             </section>
 
@@ -248,15 +260,20 @@
             let currentZoom = 1;
             let lastX = 0;
             let lastY = 0;
+            
+            // Re-arquitectura: Almacenamiento de trazos para Motion
+            const paths = []; // [{type, color, size, points: [[x,y]]}]
+            let rawPointsBuffer = []; 
 
             // UI Elements
-            const brushType = document.getElementById('brush-type');
-            const brushColor = document.getElementById('brush-color');
-            const brushSize = document.getElementById('brush-size');
-            const brushSpacing = document.getElementById('brush-spacing');
-            const strokeFidelity = document.getElementById('stroke-fidelity');
-            const brushBlur = document.getElementById('brush-blur');
+            const brushTypeInput = document.getElementById('brush-type');
+            const brushColorInput = document.getElementById('brush-color');
+            const brushSizeInput = document.getElementById('brush-size');
+            const brushSpacingInput = document.getElementById('brush-spacing');
+            const strokeFidelityInput = document.getElementById('stroke-fidelity');
+            const brushBlurInput = document.getElementById('brush-blur');
             const particlesCheck = document.getElementById('particles');
+            const motionTypeInput = document.getElementById('motion-type');
             const formatSelect = document.getElementById('canvas-format');
             const bgColorInput = document.getElementById('bg-color');
             const btnClear = document.getElementById('btn-clear');
@@ -272,7 +289,6 @@
                     canvas.style.aspectRatio = "16/9";
                     canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
                 }
-                fillBackground();
                 resetZoom();
             }
 
@@ -294,67 +310,164 @@
             function startPosition(e) {
                 isDrawing = true;
                 const coords = getCoordinates(e);
-                lastX = coords.x;
-                lastY = coords.y;
-                drawStamp(lastX, lastY, 0); 
+                rawPointsBuffer = [[coords.x, coords.y]]; 
+                
+                // Crea un nuevo trazo
+                paths.push({
+                    type: brushTypeInput.value,
+                    color: brushColorInput.value,
+                    size: parseInt(brushSizeInput.value),
+                    spacing: parseInt(brushSpacingInput.value),
+                    fidelity: parseInt(strokeFidelityInput.value),
+                    blur: parseInt(brushBlurInput.value),
+                    particles: particlesCheck.checked,
+                    points: [] // Se llena en PointerMove
+                });
             }
 
             function endPosition() {
                 isDrawing = false;
-                ctx.beginPath();
             }
 
+            // === EL MOTOR DE DIBUJO REAL-TIME CON FIDELIDAD AVANZADA ===
             function draw(e) {
                 if (!isDrawing) return;
                 e.preventDefault();
 
                 const coords = getCoordinates(e);
-                const x = coords.x;
-                const y = coords.y;
+                const rawX = coords.x;
+                const rawY = coords.y;
                 
-                const type = brushType.value;
-                const spacing = parseInt(brushSpacing.value);
-                const dist = Math.hypot(x - lastX, y - lastY);
+                rawPointsBuffer.push([rawX, rawY]);
 
-                // Lógica de Fidelidad: Si es 100 (Accurate) umbral es 0. Si es 1 (Smooth) umbral es mayor.
-                const fidelityVal = parseInt(strokeFidelity.value);
-                const smoothThreshold = (100 - fidelityVal) * 0.15; 
+                // Algoritmo de Suavizado (Promedio Móvil)
+                const currentPath = paths[paths.length - 1];
+                const fidelityVal = 101 - currentPath.fidelity; // Invertido: Smooth es alto, Accurate es bajo
+                
+                // Si fidelidad es muy alta (Accurate), usa el punto raw. 
+                // Si es baja (Smooth), promedia más puntos atrás.
+                const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); // Promedia entre 1 y 20 puntos atrás
+                let smoothX = rawX;
+                let smoothY = rawY;
 
-                if (type === 'line') {
-                    if (dist >= smoothThreshold) {
-                        ctx.filter = `blur(${brushBlur.value}px)`;
-                        ctx.lineWidth = brushSize.value;
-                        ctx.lineCap = 'round';
-                        ctx.lineJoin = 'round';
-                        ctx.strokeStyle = brushColor.value;
-                        ctx.lineTo(x, y);
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.moveTo(x, y);
-                        lastX = x; lastY = y;
-                        
-                        if(particlesCheck.checked) drawParticles(x, y);
-                    }
-                } 
-                else {
-                    if (dist >= spacing) {
-                        const stampsCount = Math.floor(dist / spacing);
-                        for(let i = 1; i <= stampsCount; i++) {
-                            const nextX = lastX + (x - lastX) * (i / stampsCount);
-                            const nextY = lastY + (y - lastY) * (i / stampsCount);
-                            const angle = Math.atan2(y - lastY, x - lastX); 
-                            drawStamp(nextX, nextY, angle);
-                        }
-                        lastX = x;
-                        lastY = y;
-                    }
+                if (rawPointsBuffer.length > 1) {
+                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
+                    smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
                 }
+
+                currentPath.points.push([smoothX, smoothY]);
             }
 
-            function drawStamp(x, y, angle) {
-                const type = brushType.value;
-                const size = parseInt(brushSize.value);
-                const color = brushColor.value;
+            // === EL MOTOR DE RENDERIZADO Y MOTION (requestAnimationFrame) ===
+            function renderAllPaths() {
+                ctx.save();
+                fillBackground();
+
+                // === LÓGICA DE MOTION SCROLL ===
+                const motionType = motionTypeInput.value;
+                const time = performance.now();
+                let offsetX = 0;
+                let offsetY = 0;
+
+                if (motionType === 'scroll') {
+                    // Desplazamiento continuo diagonal (seamless tiling)
+                    const speed = 0.2; 
+                    const scrollX = (time * speed * 0.7) % canvas.width;
+                    const scrollY = (time * speed) % canvas.height;
+                    
+                    // Seamless Pattern Draw (dibujamos el lienzo 4 veces para crear el loop)
+                    renderPattern(scrollX, scrollY);
+                    renderPattern(scrollX - canvas.width, scrollY);
+                    renderPattern(scrollX, scrollY - canvas.height);
+                    renderPattern(scrollX - canvas.width, scrollY - canvas.height);
+                } 
+                else {
+                    // Renderizado normal o Pulse
+                    paths.forEach(renderPath);
+                }
+
+                ctx.restore();
+                requestAnimationFrame(renderAllPaths);
+            }
+
+            function renderPattern(x, y) {
+                ctx.save();
+                ctx.translate(x, y);
+                paths.forEach(renderPath);
+                ctx.restore();
+            }
+
+            function renderPath(path) {
+                if (path.points.length < 1) return;
+
+                const ctxPath = ctx;
+                ctxPath.save();
+                ctxPath.filter = `blur(${path.blur}px)`;
+                ctxPath.lineWidth = path.size;
+                ctxPath.lineCap = 'round';
+                ctxPath.lineJoin = 'round';
+                ctxPath.strokeStyle = path.color;
+
+                const points = path.points;
+                const motionType = motionTypeInput.value;
+                const time = performance.now();
+
+                // === LÓGICA DE MOTION PULSE ===
+                let currentSize = path.size;
+                if (motionType === 'pulse') {
+                    // Pulso lento de tamaño y desenfoque
+                    const pulseFreq = 0.003;
+                    const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); // +/- 30%
+                    currentSize = path.size * scaleFactor;
+                    ctxPath.lineWidth = currentSize;
+                    
+                    if (path.blur > 0) {
+                        const blurPulse = path.blur * scaleFactor;
+                        ctxPath.filter = `blur(${blurPulse}px)`;
+                    }
+                }
+
+                if (path.type === 'line') {
+                    // Pincel de línea continua
+                    ctxPath.beginPath();
+                    ctxPath.moveTo(points[0][0], points[0][1]);
+                    for(let i = 1; i < points.length; i++) {
+                        ctxPath.lineTo(points[i][0], points[i][1]);
+                    }
+                    ctxPath.stroke();
+                } 
+                else {
+                    // Pinceles Modulares (Hormigas, etc)
+                    const spacing = path.spacing;
+                    let lastX = points[0][0];
+                    let lastY = points[0][1];
+                    drawStampOnPoint(path, lastX, lastY, 0, currentSize); // Primer punto
+
+                    for(let i = 1; i < points.length; i++) {
+                        const x = points[i][0];
+                        const y = points[i][1];
+                        const dist = Math.hypot(x - lastX, y - lastY);
+
+                        if (dist >= spacing) {
+                            const stampsCount = Math.floor(dist / spacing);
+                            for(let j = 1; j <= stampsCount; j++) {
+                                const nextX = lastX + (x - lastX) * (j / stampsCount);
+                                const nextY = lastY + (y - lastY) * (j / stampsCount);
+                                const angle = Math.atan2(y - lastY, x - lastX); // Calcula la rotación
+                                drawStampOnPoint(path, nextX, nextY, angle, currentSize);
+                            }
+                            lastX = x;
+                            lastY = y;
+                        }
+                    }
+                }
+                ctxPath.restore();
+            }
+
+            function drawStampOnPoint(path, x, y, angle, size) {
+                const type = path.type;
+                const color = path.color;
                 
                 ctx.save();
                 ctx.translate(x, y);
@@ -362,84 +475,79 @@
                 if(type === 'ant' || type === 'bee') {
                     ctx.rotate(angle + Math.PI / 2); 
                 } else if(type === 'star' || type === 'square') {
-                    ctx.rotate(angle); 
+                    ctx.rotate(angle); // Rotación ligera según el trazo
+                } else if(type === 'disordered') {
+                    // Los pinceles rugosos no rotan según el trazo para dar la textura
                 }
 
-                ctx.filter = `blur(${brushBlur.value}px)`;
                 ctx.fillStyle = color;
                 
                 if(type === 'dot') {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, size/2, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); ctx.fill();
                 } else if (type === 'square') {
-                    ctx.fillRect(-size/2, -size/2, size, size);
+                    // === NUEVO: ROUGH SQUARES ===
+                    // Múltiples cuadrados desacomodados para textura rugosa
+                    for(let i = 0; i < 3; i++) {
+                        ctx.save();
+                        // Desacomodo aleatorio de posición y rotación
+                        const randomRot = (Math.random() - 0.5) * 0.4;
+                        const posOffX = (Math.random() - 0.5) * size * 0.4;
+                        const posOffY = (Math.random() - 0.5) * size * 0.4;
+                        ctx.rotate(randomRot);
+                        ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
+                        ctx.restore();
+                    }
                 } else if (type === 'star') {
                     drawStar(0, 0, 5, size/2, size/4);
                 } else if (type === 'ant') {
-                    ctx.font = `${size}px sans-serif`;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                    ctx.fillText("🐜", 0, 0);
+                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐜", 0, 0);
                 } else if (type === 'bee') {
-                    ctx.font = `${size}px sans-serif`;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                    ctx.fillText("🐝", 0, 0);
+                    ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("🐝", 0, 0);
+                } else if (type === 'disordered') {
+                    // === NUEVO: DISORDERED RECTANGLES ===
+                    // Múltiples rectángulos aleatorios para textura de cerdas
+                    for(let i = 0; i < 5; i++) {
+                        ctx.save();
+                        // Altura aleatoria (simulando cerdas) y grosor
+                        const randomW = size * (0.8 + Math.random() * 0.4);
+                        const randomH = size * (0.4 + Math.random() * 1.5);
+                        const posOffX = (Math.random() - 0.5) * size * 0.3;
+                        const posOffY = (Math.random() - 0.5) * size * 0.3;
+                        ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
+                        ctx.restore();
+                    }
                 }
 
                 ctx.restore();
 
-                if(particlesCheck.checked) drawParticles(x, y);
+                if(path.particles) drawScatterParticles(path, x, y, size);
             }
 
             function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
                 let rot = Math.PI / 2 * 3;
-                let x = cx; let y = cy;
                 let step = Math.PI / spikes;
                 ctx.beginPath();
                 ctx.moveTo(cx, cy - outerRadius);
                 for (let i = 0; i < spikes; i++) {
-                    x = cx + Math.cos(rot) * outerRadius;
-                    y = cy + Math.sin(rot) * outerRadius;
-                    ctx.lineTo(x, y);
+                    ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
                     rot += step;
-                    x = cx + Math.cos(rot) * innerRadius;
-                    y = cy + Math.sin(rot) * innerRadius;
-                    ctx.lineTo(x, y);
+                    ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
                     rot += step;
                 }
-                ctx.lineTo(cx, cy - outerRadius);
-                ctx.closePath();
-                ctx.fill();
+                ctx.closePath(); ctx.fill();
             }
 
-            // Ajuste 3: Partículas orgánicas/irregulares
-            function drawParticles(x, y) {
-                const size = parseInt(brushSize.value);
+            function drawScatterParticles(path, x, y, size) {
                 ctx.save();
-                ctx.fillStyle = brushColor.value;
-                ctx.filter = `blur(${Math.max(0, brushBlur.value - 2)}px)`; // Ligero desenfoque natural
-                
+                ctx.fillStyle = path.color;
+                ctx.filter = 'blur(1px)';
                 for(let i = 0; i < 3; i++) { 
                     // Esparce las partículas
                     let px = x + (Math.random() - 0.5) * size * 2.5;
                     let py = y + (Math.random() - 0.5) * size * 2.5;
-                    let baseSize = Math.random() * (size * 0.15) + 1; // Tamaño base de la mancha
-                    
-                    ctx.beginPath();
-                    // Crea un polígono irregular de entre 4 y 7 puntos para simular tinta real
-                    let points = Math.floor(Math.random() * 4) + 4; 
-                    for(let j = 0; j < points; j++) {
-                        let angle = (j / points) * Math.PI * 2;
-                        // Radio aleatorio para deformar la figura
-                        let radius = baseSize * (0.4 + Math.random() * 0.8); 
-                        let vx = px + Math.cos(angle) * radius;
-                        let vy = py + Math.sin(angle) * radius;
-                        
-                        if(j === 0) ctx.moveTo(vx, vy);
-                        else ctx.lineTo(vx, vy);
-                    }
-                    ctx.closePath();
-                    ctx.fill();
+                    // Tamaños aleatorios para simular salpicadura de tinta real
+                    let pSize = Math.random() * (size * 0.15); 
+                    ctx.beginPath(); ctx.arc(px, py, pSize, 0, Math.PI * 2); ctx.fill();
                 }
                 ctx.restore();
             }
@@ -454,7 +562,7 @@
             // UI Listeners
             formatSelect.addEventListener('change', initCanvas);
             bgColorInput.addEventListener('input', fillBackground);
-            btnClear.addEventListener('click', fillBackground);
+            btnClear.addEventListener('click', () => paths.length = 0); // Limpia trazos almacenados
 
             // Zoom Controls
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
@@ -463,7 +571,9 @@
             document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } });
             document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
 
+            // Iniciar todo
             initCanvas();
+            requestAnimationFrame(renderAllPaths); // Arrancar el motor de render
         });
     </script>
 </body>
