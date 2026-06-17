@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Modular Studio</title>
+    <title>No experiment time</title>
     <style>
-        /* === ESTILO SUIZO - VARIABLES Y RESET === */
+        /* === ESTILO SUIZO - VARIABLES === */
         :root {
             --bg-color: #fdfdfd;
             --text-color: #000000;
             --border-color: #000000;
-            --accent-color: #e0ff00; /* Un guiño al fondo verde brillante de tus hormigas */
+            --accent-color: #e0ff00;
             --font-main: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         }
 
@@ -18,7 +18,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            border-radius: 0; /* Sin bordes redondeados en Estilo Suizo */
+            border-radius: 0;
         }
 
         body {
@@ -31,207 +31,97 @@
             font-size: 14px;
         }
 
-        /* === LAYOUT PRINCIPAL === */
-        .app-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
+        .app-container { display: flex; width: 100%; height: 100%; }
 
-        /* === BARRA LATERAL (CONTROLES) === */
+        /* === BARRA LATERAL === */
         .sidebar {
-            width: 320px;
-            min-width: 320px;
-            height: 100%;
+            width: 320px; min-width: 320px; height: 100%;
             border-right: 2px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-            overflow-y: auto;
+            display: flex; flex-direction: column;
+            background-color: #ffffff; overflow-y: auto; z-index: 10;
         }
 
         .header-brand {
-            padding: 24px;
-            border-bottom: 2px solid var(--border-color);
-            background-color: var(--text-color);
-            color: white;
+            padding: 24px; border-bottom: 2px solid var(--border-color);
+            background-color: var(--text-color); color: white;
         }
 
-        .header-brand h1 {
-            font-size: 24px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
+        .header-brand h1 { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.5px; }
+        .header-brand p { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
 
-        .header-brand p {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 4px;
-        }
+        .module-section { padding: 24px; border-bottom: 1px solid var(--border-color); }
+        .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 0.5px; }
 
-        .module-section {
-            padding: 24px;
-            border-bottom: 1px solid var(--border-color);
-        }
+        /* === CONTROLES SUIZOS === */
+        .control-group { margin-bottom: 16px; }
+        .control-group label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; }
+        .flex-label { display: flex; justify-content: space-between; }
 
-        .module-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 16px;
-            letter-spacing: 0.5px;
+        select, input[type="color"] {
+            width: 100%; padding: 10px; border: 2px solid var(--border-color);
+            background: transparent; font-family: var(--font-main); font-size: 12px; text-transform: uppercase; cursor: pointer; outline: none;
         }
-
-        /* === COMPONENTES DE FORMULARIO SUIZO === */
-        .control-group {
-            margin-bottom: 16px;
-        }
-
-        .control-group label {
-            display: block;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        input[type="text"], select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid var(--border-color);
-            background: transparent;
-            font-family: var(--font-main);
-            font-size: 12px;
-            text-transform: uppercase;
-            appearance: none;
-            cursor: pointer;
-            outline: none;
-        }
-
+        
         select {
-            background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position-x: 98%;
-            background-position-y: 50%;
-        }
-
-        input[type="text"]:focus, select:focus {
-            background-color: var(--text-color);
-            color: white;
-        }
-
-        /* Sliders Personalizados Estilo Crudo */
-        input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            background: var(--text-color);
-            cursor: pointer;
-            margin-top: -6px;
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: var(--text-color);
-        }
-
-        /* Toggles / Checkboxes */
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-wrapper input[type="checkbox"] {
             appearance: none;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--border-color);
-            cursor: pointer;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat; background-position-x: 98%; background-position-y: 50%;
         }
 
-        .checkbox-wrapper input[type="checkbox"]:checked {
-            background-color: var(--text-color);
-        }
+        input[type="color"] { height: 40px; padding: 2px; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-right: 2px solid var(--border-color); }
 
-        /* === ÁREA DEL LIENZO === */
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 8px;}
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; background: var(--text-color); cursor: pointer; margin-top: -6px; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--text-color); }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; }
+        .checkbox-wrapper input[type="checkbox"] { appearance: none; width: 16px; height: 16px; border: 2px solid var(--border-color); cursor: pointer; }
+        .checkbox-wrapper input[type="checkbox"]:checked { background-color: var(--text-color); }
+
+        /* === ÁREA DEL LIENZO Y ZOOM === */
         .canvas-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #f0f0f0;
-            position: relative;
+            flex-grow: 1; display: flex; flex-direction: column; background-color: #e5e5e5; position: relative; overflow: hidden;
         }
+
+        .zoom-toolbar {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 2px; background: var(--text-color); border: 2px solid var(--border-color); z-index: 5;
+        }
+        .zoom-toolbar button {
+            background: white; border: none; padding: 8px 16px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase;
+        }
+        .zoom-toolbar button:hover { background: var(--accent-color); }
 
         .canvas-container {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            overflow: hidden;
+            flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 60px 20px 20px 20px; overflow: auto;
         }
 
-        /* Simulador del Canvas */
+        /* Envoltorio para manejar el Zoom correctamente */
+        .canvas-wrapper {
+            transition: transform 0.2s ease-out;
+            transform-origin: center center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
         #art-canvas {
-            background-color: #bdf271; /* Verde inspirado en la referencia */
-            width: 100%;
-            max-width: 800px;
-            aspect-ratio: 4/5;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
+            background-color: #bdf271;
+            display: block;
+            /* Estos valores iniciales se sobreescriben con JS, pero aseguran que no se desborde */
+            max-width: 100%; max-height: 80vh; cursor: crosshair;
         }
 
-        /* === BARRA DE ACCIÓN (EXPORTAR) === */
+        /* === BARRA DE EXPORTACIÓN === */
         .action-bar {
-            padding: 24px;
-            border-top: 2px solid var(--border-color);
-            background-color: white;
-            display: flex;
-            gap: 16px;
-            justify-content: flex-end;
+            padding: 24px; border-top: 2px solid var(--border-color); background-color: white; display: flex; gap: 16px; justify-content: flex-end; z-index: 10;
         }
-
-        .btn {
-            padding: 12px 24px;
-            font-family: var(--font-main);
-            font-weight: 700;
-            font-size: 12px;
-            text-transform: uppercase;
-            cursor: pointer;
-            border: 2px solid var(--border-color);
-            transition: all 0.2s ease;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--text-color);
-        }
-
-        .btn-outline:hover {
-            background-color: #f0f0f0;
-        }
-
-        .btn-solid {
-            background-color: var(--text-color);
-            color: white;
-        }
-
-        .btn-solid:hover {
-            background-color: var(--accent-color);
-            color: var(--text-color);
-            border-color: var(--accent-color);
-        }
+        .btn { padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 12px; text-transform: uppercase; cursor: pointer; border: 2px solid var(--border-color); transition: all 0.2s ease; }
+        .btn-outline { background-color: transparent; color: var(--text-color); }
+        .btn-outline:hover { background-color: #f0f0f0; }
+        .btn-solid { background-color: var(--text-color); color: white; }
+        .btn-solid:hover { background-color: var(--accent-color); color: var(--text-color); border-color: var(--accent-color); }
     </style>
 </head>
 <body>
@@ -240,92 +130,203 @@
         
         <aside class="sidebar">
             <header class="header-brand">
-                <h1>Typo/Gen</h1>
-                <p>Motion & Brush Studio v1.0</p>
+                <h1>No experiment time</h1>
+                <p>Motion & Brush Studio</p>
             </header>
 
             <section class="module-section">
-                <h2 class="module-title">1. Entrada de Texto</h2>
+                <h2 class="module-title">1. Pincel & Trazo</h2>
+                
                 <div class="control-group">
-                    <label>Escribe tu frase</label>
-                    <input type="text" placeholder="EJ. SUMMER">
+                    <label>Color del Pincel</label>
+                    <input type="color" id="brush-color" value="#000000">
                 </div>
-            </section>
 
-            <section class="module-section">
-                <h2 class="module-title">2. Pincel & Trazo</h2>
                 <div class="control-group">
                     <label>Tipo de Pincel</label>
-                    <select>
-                        <option>Modular (Objeto)</option>
-                        <option>Textura (Cerdas Secas)</option>
-                        <option>Patrón (Líneas)</option>
+                    <select id="brush-type">
+                        <option value="line">Básico (Línea Continua)</option>
+                        <option value="modular">Modular (Hormigas/Objetos)</option>
                     </select>
                 </div>
+                
                 <div class="control-group">
-                    <label>Biblioteca de Objetos</label>
-                    <select>
-                        <option>Hormigas (Ants)</option>
-                        <option>Estrellas 5 Puntas</option>
-                        <option>Flores Básicas</option>
-                    </select>
+                    <label>Grosor / Densidad</label>
+                    <input type="range" id="brush-size" min="1" max="50" value="10">
                 </div>
+
                 <div class="control-group">
-                    <label>Densidad de Trazado</label>
-                    <input type="range" min="1" max="100" value="85">
+                    <div class="flex-label">
+                        <label>Fidelidad</label>
+                        <label>Smooth &rarr; Accurate</label>
+                    </div>
+                    <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
                 </div>
-                <div class="control-group">
-                    <label>Rotación del Módulo</label>
-                    <input type="range" min="0" max="360" value="45">
-                </div>
+
                 <div class="control-group checkbox-wrapper">
                     <input type="checkbox" id="particles">
-                    <label for="particles" style="margin-bottom:0;">Añadir Partículas Polvo</label>
+                    <label for="particles" style="margin-bottom:0;">Partículas Extra</label>
                 </div>
             </section>
 
             <section class="module-section">
-                <h2 class="module-title">3. Motion Setup</h2>
+                <h2 class="module-title">2. Lienzo & Fondo</h2>
                 <div class="control-group">
-                    <label>Modo de Animación</label>
-                    <select>
-                        <option>Scroll Continuo (Diagonal)</option>
-                        <option>Pulso de Escala</option>
-                        <option>Estático (Sin Movimiento)</option>
+                    <label>Formato (Relación de Aspecto)</label>
+                    <select id="canvas-format">
+                        <option value="3:4">Vertical 3:4 (Retrato)</option>
+                        <option value="16:9">Horizontal 16:9 (Pantalla)</option>
                     </select>
                 </div>
                 <div class="control-group">
-                    <label>Velocidad (Tempo)</label>
-                    <input type="range" min="1" max="100" value="50">
+                    <label>Color de Fondo</label>
+                    <input type="color" id="bg-color" value="#bdf271">
                 </div>
             </section>
 
             <section class="module-section" style="border-bottom: none;">
-                <h2 class="module-title">4. Lienzo de Fondo</h2>
+                <h2 class="module-title">3. Motion Setup</h2>
                 <div class="control-group">
-                    <label>Textura Base</label>
+                    <label>Modo de Animación</label>
                     <select>
-                        <option>Verde Neón Sólido</option>
-                        <option>Papel Acuarela</option>
-                        <option>Dorado Texturizado</option>
+                        <option>Estático (Dibujo libre)</option>
+                        <option>Scroll Continuo</option>
                     </select>
+                </div>
+                <div class="control-group">
+                    <label>Velocidad</label>
+                    <input type="range" min="1" max="100" value="50">
                 </div>
             </section>
         </aside>
 
         <main class="canvas-area">
-            <div class="canvas-container">
-                <div id="art-canvas">
-                    </div>
+            
+            <div class="zoom-toolbar">
+                <button id="btn-zoom-out">-</button>
+                <button id="btn-zoom-fit">FIT SCREEN</button>
+                <button id="btn-zoom-in">+</button>
+            </div>
+
+            <div class="canvas-container" id="canvas-container">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <canvas id="art-canvas"></canvas>
+                </div>
             </div>
 
             <div class="action-bar">
-                <button class="btn btn-outline">Guardar PNG Estático</button>
-                <button class="btn btn-solid">Exportar Animación (MP4)</button>
+                <button class="btn btn-outline" id="btn-clear">Limpiar Lienzo</button>
+                <button class="btn btn-solid">Exportar</button>
             </div>
         </main>
-
     </div>
 
+    <script>
+        // === LÓGICA JAVASCRIPT PRINCIPAL ===
+        const canvas = document.getElementById('art-canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        
+        let isDrawing = false;
+        let currentZoom = 1;
+
+        // Referencias a UI
+        const brushColorInput = document.getElementById('brush-color');
+        const brushSizeInput = document.getElementById('brush-size');
+        const bgColorInput = document.getElementById('bg-color');
+        const formatSelect = document.getElementById('canvas-format');
+        const btnClear = document.getElementById('btn-clear');
+
+        // Inicializar Canvas
+        function initCanvas() {
+            const format = formatSelect.value;
+            // Definimos resoluciones internas altas para que no se pixele
+            if(format === '3:4') {
+                canvas.width = 1200;
+                canvas.height = 1600;
+                canvas.style.aspectRatio = "3/4";
+                canvas.style.maxHeight = "80vh"; 
+                canvas.style.maxWidth = "auto";
+            } else {
+                canvas.width = 1920;
+                canvas.height = 1080;
+                canvas.style.aspectRatio = "16/9";
+                canvas.style.maxHeight = "auto";
+                canvas.style.maxWidth = "80vw";
+            }
+            fillBackground();
+            resetZoom();
+        }
+
+        function fillBackground() {
+            ctx.fillStyle = bgColorInput.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            canvas.style.backgroundColor = bgColorInput.value;
+        }
+
+        // Lógica de Dibujo con Mouse/Tableta
+        function startPosition(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        function endPosition() {
+            isDrawing = false;
+            ctx.beginPath(); // Resetea el trazo para que la próxima línea no se conecte
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            // Calcular coordenadas correctas respetando el zoom y la resolución interna
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;   
+            const scaleY = canvas.height / rect.height; 
+
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            ctx.lineWidth = brushSizeInput.value;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = brushColorInput.value;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        // Eventos de dibujo
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseleave', endPosition); // Corta el trazo si sales del canvas
+
+        // Eventos UI
+        formatSelect.addEventListener('change', initCanvas);
+        bgColorInput.addEventListener('input', fillBackground);
+        btnClear.addEventListener('click', fillBackground);
+
+        // Lógica de Zoom
+        function applyZoom() {
+            canvasWrapper.style.transform = `scale(${currentZoom})`;
+        }
+        function resetZoom() {
+            currentZoom = 1;
+            applyZoom();
+        }
+        document.getElementById('btn-zoom-in').addEventListener('click', () => {
+            currentZoom += 0.2; applyZoom();
+        });
+        document.getElementById('btn-zoom-out').addEventListener('click', () => {
+            if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); }
+        });
+        document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
+
+        // Iniciar
+        initCanvas();
+
+    </script>
 </body>
 </html>
