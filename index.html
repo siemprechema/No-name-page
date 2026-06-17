@@ -56,13 +56,8 @@
         .control-group { margin-bottom: 18px; }
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Checkbox styling */
-        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text-color); }
-        .checkbox-group label { margin-bottom: 0; cursor: pointer; }
 
-        select, input[type="color"] {
+        select, input[type="color"]:not(.illustrator-swatch input) {
             width: 100%; padding: 12px; border: 1.5px solid var(--border-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
             cursor: pointer; outline: none; border-radius: var(--radius-soft);
@@ -77,9 +72,9 @@
             background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%;
         }
 
-        input[type="color"] { height: 44px; padding: 4px; }
-        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px;}
-        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+        input[type="color"]:not(.illustrator-swatch input) { height: 44px; padding: 4px; }
+        input[type="color"]:not(.illustrator-swatch input)::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px;}
+        input[type="color"]:not(.illustrator-swatch input)::-webkit-color-swatch { border: none; border-radius: 6px; }
 
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; }
         input[type="range"]::-webkit-slider-thumb { 
@@ -136,7 +131,6 @@
         .btn-solid { background-color: var(--text-color); color: white; border: 1.5px solid var(--text-color); }
         .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
         
-        /* Botón de grabación */
         .btn-record { background-color: #333; color: white; }
         .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
         
@@ -146,149 +140,109 @@
             100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
         }
 
-        /* === NUEVO CSS PANEL COLOR TIPO ILLUSTRATOR === */
+        /* === CSS CORREGIDO PANEL COLOR TIPO ILLUSTRATOR === */
         #color-ui-container {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
+            justify-content: flex-start;
+            gap: 20px;
+            padding: 12px;
             background: var(--bg-color);
             border-radius: var(--radius-soft);
             border: 1px solid var(--border-color);
-            position: relative;
         }
 
-        /* Swatches */
-        #color-fill-swatch, #color-stroke-swatch {
-            width: 50px;
-            height: 50px;
-            border: 1.5px solid var(--border-color);
+        .swatch-area {
+            position: relative;
+            width: 65px;
+            height: 65px;
+        }
+
+        /* Cuadros de color base */
+        .illustrator-swatch {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--panel-bg);
             border-radius: 4px;
             cursor: pointer;
-            position: relative;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.2s, z-index 0s;
         }
 
-        #color-fill-swatch:hover, #color-stroke-swatch:hover {
+        #color-stroke-swatch { top: 25px; left: 25px; z-index: 1; }
+        #color-fill-swatch { top: 5px; left: 5px; z-index: 2; }
+
+        /* Estado Activo */
+        .illustrator-swatch.active-color {
+            z-index: 3 !important;
             border-color: var(--text-color);
+            box-shadow: 0 0 0 2px var(--accent-color), 0 4px 8px rgba(0,0,0,0.2);
         }
 
-        /* Superposición */
-        #color-fill-swatch {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 2;
+        /* Inputs ocultos */
+        .illustrator-swatch input[type="color"] {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; z-index: 4;
         }
 
-        #color-stroke-swatch {
-            position: absolute;
-            top: 40px;
-            left: 40px;
-            z-index: 1;
-        }
-
-        /* Espacio para la superposición */
-        #color-ui-container {
-            min-height: 110px; /* Asegura espacio para los cuadros superpuestos */
-        }
-
-        /* Indicador Activo */
-        #color-fill-swatch.active-color, #color-stroke-swatch.active-color {
-            border-color: var(--text-color);
-            box-shadow: 0 0 0 2px var(--accent-color);
-        }
-
-        /* Inputs ocultos pero funcionales */
-        #color-fill-swatch input, #color-stroke-swatch input {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            z-index: 3;
-        }
-
-        /* Línea "Ninguno" */
+        /* Línea roja de "Ninguno" */
         .none-line {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: transparent;
-            z-index: 1;
-            display: none; /* Oculto por defecto */
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: hidden; pointer-events: none; display: none;
         }
-
         .none-line::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 0;
-            width: 100%; height: 2px;
-            background: #e74c3c; /* Rojo de error/ninguno */
+            content: ''; position: absolute; top: 50%; left: -10%;
+            width: 120%; height: 2.5px; background: #e74c3c;
             transform: translateY(-50%) rotate(-45deg);
         }
 
-        /* Mostrar línea "Ninguno" cuando esté inactivo */
-        #color-fill-swatch.inactive-color .none-line,
-        #color-stroke-swatch.inactive-color .none-line,
-        .color-control-btn.inactive-color .none-line {
-            display: block;
-        }
+        /* Mostrar la línea si está inactivo */
+        .illustrator-swatch.inactive-color { background-color: #ffffff !important; }
+        .illustrator-swatch.inactive-color .none-line { display: block; }
 
-        /* Color de fondo por defecto cuando es "Ninguno" */
-        #color-fill-swatch.inactive-color,
-        #color-stroke-swatch.inactive-color {
-            background-color: white !important;
-        }
-
-        /* Botones de Control */
-        #color-controls {
+        /* Botoncitos mini (Swap y Reset) */
+        .mini-icon-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            width: 20px; height: 20px;
+            background: transparent; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: #555; transition: color 0.2s; z-index: 5;
+        }
+        .mini-icon-btn:hover { color: var(--text-color); }
+        .mini-icon-btn svg { fill: currentColor; }
+
+        #swap-colors-btn { top: -2px; right: -5px; }
+        #reset-colors-btn { bottom: -5px; left: -5px; }
+
+        /* Icono de reset creado con CSS puro */
+        .reset-icon-swatches {
+            position: relative; width: 12px; height: 12px;
+        }
+        .reset-icon-swatches::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 8px; height: 8px;
+            background: white; border: 1px solid black;
+        }
+        .reset-icon-swatches::after {
+            content: ''; position: absolute; bottom: 0; right: 0; width: 8px; height: 8px;
+            background: black; border: 1px solid white;
         }
 
-        .color-control-btn {
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            background: #eaeaea;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            position: relative;
+        /* Botón de "Aplicar Ninguno" (Cuadrado con línea roja) */
+        .action-btn-none {
+            width: 32px; height: 32px;
+            background: #ffffff; border: 1.5px solid var(--border-color);
+            border-radius: 4px; cursor: pointer; position: relative;
+            transition: all 0.2s ease; overflow: hidden;
         }
-
-        .color-control-btn:hover {
-            background: #f0f0f0;
-            color: var(--text-color);
-            border-color: var(--text-color);
+        .action-btn-none:hover { border-color: #e74c3c; background: #fff0f0; }
+        .none-line-large {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         }
-
-        .color-control-btn.inactive-color {
-            background-color: white;
-            color: #ccc;
-            border-color: #eee;
-        }
-
-        .color-control-btn svg {
-            fill: currentColor;
-        }
-
-        /* Ancho de contorno */
-        #stroke-width-group {
-            margin-top: 110px; /* Desplazar hacia abajo después de los swatches */
+        .none-line-large::after {
+            content: ''; position: absolute; top: 50%; left: -10%;
+            width: 120%; height: 2.5px; background: #e74c3c;
+            transform: translateY(-50%) rotate(-45deg);
         }
     </style>
 </head>
@@ -331,35 +285,44 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Color & Stroke (Illustrator Style)</label>
+                    <label>Color & Stroke</label>
                     <div id="color-ui-container">
-                        <div id="color-fill-swatch" class="active-color">
-                            <input type="color" id="fill-color-input" value="#111111">
-                            <div class="none-line"></div>
-                        </div>
-                        <div id="color-stroke-swatch">
-                            <input type="color" id="stroke-color-input" value="#ffffff">
-                            <div class="none-line"></div>
-                        </div>
-                        <div id="color-controls">
-                            <button class="color-control-btn" id="swap-colors-btn">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 14l-4 4-4-4h3V9c0-1.66-1.34-3-3-3s-3 1.34-3 3v2h-2V9c0-2.76 2.24-5 5-5s5 2.24 5 5v5h3z"/></svg>
-                            </button>
-                            <button class="color-control-btn" id="reset-colors-btn">
-                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10-10-4.48-10-10 4.48-10 10-10zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
-                            </button>
-                            <button class="color-control-btn" id="none-fill-btn" title="None (Fill)">
+                        
+                        <div class="swatch-area">
+                            <div id="color-stroke-swatch" class="illustrator-swatch">
+                                <input type="color" id="stroke-color-input" value="#ffffff">
                                 <div class="none-line"></div>
-                            </button>
-                            <button class="color-control-btn" id="none-stroke-btn" title="None (Stroke)">
+                            </div>
+                            
+                            <div id="color-fill-swatch" class="illustrator-swatch active-color">
+                                <input type="color" id="fill-color-input" value="#111111">
                                 <div class="none-line"></div>
+                            </div>
+
+                            <button class="mini-icon-btn" id="swap-colors-btn" title="Swap colors">
+                                <svg viewBox="0 0 24 24" width="14" height="14"><path d="M19 14l-4 4-4-4h3V9c0-1.66-1.34-3-3-3s-3 1.34-3 3v2h-2V9c0-2.76 2.24-5 5-5s5 2.24 5 5v5h3z"/></svg>
+                            </button>
+
+                            <button class="mini-icon-btn" id="reset-colors-btn" title="Default colors">
+                                <div class="reset-icon-swatches"></div>
                             </button>
                         </div>
-                        <div id="stroke-width-group" style="margin-top: 10px; width: 100%;">
-                            <label style="font-size: 10px; display: block; margin-bottom: 4px;">Outline Width</label>
-                            <input type="range" id="outline-width" min="1" max="25" value="4">
+
+                        <div class="color-actions">
+                            <button class="action-btn-none" id="apply-none-btn" title="Apply None to active">
+                                <div class="none-line-large"></div>
+                            </button>
                         </div>
+
                     </div>
+                </div>
+
+                <div class="control-group" id="stroke-width-group">
+                    <div class="flex-label">
+                        <label>Outline Width</label>
+                        <span id="outline-width-val" style="font-size: 11px; font-weight: bold;">4px</span>
+                    </div>
+                    <input type="range" id="outline-width" min="1" max="25" value="4">
                 </div>
 
                 <div class="control-group">
@@ -452,7 +415,7 @@
             let isDrawing = false;
             let currentZoom = 1;
             let needsRedraw = true; 
-            let currentMode = 'brush'; // 'brush', 'rect', 'ellipse'
+            let currentMode = 'brush'; 
             
             const paths = []; 
             const redoStack = []; 
@@ -462,7 +425,7 @@
             let recordedChunks = [];
             let isRecording = false;
 
-            // Nuevo objeto de estado de color
+            // Estado de color
             let colorState = {
                 activeMode: 'fill', 
                 fill: {
@@ -489,16 +452,16 @@
             const btnExport = document.getElementById('btn-export');
             const btnRecord = document.getElementById('btn-record'); 
             
-            // Nuevos elementos UI
+            // Elementos UI de Color
             const fillSwatch = document.getElementById('color-fill-swatch');
             const strokeSwatch = document.getElementById('color-stroke-swatch');
             const fillColorInput = document.getElementById('fill-color-input');
             const strokeColorInput = document.getElementById('stroke-color-input');
             const outlineWidthInput = document.getElementById('outline-width');
+            const outlineWidthVal = document.getElementById('outline-width-val');
             const swapColorsBtn = document.getElementById('swap-colors-btn');
             const resetColorsBtn = document.getElementById('reset-colors-btn');
-            const noneFillBtn = document.getElementById('none-fill-btn');
-            const noneStrokeBtn = document.getElementById('none-stroke-btn');
+            const applyNoneBtn = document.getElementById('apply-none-btn');
 
             // Tool Buttons
             const toolButtons = document.querySelectorAll('.tool-btn');
@@ -513,7 +476,6 @@
                     e.target.classList.add('btn-solid');
                     currentMode = e.target.id.replace('tool-', '');
                     
-                    // Atenuar configuraciones específicas del pincel si se selecciona una forma
                     const opacity = currentMode === 'brush' ? '1' : '0.4';
                     document.getElementById('brush-type-group').style.opacity = opacity;
                     document.getElementById('brush-size-group').style.opacity = opacity;
@@ -533,7 +495,7 @@
                     canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
                 }
                 resetZoom();
-                updateColorUI(); // Inicializar UI de color
+                updateColorUI(); 
                 needsRedraw = true;
             }
 
@@ -552,44 +514,43 @@
                 };
             }
 
-            // Función para sincronizar la interfaz de color con el estado
+            // --- Lógica de la interfaz de color ---
             function updateColorUI() {
-                // Actualizar colores de swatches
                 fillSwatch.style.backgroundColor = colorState.fill.active ? colorState.fill.color : 'white';
                 strokeSwatch.style.backgroundColor = colorState.stroke.active ? colorState.stroke.color : 'white';
 
-                // Actualizar inputs ocultos
                 fillColorInput.value = colorState.fill.color;
                 strokeColorInput.value = colorState.stroke.color;
 
-                // Actualizar indicador de modo activo
                 fillSwatch.classList.remove('active-color');
                 strokeSwatch.classList.remove('active-color');
-                if (colorState.activeMode === 'fill') fillSwatch.classList.add('active-color');
-                else strokeSwatch.classList.add('active-color');
+                
+                if (colorState.activeMode === 'fill') {
+                    fillSwatch.classList.add('active-color');
+                    fillSwatch.style.zIndex = "3";
+                    strokeSwatch.style.zIndex = "1";
+                } else {
+                    strokeSwatch.classList.add('active-color');
+                    strokeSwatch.style.zIndex = "3";
+                    fillSwatch.style.zIndex = "1";
+                }
 
-                // Actualizar líneas "Ninguno"
                 fillSwatch.classList.toggle('inactive-color', !colorState.fill.active);
                 strokeSwatch.classList.toggle('inactive-color', !colorState.stroke.active);
-                noneFillBtn.classList.toggle('inactive-color', !colorState.fill.active);
-                noneStrokeBtn.classList.toggle('inactive-color', !colorState.stroke.active);
 
-                // Actualizar ancho de contorno
                 outlineWidthInput.value = colorState.stroke.width;
+                if(outlineWidthVal) outlineWidthVal.textContent = colorState.stroke.width + 'px';
                 
-                // Forzar redibujado
                 needsRedraw = true;
             }
 
-            // --- Lógica de la interfaz de color ---
-
-            fillSwatch.addEventListener('click', () => {
-                colorState.activeMode = 'fill';
+            fillSwatch.addEventListener('click', (e) => {
+                if(e.target !== fillColorInput) colorState.activeMode = 'fill';
                 updateColorUI();
             });
 
-            strokeSwatch.addEventListener('click', () => {
-                colorState.activeMode = 'stroke';
+            strokeSwatch.addEventListener('click', (e) => {
+                if(e.target !== strokeColorInput) colorState.activeMode = 'stroke';
                 updateColorUI();
             });
 
@@ -609,10 +570,12 @@
 
             outlineWidthInput.addEventListener('input', (e) => {
                 colorState.stroke.width = parseInt(e.target.value);
+                if(outlineWidthVal) outlineWidthVal.textContent = colorState.stroke.width + 'px';
                 needsRedraw = true;
             });
 
-            swapColorsBtn.addEventListener('click', () => {
+            swapColorsBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); 
                 const tempColor = colorState.fill.color;
                 colorState.fill.color = colorState.stroke.color;
                 colorState.stroke.color = tempColor;
@@ -624,24 +587,21 @@
                 updateColorUI();
             });
 
-            resetColorsBtn.addEventListener('click', () => {
+            resetColorsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 colorState.fill = { color: '#111111', active: true };
-                colorState.stroke = { color: '#ffffff', active: false, width: 4 };
+                colorState.stroke = { color: '#ffffff', active: false, width: colorState.stroke.width };
                 updateColorUI();
             });
 
-            noneFillBtn.addEventListener('click', () => {
-                colorState.fill.active = false;
-                colorState.activeMode = 'fill';
+            applyNoneBtn.addEventListener('click', () => {
+                if (colorState.activeMode === 'fill') {
+                    colorState.fill.active = false;
+                } else {
+                    colorState.stroke.active = false;
+                }
                 updateColorUI();
             });
-
-            noneStrokeBtn.addEventListener('click', () => {
-                colorState.stroke.active = false;
-                colorState.activeMode = 'stroke';
-                updateColorUI();
-            });
-
             // --- Fin lógica color ---
 
             function startPosition(e) {
@@ -656,13 +616,11 @@
                     paths.push({
                         mode: 'brush',
                         type: brushTypeInput.value,
-                        // Usar colorState
                         color: colorState.fill.active ? colorState.fill.color : 'transparent',
                         size: parseInt(brushSizeInput.value),
-                        spacing: 30, 
+                        spacing: parseInt(brushSpacingInput.value), 
                         fidelity: parseInt(strokeFidelityInput.value),
                         blur: parseInt(brushBlurInput.value),
-                        // Usar colorState
                         hasOutline: colorState.stroke.active,
                         outlineColor: colorState.stroke.color,
                         outlineWidth: colorState.stroke.width,
@@ -673,14 +631,11 @@
                         createdAt: performance.now() 
                     });
                 } else {
-                    // Modo Forma (Shape Mode)
                     paths.push({
                         mode: 'shape',
-                        type: currentMode, // 'rect' or 'ellipse'
-                        // Usar colorState
+                        type: currentMode,
                         color: colorState.fill.active ? colorState.fill.color : 'transparent',
                         blur: parseInt(brushBlurInput.value),
-                        // Usar colorState
                         hasOutline: colorState.stroke.active,
                         outlineColor: colorState.stroke.color,
                         outlineWidth: colorState.stroke.width,
@@ -758,7 +713,6 @@
                         }
                     }
                 } else {
-                    // Actualizar Coordenadas de Forma
                     if (e.shiftKey) {
                         let w = rawX - currentPath.origin[0];
                         let h = rawY - currentPath.origin[1];
@@ -803,7 +757,6 @@
                 
                 ctx.save();
 
-                // Físicas Generales
                 if (motionType === 'pulse') {
                     const pulseFreq = 0.003;
                     const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
@@ -829,14 +782,12 @@
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // Dibujar Forma
                 if (path.mode === 'shape') {
-                    ctx.fillStyle = path.color; // Esto es 'transparent' si se desactivó el relleno
+                    ctx.fillStyle = path.color; 
                     let w = path.end[0] - path.origin[0];
                     let h = path.end[1] - path.origin[1];
 
                     if (path.type === 'rect') {
-                        // Sólo rellenar si el color no es transparente
                         if(path.color !== 'transparent') ctx.fillRect(path.origin[0], path.origin[1], w, h);
                         
                         if (path.hasOutline) {
@@ -852,7 +803,6 @@
                         ctx.beginPath();
                         ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
                         
-                        // Sólo rellenar si el color no es transparente
                         if(path.color !== 'transparent') ctx.fill();
                         
                         if (path.hasOutline) {
@@ -864,7 +814,6 @@
                     return;
                 }
 
-                // Dibujar Pincel (Con lógica transparente para modular)
                 if (path.type === 'line') {
                     if (path.hasOutline) {
                         ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor;
@@ -873,11 +822,10 @@
                         ctx.stroke();
                     }
                     ctx.lineWidth = currentSize;
-                    ctx.strokeStyle = path.color; // Esto es 'transparent' si se desactivó el relleno
+                    ctx.strokeStyle = path.color; 
                     ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
                     for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
                     
-                    // Sólo trazar línea si el color no es transparente
                     if(path.color !== 'transparent') ctx.stroke();
                     
                 } else if (path.stamps) {
@@ -899,7 +847,6 @@
 
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
-                    // Sólo rellenar si el color no es transparente
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
                     if(path.hasOutline) strokeShape(path);
                 } else if (type === 'square') {
@@ -912,21 +859,18 @@
                         const posOffY = (rB - 0.5) * size * 0.4;
                         
                         ctx.rotate(randomRot);
-                        // Sólo rellenar si el color no es transparente
                         if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size); }
                         if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size); }
                         ctx.restore();
                     }
                 } else if (type === 'star') {
                     drawStar(0, 0, 5, size/2, size/4);
-                    // Sólo rellenar si el color no es transparente
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
                     if(path.hasOutline) strokeShape(path);
                 } else if (type === 'ant' || type === 'bee') {
                     const emoji = type === 'ant' ? "🐜" : "🐝";
                     ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; 
                     if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeText(emoji, 0, 0); }
-                    // Sólo rellenar emoji si el color no es transparente
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillText(emoji, 0, 0); }
                 } else if (type === 'disordered') {
                     for(let i = 0; i < 5; i++) {
@@ -938,7 +882,6 @@
                         const posOffX = (rA - 0.5) * size * 0.3;
                         const posOffY = (rB - 0.5) * size * 0.3;
                         
-                        // Sólo rellenar si el color no es transparente
                         if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH); }
                         if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH); }
                         ctx.restore();
