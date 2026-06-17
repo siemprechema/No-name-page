@@ -132,10 +132,9 @@
         }
         .btn-outline { background-color: var(--bg-color); color: var(--text-color); border: 1.5px solid var(--border-color); }
         .btn-outline:hover { background-color: #eaeaea; }
-        .btn-solid { background-color: var(--text-color); color: white; }
+        .btn-solid { background-color: var(--text-color); color: white; border: 1.5px solid var(--text-color); }
         .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
         
-        /* Botón de grabación */
         .btn-record { background-color: #333; color: white; }
         .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
         
@@ -157,10 +156,22 @@
             </header>
 
             <section class="module-section">
-                <h2 class="module-title">1. Brush Settings</h2>
-                
+                <h2 class="module-title">Tools & Shapes</h2>
                 <div class="control-group">
-                    <label>Brush Type</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 10px 4px;">🖌️ Brush</button>
+                        <button class="btn btn-outline tool-btn" id="tool-rect" style="flex: 1; padding: 10px 4px;">⬛ Rect</button>
+                        <button class="btn btn-outline tool-btn" id="tool-ellipse" style="flex: 1; padding: 10px 4px;">⭕ Ellipse</button>
+                    </div>
+                    <p style="font-size: 10px; color: #777;">💡 For shapes: Click and drag. Hold <b>Shift</b> for perfect squares/circles.</p>
+                </div>
+            </section>
+
+            <section class="module-section">
+                <h2 class="module-title">1. Color & Style Settings</h2>
+                
+                <div class="control-group" id="brush-type-group">
+                    <label>Brush Type (Only in Brush Mode)</label>
                     <select id="brush-type">
                         <option value="line">Continuous Line</option>
                         <option value="ant">Modular: Ants</option>
@@ -173,7 +184,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Brush Color (Fill)</label>
+                    <label>Fill Color (Brush & Shapes)</label>
                     <input type="color" id="brush-color" value="#111111">
                 </div>
 
@@ -182,9 +193,9 @@
                     <input type="color" id="bg-color" value="#bdf271">
                 </div>
                 
-                <div class="control-group">
+                <div class="control-group" id="brush-size-group">
                     <div class="flex-label">
-                        <label>Size / Thickness</label>
+                        <label>Brush Size / Thickness</label>
                         <label style="text-transform: none; font-size: 10px;">[ ] to adjust</label>
                     </div>
                     <input type="range" id="brush-size" min="5" max="100" value="25">
@@ -205,18 +216,13 @@
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <label>Object Spacing (Modular)</label>
-                    <input type="range" id="brush-spacing" min="1" max="150" value="30">
-                </div>
-
-                <div class="control-group">
+                <div class="control-group" id="brush-fidelity-group">
                     <div class="flex-label">
                         <label>Fidelity (Line Smoother)</label>
                         <label>Smooth &rarr; Accurate</label>
                     </div>
                     <input type="range" id="stroke-fidelity" min="1" max="100" value="70">
-                    <p style="font-size: 10px; color: #777; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° straight lines.</p>
+                    <p style="font-size: 10px; color: #777; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
                 </div>
             </section>
 
@@ -229,7 +235,7 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Stroke Motion Effect</label>
+                    <label>Motion Effect</label>
                     <select id="motion-type">
                         <option value="none">Static</option>
                         <option value="vibrate">Vibration</option>
@@ -267,7 +273,7 @@
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear">Clear Canvas</button>
-                <button class="btn btn-solid" id="btn-export">Export Image (PNG)</button>
+                <button class="btn btn-solid" id="btn-export">Export Image</button>
                 <button class="btn btn-record" id="btn-record">Record Animation</button>
             </div>
         </main>
@@ -282,6 +288,7 @@
             let isDrawing = false;
             let currentZoom = 1;
             let needsRedraw = true; 
+            let currentMode = 'brush'; // 'brush', 'rect', 'ellipse'
             
             const paths = []; 
             const redoStack = []; 
@@ -291,11 +298,11 @@
             let recordedChunks = [];
             let isRecording = false;
 
+            // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
             const brushColorInput = document.getElementById('brush-color');
             const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size');
-            const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity');
             const brushBlurInput = document.getElementById('brush-blur');
             const motionTypeInput = document.getElementById('motion-type');
@@ -307,6 +314,27 @@
             const enableOutlineInput = document.getElementById('enable-outline');
             const outlineColorInput = document.getElementById('outline-color');
             const outlineWidthInput = document.getElementById('outline-width');
+
+            // Tool Buttons
+            const toolButtons = document.querySelectorAll('.tool-btn');
+            
+            toolButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    toolButtons.forEach(b => {
+                        b.classList.remove('btn-solid');
+                        b.classList.add('btn-outline');
+                    });
+                    e.target.classList.remove('btn-outline');
+                    e.target.classList.add('btn-solid');
+                    currentMode = e.target.id.replace('tool-', '');
+                    
+                    // Dim brush-specific settings if a shape is selected
+                    const opacity = currentMode === 'brush' ? '1' : '0.4';
+                    document.getElementById('brush-type-group').style.opacity = opacity;
+                    document.getElementById('brush-size-group').style.opacity = opacity;
+                    document.getElementById('brush-fidelity-group').style.opacity = opacity;
+                });
+            });
 
             function initCanvas() {
                 const format = formatSelect.value;
@@ -344,24 +372,41 @@
                 redoStack.length = 0; 
                 
                 const coords = getCoordinates(e);
-                rawPointsBuffer = [[coords.x, coords.y]]; 
                 
-                paths.push({
-                    type: brushTypeInput.value,
-                    color: brushColorInput.value,
-                    size: parseInt(brushSizeInput.value),
-                    spacing: parseInt(brushSpacingInput.value),
-                    fidelity: parseInt(strokeFidelityInput.value),
-                    blur: parseInt(brushBlurInput.value),
-                    hasOutline: enableOutlineInput.checked,
-                    outlineColor: outlineColorInput.value,
-                    outlineWidth: parseInt(outlineWidthInput.value),
-                    points: [], 
-                    stamps: [], 
-                    lastStampPoint: null,
-                    origin: [coords.x, coords.y], // Almacenamos el punto de inicio para la tecla Shift
-                    createdAt: performance.now() 
-                });
+                if (currentMode === 'brush') {
+                    rawPointsBuffer = [[coords.x, coords.y]]; 
+                    paths.push({
+                        mode: 'brush',
+                        type: brushTypeInput.value,
+                        color: brushColorInput.value,
+                        size: parseInt(brushSizeInput.value),
+                        spacing: 30, // Default spacing
+                        fidelity: parseInt(strokeFidelityInput.value),
+                        blur: parseInt(brushBlurInput.value),
+                        hasOutline: enableOutlineInput.checked,
+                        outlineColor: outlineColorInput.value,
+                        outlineWidth: parseInt(outlineWidthInput.value),
+                        points: [], 
+                        stamps: [], 
+                        lastStampPoint: null,
+                        origin: [coords.x, coords.y], 
+                        createdAt: performance.now() 
+                    });
+                } else {
+                    // Modo Forma (Shape Mode)
+                    paths.push({
+                        mode: 'shape',
+                        type: currentMode, // 'rect' or 'ellipse'
+                        color: brushColorInput.value,
+                        blur: parseInt(brushBlurInput.value),
+                        hasOutline: enableOutlineInput.checked,
+                        outlineColor: outlineColorInput.value,
+                        outlineWidth: parseInt(outlineWidthInput.value),
+                        origin: [coords.x, coords.y],
+                        end: [coords.x, coords.y],
+                        createdAt: performance.now() 
+                    });
+                }
             }
 
             function endPosition() {
@@ -380,143 +425,165 @@
                 let rawX = coords.x;
                 let rawY = coords.y;
 
-                // === LÓGICA DE TECLA SHIFT (ÁNGULOS DE 45°/90°) ===
-                if (e.shiftKey) {
-                    const startX = currentPath.origin[0];
-                    const startY = currentPath.origin[1];
-                    const dx = rawX - startX;
-                    const dy = rawY - startY;
-                    const angle = Math.atan2(dy, dx);
+                if (currentMode === 'brush') {
+                    if (e.shiftKey) {
+                        const startX = currentPath.origin[0];
+                        const startY = currentPath.origin[1];
+                        const dx = rawX - startX;
+                        const dy = rawY - startY;
+                        const angle = Math.atan2(dy, dx);
+                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+                        const dist = Math.hypot(dx, dy);
+                        rawX = startX + Math.cos(snapAngle) * dist;
+                        rawY = startY + Math.sin(snapAngle) * dist;
+                    }
                     
-                    // Redondear a múltiplos de 45° (Pi / 4)
-                    const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
-                    const dist = Math.hypot(dx, dy);
-                    
-                    rawX = startX + Math.cos(snapAngle) * dist;
-                    rawY = startY + Math.sin(snapAngle) * dist;
-                }
-                
-                rawPointsBuffer.push([rawX, rawY]);
+                    rawPointsBuffer.push([rawX, rawY]);
 
-                const fidelityVal = 101 - currentPath.fidelity; 
-                const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
-                let smoothX = rawX;
-                let smoothY = rawY;
+                    const fidelityVal = 101 - currentPath.fidelity; 
+                    const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
+                    let smoothX = rawX;
+                    let smoothY = rawY;
 
-                if (rawPointsBuffer.length > 1) {
-                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
-                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
-                    smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                }
+                    if (rawPointsBuffer.length > 1) {
+                        const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                        smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
+                        smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                    }
 
-                currentPath.points.push([smoothX, smoothY]);
+                    currentPath.points.push([smoothX, smoothY]);
 
-                if (currentPath.type !== 'line') {
-                    if (!currentPath.lastStampPoint) {
-                        currentPath.lastStampPoint = [smoothX, smoothY];
-                        currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
-                    } else {
-                        let lastX = currentPath.lastStampPoint[0];
-                        let lastY = currentPath.lastStampPoint[1];
-                        let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-                        
-                        if (dist >= currentPath.spacing) {
-                            let stampsCount = Math.floor(dist / currentPath.spacing);
-                            for (let j = 1; j <= stampsCount; j++) {
-                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount);
-                                let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
-                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX);
-                                let seed = (currentPath.points.length * 100) + j;
-                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
-                            }
+                    if (currentPath.type !== 'line') {
+                        if (!currentPath.lastStampPoint) {
                             currentPath.lastStampPoint = [smoothX, smoothY];
+                            currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                        } else {
+                            let lastX = currentPath.lastStampPoint[0];
+                            let lastY = currentPath.lastStampPoint[1];
+                            let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                            
+                            if (dist >= currentPath.spacing) {
+                                let stampsCount = Math.floor(dist / currentPath.spacing);
+                                for (let j = 1; j <= stampsCount; j++) {
+                                    let nextX = lastX + (smoothX - lastX) * (j / stampsCount);
+                                    let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                    let angle = Math.atan2(smoothY - lastY, smoothX - lastX);
+                                    let seed = (currentPath.points.length * 100) + j;
+                                    currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
+                                }
+                                currentPath.lastStampPoint = [smoothX, smoothY];
+                            }
                         }
                     }
+                } else {
+                    // Actualizar Coordenadas de Forma
+                    if (e.shiftKey) {
+                        let w = rawX - currentPath.origin[0];
+                        let h = rawY - currentPath.origin[1];
+                        let size = Math.max(Math.abs(w), Math.abs(h));
+                        w = Math.sign(w) * size;
+                        h = Math.sign(h) * size;
+                        rawX = currentPath.origin[0] + w;
+                        rawY = currentPath.origin[1] + h;
+                    }
+                    currentPath.end = [rawX, rawY];
                 }
             }
 
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
-
                 const motionType = motionTypeInput.value;
-                
-                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) {
-                    return; 
-                }
+                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) return; 
 
                 ctx.save();
                 fillBackground();
-
                 paths.forEach(renderPath);
-
                 ctx.restore();
 
-                if (motionType === 'none' && !isDrawing) {
-                    needsRedraw = false;
-                }
+                if (motionType === 'none' && !isDrawing) needsRedraw = false;
             }
 
             function renderPath(path) {
-                if (path.points.length < 1) return;
+                if (path.mode === 'brush' && path.points.length < 1) return;
 
                 const motionType = motionTypeInput.value;
                 const time = performance.now();
-
-                let currentSize = path.size;
+                let currentSize = path.size || 0;
                 
                 ctx.save();
 
+                // Físicas Generales
                 if (motionType === 'pulse') {
                     const pulseFreq = 0.003;
                     const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
-                    currentSize = path.size * scaleFactor;
-                } 
-                else if (motionType === 'vibrate') {
+                    if(path.mode === 'brush') currentSize = path.size * scaleFactor;
+                } else if (motionType === 'vibrate') {
                     const vibX = (Math.random() - 0.5) * 5;
                     const vibY = (Math.random() - 0.5) * 5;
                     ctx.translate(vibX, vibY);
-                }
-                else if (motionType === 'wave') {
+                } else if (motionType === 'wave') {
                     const waveX = Math.sin(time * 0.002 + path.createdAt) * 8;
                     const waveY = Math.cos(time * 0.0015 + path.createdAt) * 8;
                     ctx.translate(waveX, waveY);
-                }
-                else if (motionType === 'gravity') {
+                } else if (motionType === 'gravity') {
                     const age = Math.max(0, time - path.createdAt);
-                    const dropY = age * 0.02; 
-                    ctx.translate(0, dropY);
+                    ctx.translate(0, age * 0.02);
                 }
                 
-                if (path.blur > 0) {
-                    let activeBlur = motionType === 'pulse' ? path.blur * (currentSize/path.size) : path.blur;
-                    ctx.filter = `blur(${activeBlur}px)`;
-                }
+                if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
+                // Dibujar Forma
+                if (path.mode === 'shape') {
+                    ctx.fillStyle = path.color;
+                    let w = path.end[0] - path.origin[0];
+                    let h = path.end[1] - path.origin[1];
+
+                    if (path.type === 'rect') {
+                        ctx.fillRect(path.origin[0], path.origin[1], w, h);
+                        if (path.hasOutline) {
+                            ctx.lineWidth = path.outlineWidth;
+                            ctx.strokeStyle = path.outlineColor;
+                            ctx.strokeRect(path.origin[0], path.origin[1], w, h);
+                        }
+                    } else if (path.type === 'ellipse') {
+                        let cx = path.origin[0] + w / 2;
+                        let cy = path.origin[1] + h / 2;
+                        let rx = Math.abs(w / 2);
+                        let ry = Math.abs(h / 2);
+                        
+                        ctx.beginPath();
+                        ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+                        ctx.fill();
+                        if (path.hasOutline) {
+                            ctx.lineWidth = path.outlineWidth;
+                            ctx.strokeStyle = path.outlineColor;
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.restore();
+                    return;
+                }
+
+                // Dibujar Pincel
                 if (path.type === 'line') {
                     if (path.hasOutline) {
                         ctx.lineWidth = currentSize + (path.outlineWidth * 2);
                         ctx.strokeStyle = path.outlineColor;
                         ctx.beginPath();
                         ctx.moveTo(path.points[0][0], path.points[0][1]);
-                        for(let i = 1; i < path.points.length; i++) {
-                            ctx.lineTo(path.points[i][0], path.points[i][1]);
-                        }
+                        for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
                         ctx.stroke();
                     }
-
                     ctx.lineWidth = currentSize;
                     ctx.strokeStyle = path.color;
                     ctx.beginPath();
                     ctx.moveTo(path.points[0][0], path.points[0][1]);
-                    for(let i = 1; i < path.points.length; i++) {
-                        ctx.lineTo(path.points[i][0], path.points[i][1]);
-                    }
+                    for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
                     ctx.stroke();
-                } 
-                else if (path.stamps) {
+                } else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) {
                         let s = path.stamps[i];
                         drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed);
@@ -528,15 +595,11 @@
 
             function drawStampOnPoint(path, x, y, angle, size, seedBase) {
                 const type = path.type;
-                
                 ctx.save();
                 ctx.translate(x, y);
                 
-                if(type === 'ant' || type === 'bee') {
-                    ctx.rotate(angle + Math.PI / 2); 
-                } else if(type === 'star' || type === 'square') {
-                    ctx.rotate(angle); 
-                }
+                if(type === 'ant' || type === 'bee') ctx.rotate(angle + Math.PI / 2); 
+                else if(type === 'star' || type === 'square') ctx.rotate(angle); 
 
                 ctx.fillStyle = path.color;
                 
@@ -589,7 +652,6 @@
                         ctx.restore();
                     }
                 }
-
                 ctx.restore();
             }
             
