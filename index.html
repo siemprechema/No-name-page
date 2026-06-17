@@ -57,6 +57,7 @@
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
         
+        /* Checkbox styling */
         .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
         .checkbox-group input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--text-color); }
         .checkbox-group label { margin-bottom: 0; cursor: pointer; }
@@ -135,6 +136,7 @@
         .btn-solid { background-color: var(--text-color); color: white; border: 1.5px solid var(--text-color); }
         .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
         
+        /* Botón de grabación */
         .btn-record { background-color: #333; color: white; }
         .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
         
@@ -142,6 +144,151 @@
             0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
             100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        /* === NUEVO CSS PANEL COLOR TIPO ILLUSTRATOR === */
+        #color-ui-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-color);
+            border-radius: var(--radius-soft);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Swatches */
+        #color-fill-swatch, #color-stroke-swatch {
+            width: 50px;
+            height: 50px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #color-fill-swatch:hover, #color-stroke-swatch:hover {
+            border-color: var(--text-color);
+        }
+
+        /* Superposición */
+        #color-fill-swatch {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 2;
+        }
+
+        #color-stroke-swatch {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            z-index: 1;
+        }
+
+        /* Espacio para la superposición */
+        #color-ui-container {
+            min-height: 110px; /* Asegura espacio para los cuadros superpuestos */
+        }
+
+        /* Indicador Activo */
+        #color-fill-swatch.active-color, #color-stroke-swatch.active-color {
+            border-color: var(--text-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+
+        /* Inputs ocultos pero funcionales */
+        #color-fill-swatch input, #color-stroke-swatch input {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 3;
+        }
+
+        /* Línea "Ninguno" */
+        .none-line {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: transparent;
+            z-index: 1;
+            display: none; /* Oculto por defecto */
+        }
+
+        .none-line::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0;
+            width: 100%; height: 2px;
+            background: #e74c3c; /* Rojo de error/ninguno */
+            transform: translateY(-50%) rotate(-45deg);
+        }
+
+        /* Mostrar línea "Ninguno" cuando esté inactivo */
+        #color-fill-swatch.inactive-color .none-line,
+        #color-stroke-swatch.inactive-color .none-line,
+        .color-control-btn.inactive-color .none-line {
+            display: block;
+        }
+
+        /* Color de fondo por defecto cuando es "Ninguno" */
+        #color-fill-swatch.inactive-color,
+        #color-stroke-swatch.inactive-color {
+            background-color: white !important;
+        }
+
+        /* Botones de Control */
+        #color-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .color-control-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            background: #eaeaea;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            position: relative;
+        }
+
+        .color-control-btn:hover {
+            background: #f0f0f0;
+            color: var(--text-color);
+            border-color: var(--text-color);
+        }
+
+        .color-control-btn.inactive-color {
+            background-color: white;
+            color: #ccc;
+            border-color: #eee;
+        }
+
+        .color-control-btn svg {
+            fill: currentColor;
+        }
+
+        /* Ancho de contorno */
+        #stroke-width-group {
+            margin-top: 110px; /* Desplazar hacia abajo después de los swatches */
         }
     </style>
 </head>
@@ -184,8 +331,35 @@
                 </div>
 
                 <div class="control-group">
-                    <label>Fill Color (Brush & Shapes)</label>
-                    <input type="color" id="brush-color" value="#111111">
+                    <label>Color & Stroke (Illustrator Style)</label>
+                    <div id="color-ui-container">
+                        <div id="color-fill-swatch" class="active-color">
+                            <input type="color" id="fill-color-input" value="#111111">
+                            <div class="none-line"></div>
+                        </div>
+                        <div id="color-stroke-swatch">
+                            <input type="color" id="stroke-color-input" value="#ffffff">
+                            <div class="none-line"></div>
+                        </div>
+                        <div id="color-controls">
+                            <button class="color-control-btn" id="swap-colors-btn">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M19 14l-4 4-4-4h3V9c0-1.66-1.34-3-3-3s-3 1.34-3 3v2h-2V9c0-2.76 2.24-5 5-5s5 2.24 5 5v5h3z"/></svg>
+                            </button>
+                            <button class="color-control-btn" id="reset-colors-btn">
+                                <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10-10-4.48-10-10 4.48-10 10-10zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-10c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
+                            </button>
+                            <button class="color-control-btn" id="none-fill-btn" title="None (Fill)">
+                                <div class="none-line"></div>
+                            </button>
+                            <button class="color-control-btn" id="none-stroke-btn" title="None (Stroke)">
+                                <div class="none-line"></div>
+                            </button>
+                        </div>
+                        <div id="stroke-width-group" style="margin-top: 10px; width: 100%;">
+                            <label style="font-size: 10px; display: block; margin-bottom: 4px;">Outline Width</label>
+                            <input type="range" id="outline-width" min="1" max="25" value="4">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="control-group">
@@ -201,19 +375,9 @@
                     <input type="range" id="brush-size" min="5" max="100" value="25">
                 </div>
 
-                <div class="control-group" style="background: var(--bg-color); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="enable-outline">
-                        <label for="enable-outline">Enable Stroke Outline</label>
-                    </div>
-                    <div style="margin-bottom: 8px;">
-                        <label style="font-size: 10px;">Outline Color</label>
-                        <input type="color" id="outline-color" value="#ffffff" style="height: 36px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 10px;">Outline Width</label>
-                        <input type="range" id="outline-width" min="1" max="25" value="4">
-                    </div>
+                <div class="control-group">
+                    <label>Object Spacing (Modular)</label>
+                    <input type="range" id="brush-spacing" min="1" max="150" value="30">
                 </div>
 
                 <div class="control-group" id="brush-fidelity-group">
@@ -273,7 +437,7 @@
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear">Clear Canvas</button>
-                <button class="btn btn-solid" id="btn-export">Export Image</button>
+                <button class="btn btn-solid" id="btn-export">Export Image (PNG)</button>
                 <button class="btn btn-record" id="btn-record">Record Animation</button>
             </div>
         </main>
@@ -298,11 +462,25 @@
             let recordedChunks = [];
             let isRecording = false;
 
+            // Nuevo objeto de estado de color
+            let colorState = {
+                activeMode: 'fill', 
+                fill: {
+                    color: '#111111',
+                    active: true
+                },
+                stroke: {
+                    color: '#ffffff',
+                    active: false,
+                    width: 4
+                }
+            };
+
             // UI Elements
             const brushTypeInput = document.getElementById('brush-type');
-            const brushColorInput = document.getElementById('brush-color');
             const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size');
+            const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity');
             const brushBlurInput = document.getElementById('brush-blur');
             const motionTypeInput = document.getElementById('motion-type');
@@ -311,9 +489,16 @@
             const btnExport = document.getElementById('btn-export');
             const btnRecord = document.getElementById('btn-record'); 
             
-            const enableOutlineInput = document.getElementById('enable-outline');
-            const outlineColorInput = document.getElementById('outline-color');
+            // Nuevos elementos UI
+            const fillSwatch = document.getElementById('color-fill-swatch');
+            const strokeSwatch = document.getElementById('color-stroke-swatch');
+            const fillColorInput = document.getElementById('fill-color-input');
+            const strokeColorInput = document.getElementById('stroke-color-input');
             const outlineWidthInput = document.getElementById('outline-width');
+            const swapColorsBtn = document.getElementById('swap-colors-btn');
+            const resetColorsBtn = document.getElementById('reset-colors-btn');
+            const noneFillBtn = document.getElementById('none-fill-btn');
+            const noneStrokeBtn = document.getElementById('none-stroke-btn');
 
             // Tool Buttons
             const toolButtons = document.querySelectorAll('.tool-btn');
@@ -328,7 +513,7 @@
                     e.target.classList.add('btn-solid');
                     currentMode = e.target.id.replace('tool-', '');
                     
-                    // Dim brush-specific settings if a shape is selected
+                    // Atenuar configuraciones específicas del pincel si se selecciona una forma
                     const opacity = currentMode === 'brush' ? '1' : '0.4';
                     document.getElementById('brush-type-group').style.opacity = opacity;
                     document.getElementById('brush-size-group').style.opacity = opacity;
@@ -348,6 +533,7 @@
                     canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
                 }
                 resetZoom();
+                updateColorUI(); // Inicializar UI de color
                 needsRedraw = true;
             }
 
@@ -366,6 +552,98 @@
                 };
             }
 
+            // Función para sincronizar la interfaz de color con el estado
+            function updateColorUI() {
+                // Actualizar colores de swatches
+                fillSwatch.style.backgroundColor = colorState.fill.active ? colorState.fill.color : 'white';
+                strokeSwatch.style.backgroundColor = colorState.stroke.active ? colorState.stroke.color : 'white';
+
+                // Actualizar inputs ocultos
+                fillColorInput.value = colorState.fill.color;
+                strokeColorInput.value = colorState.stroke.color;
+
+                // Actualizar indicador de modo activo
+                fillSwatch.classList.remove('active-color');
+                strokeSwatch.classList.remove('active-color');
+                if (colorState.activeMode === 'fill') fillSwatch.classList.add('active-color');
+                else strokeSwatch.classList.add('active-color');
+
+                // Actualizar líneas "Ninguno"
+                fillSwatch.classList.toggle('inactive-color', !colorState.fill.active);
+                strokeSwatch.classList.toggle('inactive-color', !colorState.stroke.active);
+                noneFillBtn.classList.toggle('inactive-color', !colorState.fill.active);
+                noneStrokeBtn.classList.toggle('inactive-color', !colorState.stroke.active);
+
+                // Actualizar ancho de contorno
+                outlineWidthInput.value = colorState.stroke.width;
+                
+                // Forzar redibujado
+                needsRedraw = true;
+            }
+
+            // --- Lógica de la interfaz de color ---
+
+            fillSwatch.addEventListener('click', () => {
+                colorState.activeMode = 'fill';
+                updateColorUI();
+            });
+
+            strokeSwatch.addEventListener('click', () => {
+                colorState.activeMode = 'stroke';
+                updateColorUI();
+            });
+
+            fillColorInput.addEventListener('input', (e) => {
+                colorState.fill.color = e.target.value;
+                colorState.fill.active = true; 
+                colorState.activeMode = 'fill'; 
+                updateColorUI();
+            });
+
+            strokeColorInput.addEventListener('input', (e) => {
+                colorState.stroke.color = e.target.value;
+                colorState.stroke.active = true; 
+                colorState.activeMode = 'stroke'; 
+                updateColorUI();
+            });
+
+            outlineWidthInput.addEventListener('input', (e) => {
+                colorState.stroke.width = parseInt(e.target.value);
+                needsRedraw = true;
+            });
+
+            swapColorsBtn.addEventListener('click', () => {
+                const tempColor = colorState.fill.color;
+                colorState.fill.color = colorState.stroke.color;
+                colorState.stroke.color = tempColor;
+
+                const tempActive = colorState.fill.active;
+                colorState.fill.active = colorState.stroke.active;
+                colorState.stroke.active = tempActive;
+
+                updateColorUI();
+            });
+
+            resetColorsBtn.addEventListener('click', () => {
+                colorState.fill = { color: '#111111', active: true };
+                colorState.stroke = { color: '#ffffff', active: false, width: 4 };
+                updateColorUI();
+            });
+
+            noneFillBtn.addEventListener('click', () => {
+                colorState.fill.active = false;
+                colorState.activeMode = 'fill';
+                updateColorUI();
+            });
+
+            noneStrokeBtn.addEventListener('click', () => {
+                colorState.stroke.active = false;
+                colorState.activeMode = 'stroke';
+                updateColorUI();
+            });
+
+            // --- Fin lógica color ---
+
             function startPosition(e) {
                 isDrawing = true;
                 needsRedraw = true;
@@ -378,14 +656,16 @@
                     paths.push({
                         mode: 'brush',
                         type: brushTypeInput.value,
-                        color: brushColorInput.value,
+                        // Usar colorState
+                        color: colorState.fill.active ? colorState.fill.color : 'transparent',
                         size: parseInt(brushSizeInput.value),
-                        spacing: 30, // Default spacing
+                        spacing: 30, 
                         fidelity: parseInt(strokeFidelityInput.value),
                         blur: parseInt(brushBlurInput.value),
-                        hasOutline: enableOutlineInput.checked,
-                        outlineColor: outlineColorInput.value,
-                        outlineWidth: parseInt(outlineWidthInput.value),
+                        // Usar colorState
+                        hasOutline: colorState.stroke.active,
+                        outlineColor: colorState.stroke.color,
+                        outlineWidth: colorState.stroke.width,
                         points: [], 
                         stamps: [], 
                         lastStampPoint: null,
@@ -397,11 +677,13 @@
                     paths.push({
                         mode: 'shape',
                         type: currentMode, // 'rect' or 'ellipse'
-                        color: brushColorInput.value,
+                        // Usar colorState
+                        color: colorState.fill.active ? colorState.fill.color : 'transparent',
                         blur: parseInt(brushBlurInput.value),
-                        hasOutline: enableOutlineInput.checked,
-                        outlineColor: outlineColorInput.value,
-                        outlineWidth: parseInt(outlineWidthInput.value),
+                        // Usar colorState
+                        hasOutline: colorState.stroke.active,
+                        outlineColor: colorState.stroke.color,
+                        outlineWidth: colorState.stroke.width,
                         origin: [coords.x, coords.y],
                         end: [coords.x, coords.y],
                         createdAt: performance.now() 
@@ -492,15 +774,23 @@
 
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
+
                 const motionType = motionTypeInput.value;
-                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) return; 
+                
+                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) {
+                    return; 
+                }
 
                 ctx.save();
                 fillBackground();
+
                 paths.forEach(renderPath);
+
                 ctx.restore();
 
-                if (motionType === 'none' && !isDrawing) needsRedraw = false;
+                if (motionType === 'none' && !isDrawing) {
+                    needsRedraw = false;
+                }
             }
 
             function renderPath(path) {
@@ -508,6 +798,7 @@
 
                 const motionType = motionTypeInput.value;
                 const time = performance.now();
+
                 let currentSize = path.size || 0;
                 
                 ctx.save();
@@ -517,15 +808,18 @@
                     const pulseFreq = 0.003;
                     const scaleFactor = 1 + (Math.sin(time * pulseFreq) * 0.3); 
                     if(path.mode === 'brush') currentSize = path.size * scaleFactor;
-                } else if (motionType === 'vibrate') {
+                } 
+                else if (motionType === 'vibrate') {
                     const vibX = (Math.random() - 0.5) * 5;
                     const vibY = (Math.random() - 0.5) * 5;
                     ctx.translate(vibX, vibY);
-                } else if (motionType === 'wave') {
+                }
+                else if (motionType === 'wave') {
                     const waveX = Math.sin(time * 0.002 + path.createdAt) * 8;
                     const waveY = Math.cos(time * 0.0015 + path.createdAt) * 8;
                     ctx.translate(waveX, waveY);
-                } else if (motionType === 'gravity') {
+                }
+                else if (motionType === 'gravity') {
                     const age = Math.max(0, time - path.createdAt);
                     ctx.translate(0, age * 0.02);
                 }
@@ -537,15 +831,16 @@
 
                 // Dibujar Forma
                 if (path.mode === 'shape') {
-                    ctx.fillStyle = path.color;
+                    ctx.fillStyle = path.color; // Esto es 'transparent' si se desactivó el relleno
                     let w = path.end[0] - path.origin[0];
                     let h = path.end[1] - path.origin[1];
 
                     if (path.type === 'rect') {
-                        ctx.fillRect(path.origin[0], path.origin[1], w, h);
+                        // Sólo rellenar si el color no es transparente
+                        if(path.color !== 'transparent') ctx.fillRect(path.origin[0], path.origin[1], w, h);
+                        
                         if (path.hasOutline) {
-                            ctx.lineWidth = path.outlineWidth;
-                            ctx.strokeStyle = path.outlineColor;
+                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
                             ctx.strokeRect(path.origin[0], path.origin[1], w, h);
                         }
                     } else if (path.type === 'ellipse') {
@@ -556,10 +851,12 @@
                         
                         ctx.beginPath();
                         ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
-                        ctx.fill();
+                        
+                        // Sólo rellenar si el color no es transparente
+                        if(path.color !== 'transparent') ctx.fill();
+                        
                         if (path.hasOutline) {
-                            ctx.lineWidth = path.outlineWidth;
-                            ctx.strokeStyle = path.outlineColor;
+                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
                             ctx.stroke();
                         }
                     }
@@ -567,22 +864,22 @@
                     return;
                 }
 
-                // Dibujar Pincel
+                // Dibujar Pincel (Con lógica transparente para modular)
                 if (path.type === 'line') {
                     if (path.hasOutline) {
-                        ctx.lineWidth = currentSize + (path.outlineWidth * 2);
-                        ctx.strokeStyle = path.outlineColor;
-                        ctx.beginPath();
-                        ctx.moveTo(path.points[0][0], path.points[0][1]);
+                        ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor;
+                        ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
                         for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
                         ctx.stroke();
                     }
                     ctx.lineWidth = currentSize;
-                    ctx.strokeStyle = path.color;
-                    ctx.beginPath();
-                    ctx.moveTo(path.points[0][0], path.points[0][1]);
+                    ctx.strokeStyle = path.color; // Esto es 'transparent' si se desactivó el relleno
+                    ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
                     for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
-                    ctx.stroke();
+                    
+                    // Sólo trazar línea si el color no es transparente
+                    if(path.color !== 'transparent') ctx.stroke();
+                    
                 } else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) {
                         let s = path.stamps[i];
@@ -595,16 +892,15 @@
 
             function drawStampOnPoint(path, x, y, angle, size, seedBase) {
                 const type = path.type;
-                ctx.save();
-                ctx.translate(x, y);
+                ctx.save(); ctx.translate(x, y);
                 
                 if(type === 'ant' || type === 'bee') ctx.rotate(angle + Math.PI / 2); 
                 else if(type === 'star' || type === 'square') ctx.rotate(angle); 
 
-                ctx.fillStyle = path.color;
-                
                 if(type === 'dot') {
-                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
+                    // Sólo rellenar si el color no es transparente
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
                     if(path.hasOutline) strokeShape(path);
                 } else if (type === 'square') {
                     for(let i = 0; i < 3; i++) {
@@ -616,24 +912,22 @@
                         const posOffY = (rB - 0.5) * size * 0.4;
                         
                         ctx.rotate(randomRot);
-                        ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
-                        if(path.hasOutline) {
-                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
-                            ctx.strokeRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size);
-                        }
+                        // Sólo rellenar si el color no es transparente
+                        if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size); }
+                        if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-(size/2) + posOffX, -(size/2) + posOffY, size, size); }
                         ctx.restore();
                     }
                 } else if (type === 'star') {
                     drawStar(0, 0, 5, size/2, size/4);
+                    // Sólo rellenar si el color no es transparente
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
                     if(path.hasOutline) strokeShape(path);
                 } else if (type === 'ant' || type === 'bee') {
                     const emoji = type === 'ant' ? "🐜" : "🐝";
                     ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; 
-                    if(path.hasOutline) {
-                        ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
-                        ctx.strokeText(emoji, 0, 0);
-                    }
-                    ctx.fillText(emoji, 0, 0);
+                    if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeText(emoji, 0, 0); }
+                    // Sólo rellenar emoji si el color no es transparente
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillText(emoji, 0, 0); }
                 } else if (type === 'disordered') {
                     for(let i = 0; i < 5; i++) {
                         ctx.save();
@@ -644,11 +938,9 @@
                         const posOffX = (rA - 0.5) * size * 0.3;
                         const posOffY = (rB - 0.5) * size * 0.3;
                         
-                        ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
-                        if(path.hasOutline) {
-                            ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor;
-                            ctx.strokeRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH);
-                        }
+                        // Sólo rellenar si el color no es transparente
+                        if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH); }
+                        if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-(randomW/2) + posOffX, -(randomH/2) + posOffY, randomW, randomH); }
                         ctx.restore();
                     }
                 }
@@ -673,7 +965,7 @@
                     ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
                     rot += step;
                 }
-                ctx.closePath(); ctx.fill();
+                ctx.closePath();
             }
 
             function exportImage() {
