@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>No experiment time</title>
+    <title>22-DDM</title>
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
@@ -11,11 +11,10 @@
             --panel-bg: #ffffff;
             --text-color: #111111;
             --border-color: #d1d1d1;
-            --accent-color: #bdf271; /* Verde neón suave */
+            --accent-color: #bdf271; 
             --accent-hover: #a8e05a;
-            /* Usamos Acumin Pro con fallbacks seguros */
             --font-main: 'Acumin Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-            --radius-soft: 12px; /* <-- Aquí redondeamos la interfaz */
+            --radius-soft: 12px; 
             --radius-round: 50px;
         }
 
@@ -34,7 +33,7 @@
 
         .app-container { display: flex; width: 100%; height: 100%; }
 
-        /* === BARRA LATERAL (SOFT UI) === */
+        /* === SIDEBAR (SOFT UI / ENGLISH UI) === */
         .sidebar {
             width: 340px; min-width: 340px; height: 100%;
             border-right: 1px solid var(--border-color);
@@ -48,13 +47,13 @@
             background-color: var(--panel-bg);
         }
 
-        .header-brand h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-        .header-brand p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 6px; }
+        .header-brand h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-brand p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 4px; }
 
         .module-section { padding: 24px; border-bottom: 1px solid var(--border-color); }
         .module-title { font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 18px; letter-spacing: 0.5px; color: #333;}
 
-        /* === CONTROLES REDONDEADOS === */
+        /* === UI CONTROLS === */
         .control-group { margin-bottom: 18px; }
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
@@ -78,7 +77,7 @@
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 6px;}
         input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
 
-        /* Sliders más amigables */
+        /* Sliders */
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; }
         input[type="range"]::-webkit-slider-thumb { 
             -webkit-appearance: none; height: 18px; width: 18px; 
@@ -97,7 +96,7 @@
             background-image: url('data:image/svg+xml;utf8,<svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
         }
 
-        /* === ÁREA DEL LIENZO === */
+        /* === CANVAS AREA === */
         .canvas-area {
             flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden;
         }
@@ -129,7 +128,7 @@
             cursor: crosshair; touch-action: none;
         }
 
-        /* === BARRA DE EXPORTACIÓN === */
+        /* === ACTION BAR === */
         .action-bar {
             padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); 
             display: flex; gap: 16px; justify-content: flex-end; z-index: 10;
@@ -150,68 +149,66 @@
         
         <aside class="sidebar">
             <header class="header-brand">
-                <h1>No experiment time</h1>
-                <p>Motion & Brush Studio</p>
+                <h1>22-DDM</h1>
+                <p>Not a Experiment Tool</p>
             </header>
 
             <section class="module-section">
-                <h2 class="module-title">1. Configuración de Pincel</h2>
+                <h2 class="module-title">1. Brush Settings</h2>
                 
                 <div class="control-group">
-                    <label>Tipo de Pincel</label>
+                    <label>Brush Type</label>
                     <select id="brush-type">
-                        <option value="line">Línea Continua</option>
-                        <option value="ant">Modular: Hormigas 🐜</option>
-                        <option value="bee">Modular: Abejas 🐝</option>
-                        <option value="star">Modular: Estrellas ★</option>
-                        <option value="square">Modular: Cuadrados ■</option>
-                        <option value="dot">Modular: Puntos ●</option>
+                        <option value="line">Continuous Line</option>
+                        <option value="ant">Ants</option>
+                        <option value="bee">Bees</option>
+                        <option value="star">Stars</option>
+                        <option value="square">Squares</option>
+                        <option value="dot">Dots</option>
                     </select>
                 </div>
 
                 <div class="control-group">
-                    <label>Color del Pincel</label>
+                    <label>Brush Color</label>
                     <input type="color" id="brush-color" value="#111111">
                 </div>
                 
                 <div class="control-group">
-                    <label>Tamaño / Grosor</label>
+                    <label>Size / Thickness</label>
                     <input type="range" id="brush-size" min="5" max="100" value="25">
                 </div>
 
                 <div class="control-group">
-                    <div class="flex-label">
-                        <label>Distancia entre Objetos</label>
-                    </div>
+                    <label>Object Spacing</label>
                     <input type="range" id="brush-spacing" min="1" max="150" value="30">
                 </div>
             </section>
 
             <section class="module-section">
-                <h2 class="module-title">2. Efectos Especiales</h2>
+                <h2 class="module-title">2. Special Effects</h2>
                 
                 <div class="control-group">
-                    <label>Desenfoque (Blur)</label>
+                    <label>Blur Intensity</label>
                     <input type="range" id="brush-blur" min="0" max="20" value="0">
                 </div>
 
                 <div class="control-group checkbox-wrapper">
                     <input type="checkbox" id="particles">
-                    <label for="particles" style="margin-bottom:0; font-size:13px;">Aventar Partículas</label>
+                    <label for="particles" style="margin-bottom:0; font-size:13px;">Scatter Particles</label>
                 </div>
             </section>
 
             <section class="module-section" style="border-bottom: none;">
-                <h2 class="module-title">3. Lienzo & Fondo</h2>
+                <h2 class="module-title">3. Canvas & Background</h2>
                 <div class="control-group">
-                    <label>Formato de Lienzo</label>
+                    <label>Canvas Format</label>
                     <select id="canvas-format">
                         <option value="3:4">Vertical 3:4</option>
                         <option value="16:9">Horizontal 16:9</option>
                     </select>
                 </div>
                 <div class="control-group">
-                    <label>Color de Fondo</label>
+                    <label>Background Color</label>
                     <input type="color" id="bg-color" value="#bdf271">
                 </div>
             </section>
@@ -219,9 +216,9 @@
 
         <main class="canvas-area">
             <div class="zoom-toolbar">
-                <button id="btn-zoom-out">Menos Zoom</button>
-                <button id="btn-zoom-fit">Ajustar Pantalla</button>
-                <button id="btn-zoom-in">Más Zoom</button>
+                <button id="btn-zoom-out">Zoom Out</button>
+                <button id="btn-zoom-fit">Fit Screen</button>
+                <button id="btn-zoom-in">Zoom In</button>
             </div>
 
             <div class="canvas-container" id="canvas-container">
@@ -231,8 +228,8 @@
             </div>
 
             <div class="action-bar">
-                <button class="btn btn-outline" id="btn-clear">Limpiar Lienzo</button>
-                <button class="btn btn-solid">Exportar Arte</button>
+                <button class="btn btn-outline" id="btn-clear">Clear Canvas</button>
+                <button class="btn btn-solid">Export Artwork</button>
             </div>
         </main>
     </div>
@@ -248,7 +245,7 @@
             let lastX = 0;
             let lastY = 0;
 
-            // Inputs UI
+            // UI Elements
             const brushType = document.getElementById('brush-type');
             const brushColor = document.getElementById('brush-color');
             const brushSize = document.getElementById('brush-size');
@@ -294,7 +291,7 @@
                 const coords = getCoordinates(e);
                 lastX = coords.x;
                 lastY = coords.y;
-                drawStamp(lastX, lastY, 0); // Dibuja el primer sello al tocar
+                drawStamp(lastX, lastY, 0); 
             }
 
             function endPosition() {
@@ -302,7 +299,6 @@
                 ctx.beginPath();
             }
 
-            // === EL MOTOR DE DIBUJO MODULAR Y EFECTOS ===
             function draw(e) {
                 if (!isDrawing) return;
                 e.preventDefault();
@@ -313,12 +309,9 @@
                 
                 const type = brushType.value;
                 const spacing = parseInt(brushSpacing.value);
-
-                // Calcular la distancia entre el último punto y el actual
                 const dist = Math.hypot(x - lastX, y - lastY);
 
                 if (type === 'line') {
-                    // Lógica para línea continua (se ignora el espaciado)
                     ctx.filter = `blur(${brushBlur.value}px)`;
                     ctx.lineWidth = brushSize.value;
                     ctx.lineCap = 'round';
@@ -333,14 +326,12 @@
                     if(particlesCheck.checked) drawParticles(x, y);
                 } 
                 else {
-                    // Lógica para pinceles Modulares (Hormigas, estrellas, etc)
                     if (dist >= spacing) {
-                        // Interpolar para que no queden huecos si mueves el mouse muy rápido
                         const stampsCount = Math.floor(dist / spacing);
                         for(let i = 1; i <= stampsCount; i++) {
                             const nextX = lastX + (x - lastX) * (i / stampsCount);
                             const nextY = lastY + (y - lastY) * (i / stampsCount);
-                            const angle = Math.atan2(y - lastY, x - lastX); // Calcula la rotación
+                            const angle = Math.atan2(y - lastY, x - lastX); 
                             drawStamp(nextX, nextY, angle);
                         }
                         lastX = x;
@@ -356,11 +347,11 @@
                 
                 ctx.save();
                 ctx.translate(x, y);
-                // Si son hormigas o abejas, rotan para seguir la línea.
+                
                 if(type === 'ant' || type === 'bee') {
                     ctx.rotate(angle + Math.PI / 2); 
                 } else if(type === 'star' || type === 'square') {
-                    ctx.rotate(angle); // Rotación ligera según el trazo
+                    ctx.rotate(angle); 
                 }
 
                 ctx.filter = `blur(${brushBlur.value}px)`;
@@ -414,11 +405,10 @@
                 const size = parseInt(brushSize.value);
                 ctx.save();
                 ctx.fillStyle = brushColor.value;
-                for(let i = 0; i < 3; i++) { // Dibuja 3 partículas por cada "paso"
-                    // Esparce las partículas alrededor del trazo
+                for(let i = 0; i < 3; i++) { 
                     let px = x + (Math.random() - 0.5) * size * 2.5;
                     let py = y + (Math.random() - 0.5) * size * 2.5;
-                    let pSize = Math.random() * (size * 0.15); // Partículas pequeñas
+                    let pSize = Math.random() * (size * 0.15); 
                     ctx.beginPath();
                     ctx.arc(px, py, pSize, 0, Math.PI * 2);
                     ctx.fill();
@@ -426,19 +416,19 @@
                 ctx.restore();
             }
 
-            // Listeners de Dibujo
+            // Pointer Event Listeners (Wacom/Mouse)
             canvas.addEventListener('pointerdown', startPosition);
             canvas.addEventListener('pointerup', endPosition);
             canvas.addEventListener('pointermove', draw);
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
 
-            // Listeners UI
+            // UI Listeners
             formatSelect.addEventListener('change', initCanvas);
             bgColorInput.addEventListener('input', fillBackground);
             btnClear.addEventListener('click', fillBackground);
 
-            // Funciones de Zoom
+            // Zoom Controls
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
             function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); });
