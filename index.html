@@ -84,16 +84,6 @@
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e0e0e0; border-radius: 2px; }
 
-        .checkbox-wrapper { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-        .checkbox-wrapper input[type="checkbox"] { 
-            appearance: none; width: 20px; height: 20px; border: 1.5px solid var(--border-color); 
-            cursor: pointer; border-radius: 6px; transition: all 0.2s;
-        }
-        .checkbox-wrapper input[type="checkbox"]:checked { 
-            background-color: var(--text-color); border-color: var(--text-color);
-            background-image: url('data:image/svg+xml;utf8,<svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>');
-        }
-
         /* === CANVAS AREA === */
         .canvas-area {
             flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden;
@@ -200,11 +190,6 @@
                     <input type="range" id="brush-blur" min="0" max="20" value="0">
                 </div>
 
-                <div class="control-group checkbox-wrapper">
-                    <input type="checkbox" id="particles">
-                    <label for="particles" style="margin-bottom:0; font-size:13px;">Scatter Particles</label>
-                </div>
-
                 <div class="control-group">
                     <label>Stroke Motion Effect</label>
                     <select id="motion-type">
@@ -254,13 +239,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('art-canvas');
-            // Eliminado willReadFrequently para reactivar la aceleración por GPU (mucho más rápido)
             const ctx = canvas.getContext('2d'); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
             
             let isDrawing = false;
             let currentZoom = 1;
-            let needsRedraw = true; // Control de Smart Sleep
+            let needsRedraw = true; 
             
             const paths = []; 
             let rawPointsBuffer = []; 
@@ -272,7 +256,6 @@
             const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity');
             const brushBlurInput = document.getElementById('brush-blur');
-            const particlesCheck = document.getElementById('particles');
             const motionTypeInput = document.getElementById('motion-type');
             const formatSelect = document.getElementById('canvas-format');
             const bgColorInput = document.getElementById('bg-color');
@@ -315,7 +298,6 @@
                 const coords = getCoordinates(e);
                 rawPointsBuffer = [[coords.x, coords.y]]; 
                 
-                // Inicializamos la estructura de datos para el caché
                 paths.push({
                     type: brushTypeInput.value,
                     color: brushColorInput.value,
@@ -323,20 +305,18 @@
                     spacing: parseInt(brushSpacingInput.value),
                     fidelity: parseInt(strokeFidelityInput.value),
                     blur: parseInt(brushBlurInput.value),
-                    hasParticles: particlesCheck.checked,
                     points: [], 
-                    stamps: [], // Caché de posiciones modulares pre-calculadas
-                    particlesArr: [], // Caché de partículas pre-calculadas para la línea
-                    lastStampPoint: null // Ayuda al cálculo de distancia
+                    path2D: new Path2D(), // Optimización extrema para líneas continuas
+                    stamps: [], 
+                    lastStampPoint: null 
                 });
             }
 
             function endPosition() {
                 isDrawing = false;
-                needsRedraw = true; // Forzamos un último render
+                needsRedraw = true; 
             }
 
-            // Aquí sucede la magia matemática, SOLO cuando mueves el mouse.
             function draw(e) {
                 if (!isDrawing) return;
                 e.preventDefault();
@@ -363,8 +343,16 @@
 
                 currentPath.points.push([smoothX, smoothY]);
 
-                // PRE-CÁLCULO GEOMÉTRICO (Optimizacion principal)
-                if (currentPath.type !== 'line') {
+                // PRE-CÁLCULO GEOMÉTRICO
+                if (currentPath.type === 'line') {
+                    // Construimos el Path2D nativo mientras dibujamos
+                    if (currentPath.points.length === 1) {
+                        currentPath.path2D.moveTo(smoothX, smoothY);
+                    } else {
+                        currentPath.path2D.lineTo(smoothX, smoothY);
+                    }
+                } else {
+                    // Pre-cálculo para formas modulares
                     if (!currentPath.lastStampPoint) {
                         currentPath.lastStampPoint = [smoothX, smoothY];
                         currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
@@ -385,22 +373,14 @@
                             currentPath.lastStampPoint = [smoothX, smoothY];
                         }
                     }
-                } else {
-                    // Pre-cálculo de partículas para línea continua (cada 4 puntos para no saturar)
-                    if (currentPath.hasParticles && currentPath.points.length % 4 === 0) {
-                        let seed = currentPath.points.length * 10;
-                        currentPath.particlesArr.push({ x: smoothX, y: smoothY, seed: seed });
-                    }
                 }
             }
 
-            // EL MOTOR DE RENDERIZADO ALIGERADO
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
 
                 const motionType = motionTypeInput.value;
                 
-                // SISTEMA SMART SLEEP: Si no hay movimiento y no estamos dibujando, omite el render
                 if (motionType === 'none' && !isDrawing && !needsRedraw) {
                     return; 
                 }
@@ -426,7 +406,6 @@
 
                 ctx.restore();
 
-                // Apagamos el redibujado si terminamos de trazar en modo estático
                 if (motionType === 'none' && !isDrawing) {
                     needsRedraw = false;
                 }
@@ -453,7 +432,7 @@
                 }
 
                 ctx.save();
-                // Optimización del Blur (sólo aplicarlo si es mayor a 0, consume mucha GPU)
+                
                 if (path.blur > 0) {
                     let activeBlur = motionType === 'pulse' ? path.blur * (currentSize/path.size) : path.blur;
                     ctx.filter = `blur(${activeBlur}px)`;
@@ -464,24 +443,11 @@
                 ctx.lineJoin = 'round';
                 ctx.strokeStyle = path.color;
 
-                // 1. Dibujar línea continua (si aplica)
+                // 1. Dibujar línea continua (Usando el Path2D ultra-rápido)
                 if (path.type === 'line') {
-                    ctx.beginPath();
-                    ctx.moveTo(path.points[0][0], path.points[0][1]);
-                    for(let i = 1; i < path.points.length; i++) {
-                        ctx.lineTo(path.points[i][0], path.points[i][1]);
-                    }
-                    ctx.stroke();
-
-                    // Dibujar partículas pre-calculadas de la línea
-                    if (path.hasParticles && path.particlesArr) {
-                        for(let i = 0; i < path.particlesArr.length; i++) {
-                            let p = path.particlesArr[i];
-                            drawScatterParticles(path, p.x, p.y, currentSize, p.seed);
-                        }
-                    }
+                    ctx.stroke(path.path2D);
                 } 
-                // 2. Dibujar formas modulares usando el Caché pre-calculado
+                // 2. Dibujar formas modulares
                 else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) {
                         let s = path.stamps[i];
@@ -543,8 +509,6 @@
                 }
 
                 ctx.restore();
-
-                if(path.hasParticles) drawScatterParticles(path, x, y, size, seedBase);
             }
 
             function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
@@ -559,31 +523,6 @@
                     rot += step;
                 }
                 ctx.closePath(); ctx.fill();
-            }
-
-            function drawScatterParticles(path, x, y, size, seedBase) {
-                ctx.save();
-                ctx.fillStyle = path.color;
-                
-                const time = performance.now() * 0.001; 
-
-                for(let k = 0; k < 3; k++) { 
-                    let seed = seedBase * 13.1 + k * 43.5;
-                    let rA = Math.abs(Math.sin(seed));
-                    let rB = Math.abs(Math.cos(seed * 1.3));
-
-                    let driftX = Math.sin(time + seed) * size * 0.3;
-                    let driftY = Math.cos(time * 0.8 + seed * 1.2) * size * 0.3;
-
-                    let px = x + (rA - 0.5) * size * 2.5 + driftX;
-                    let py = y + (rB - 0.5) * size * 2.5 + driftY;
-                    let pSize = rA * (size * 0.15); 
-
-                    ctx.beginPath(); 
-                    ctx.arc(px, py, pSize, 0, Math.PI * 2); 
-                    ctx.fill();
-                }
-                ctx.restore();
             }
 
             function exportArtwork() {
@@ -601,7 +540,7 @@
             canvas.addEventListener('pointerleave', endPosition);
             canvas.addEventListener('pointercancel', endPosition);
 
-            // UI Listeners (disparan re-render)
+            // UI Listeners
             formatSelect.addEventListener('change', initCanvas);
             bgColorInput.addEventListener('input', () => { needsRedraw = true; });
             motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
