@@ -32,48 +32,29 @@
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* === CURSOR DINÁMICO (OPTIMIZADO PARA GPU) === */
+        /* === CURSOR DINÁMICO === */
         #dynamic-cursor {
-            position: fixed;
-            top: 0; left: 0; /* Reset para usar transform */
-            pointer-events: none;
-            border: 1.5px solid #111111;
-            box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
-            border-radius: 50%;
-            z-index: 9999;
-            display: none;
-            will-change: transform; /* Le avisa al navegador que esto se moverá mucho */
+            position: fixed; top: 0; left: 0; pointer-events: none;
+            border: 1.5px solid #111111; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
+            border-radius: 50%; z-index: 9999; display: none; will-change: transform;
         }
 
-        /* === MENÚ MÓVIL (TOGGLE) === */
+        /* === MENÚ MÓVIL === */
         .mobile-toggle {
-            display: none;
-            position: fixed;
-            top: 16px; left: 16px;
-            z-index: 100;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-soft);
-            padding: 10px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none; position: fixed; top: 16px; left: 16px; z-index: 100;
+            background: var(--panel-bg); border: 1px solid var(--border-color);
+            border-radius: var(--radius-soft); padding: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
         /* === SIDEBAR === */
         .sidebar {
-            width: 340px; min-width: 340px; height: 100%;
-            border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column;
-            background-color: var(--panel-bg); overflow-y: auto; z-index: 10;
+            width: 340px; min-width: 340px; height: 100%; border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; background-color: var(--panel-bg); overflow-y: auto; z-index: 10;
             box-shadow: 2px 0 15px rgba(0,0,0,0.03);
         }
 
-        .header-brand {
-            padding: 24px; border-bottom: 1px solid var(--border-color);
-            background-color: var(--panel-bg);
-        }
-
+        .header-brand { padding: 24px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg); }
         .header-brand h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
         .header-brand p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 4px; }
 
@@ -84,16 +65,16 @@
         .control-group { margin-bottom: 18px; }
         .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #555; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .checkbox-group input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--text-color);}
+        .checkbox-group label { margin-bottom: 0; cursor: pointer; }
 
         select, input[type="color"]:not(.illustrator-swatch input) {
             width: 100%; padding: 12px; border: 1.5px solid var(--border-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
-            cursor: pointer; outline: none; border-radius: var(--radius-soft);
-            transition: border-color 0.2s ease;
+            cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s ease;
         }
-        
         select:focus { border-color: var(--text-color); }
-        
         select {
             appearance: none;
             background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
@@ -106,106 +87,67 @@
 
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; }
         input[type="range"]::-webkit-slider-thumb { 
-            -webkit-appearance: none; height: 18px; width: 18px; 
-            background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -7px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            -webkit-appearance: none; height: 18px; width: 18px; background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -7px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e0e0e0; border-radius: 2px; }
 
-        /* === CSS PANEL COLOR TIPO ILLUSTRATOR === */
-        #color-ui-container {
-            display: flex; align-items: center; justify-content: flex-start; gap: 20px;
-            padding: 12px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color);
-        }
+        /* === CAPAS (LAYERS) === */
+        .layers-container { border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; background: var(--bg-color); max-height: 180px; overflow-y: auto;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;}
+        .layer-item:last-child { border-bottom: none; }
+        .layer-item:hover { background: #eaeaea; }
+        .layer-item.active { background: #e0e0e0; border-left: 4px solid var(--text-color); }
+        .layer-info { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 12px; width: 100%;}
+        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0;}
+        .layer-vis-btn:hover { opacity: 1; }
+        .layer-vis-btn.hidden-layer { opacity: 0.2; }
 
+        /* === COLOR PANEL === */
+        #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 12px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 65px; height: 65px; }
-
-        .illustrator-swatch {
-            position: absolute; width: 40px; height: 40px;
-            border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: transform 0.2s, z-index 0s;
-        }
-
+        .illustrator-swatch { position: absolute; width: 40px; height: 40px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 25px; left: 25px; z-index: 1; }
         #color-fill-swatch { top: 5px; left: 5px; z-index: 2; }
-
         .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 4px 8px rgba(0,0,0,0.2); }
         .illustrator-swatch input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 4; }
-
         .none-line { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; display: none; }
         .none-line::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2.5px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
-
         .illustrator-swatch.inactive-color { background-color: #ffffff !important; }
         .illustrator-swatch.inactive-color .none-line { display: block; }
-
-        .mini-icon-btn {
-            position: absolute; width: 20px; height: 20px; background: transparent; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; color: #555; transition: color 0.2s; z-index: 5;
-        }
+        .mini-icon-btn { position: absolute; width: 20px; height: 20px; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; transition: color 0.2s; z-index: 5; }
         .mini-icon-btn:hover { color: var(--text-color); }
         .mini-icon-btn svg { fill: currentColor; }
-
         #swap-colors-btn { top: -2px; right: -5px; }
         #reset-colors-btn { bottom: -5px; left: -5px; }
-
         .reset-icon-swatches { position: relative; width: 12px; height: 12px; }
         .reset-icon-swatches::before { content: ''; position: absolute; top: 0; left: 0; width: 8px; height: 8px; background: white; border: 1px solid black; }
         .reset-icon-swatches::after { content: ''; position: absolute; bottom: 0; right: 0; width: 8px; height: 8px; background: black; border: 1px solid white; }
-
-        .action-btn-none {
-            width: 32px; height: 32px; background: #ffffff; border: 1.5px solid var(--border-color);
-            border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden;
-        }
+        .action-btn-none { width: 32px; height: 32px; background: #ffffff; border: 1.5px solid var(--border-color); border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; }
         .action-btn-none:hover { border-color: #e74c3c; background: #fff0f0; }
         .none-line-large { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .none-line-large::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2.5px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
 
         /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
-
-        .zoom-toolbar {
-            position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px;
-            border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 5;
-            backdrop-filter: blur(5px);
-        }
-        .zoom-toolbar button {
-            background: transparent; border: none; padding: 8px 16px; font-family: var(--font-main); 
-            font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s;
-        }
+        .zoom-toolbar { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(255,255,255,0.9); padding: 6px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 5; backdrop-filter: blur(5px); }
+        .zoom-toolbar button { background: transparent; border: none; padding: 8px 16px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
         .zoom-toolbar button:hover { background: #f0f0f0; }
-
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
-
-        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; }
-
+        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; position: relative; }
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: white; cursor: crosshair; }
 
         /* === ACTION BAR === */
-        .action-bar {
-            padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); 
-            display: flex; gap: 16px; justify-content: flex-end; z-index: 10;
-        }
-        .btn { 
-            padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 13px; 
-            cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
+        .action-bar { padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 16px; justify-content: flex-end; z-index: 10; }
+        .btn { padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 13px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-outline { background-color: var(--bg-color); color: var(--text-color); border: 1.5px solid var(--border-color); }
         .btn-outline:hover { background-color: #eaeaea; }
         .btn-solid { background-color: var(--text-color); color: white; border: 1.5px solid var(--text-color); }
         .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
-        
         .btn-record { background-color: #333; color: white; }
         .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
-        
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-        }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
-        /* === MEDIA QUERIES (MOBILE RESPONSIVE) === */
+        /* === MEDIA QUERIES === */
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
             .sidebar { position: absolute; left: -340px; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 20px rgba(0,0,0,0.2); }
@@ -222,7 +164,6 @@
     <button id="mobile-menu-btn" class="mobile-toggle" title="Toggle Menu">
         <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
     </button>
-
     <div id="dynamic-cursor"></div>
 
     <div class="app-container">
@@ -230,30 +171,34 @@
         <aside class="sidebar" id="sidebar">
             <header class="header-brand">
                 <h1>22-DDM</h1>
-                <p>Experimental tool</p>
+                <p>Pro Experimental Tool</p>
             </header>
 
             <section class="module-section">
-                <h2 class="module-title">Tools & Shapes</h2>
+                <h2 class="module-title">Tools & Layers</h2>
 
                 <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                     <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px;">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> 
-                        Undo
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
                     <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px;">
-                        Redo 
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
+                        Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
 
                 <div class="control-group">
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                         <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 10px 4px;">🖌️ Brush</button>
                         <button class="btn btn-outline tool-btn" id="tool-rect" style="flex: 1; padding: 10px 4px;">⬛ Rect</button>
                         <button class="btn btn-outline tool-btn" id="tool-ellipse" style="flex: 1; padding: 10px 4px;">⭕ Ellipse</button>
                     </div>
-                    <p style="font-size: 10px; color: #777;">💡 For shapes: Click and drag. Hold <b>Shift</b> for perfect squares/circles.</p>
+                </div>
+
+                <div class="control-group">
+                    <label>Layers</label>
+                    <div class="layers-container" id="layers-list">
+                        </div>
+                    <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 10px; padding: 8px; font-size: 11px;">+ New Layer</button>
                 </div>
             </section>
 
@@ -348,6 +293,10 @@
                         <option value="16:9">Horizontal 16:9</option>
                     </select>
                 </div>
+                <div class="control-group checkbox-group" style="margin-top: 12px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px;">
+                    <input type="checkbox" id="toggle-grid">
+                    <label for="toggle-grid">Show 8x8 Align Grid</label>
+                </div>
             </section>
         </aside>
 
@@ -365,8 +314,8 @@
             </div>
 
             <div class="action-bar">
-                <button class="btn btn-outline" id="btn-clear">Clear Canvas</button>
-                <button class="btn btn-solid" id="btn-export">Export Image (PNG)</button>
+                <button class="btn btn-outline" id="btn-clear" title="Clears only active layer">Clear Layer</button>
+                <button class="btn btn-solid" id="btn-export">Export Image</button>
                 <button class="btn btn-record" id="btn-record">Record Animation</button>
             </div>
         </main>
@@ -384,48 +333,102 @@
             let needsRedraw = true; 
             let currentMode = 'brush'; 
             
-            const paths = []; 
+            let paths = []; 
             const redoStack = []; 
             let rawPointsBuffer = []; 
 
-            let mediaRecorder;
-            let recordedChunks = [];
-            let isRecording = false;
+            // --- LÓGICA DE CAPAS (LAYERS) ---
+            let layers = [{ id: 'layer-1', name: 'Layer 1', visible: true }];
+            let activeLayerId = 'layer-1';
+            let layerCounter = 1;
+            const layersListEl = document.getElementById('layers-list');
 
-            // Estado de color
-            let colorState = {
-                activeMode: 'fill', fill: { color: '#111111', active: true }, stroke: { color: '#ffffff', active: false, width: 4 }
-            };
+            function renderLayersUI() {
+                layersListEl.innerHTML = '';
+                // Renderizamos en reversa para que la capa más alta salga arriba en el menú
+                [...layers].reverse().forEach(layer => {
+                    const div = document.createElement('div');
+                    div.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
+                    div.innerHTML = `
+                        <div class="layer-info" data-id="${layer.id}">
+                            <button class="layer-vis-btn ${layer.visible ? '' : 'hidden-layer'}" data-action="toggle">${layer.visible ? '👁️' : '🕶️'}</button>
+                            <span>${layer.name}</span>
+                        </div>
+                    `;
+                    
+                    div.querySelector('.layer-info').addEventListener('click', (e) => {
+                        if(e.target.tagName === 'BUTTON') {
+                            layer.visible = !layer.visible;
+                            needsRedraw = true;
+                        } else {
+                            activeLayerId = layer.id;
+                        }
+                        renderLayersUI();
+                    });
+                    layersListEl.appendChild(div);
+                });
+            }
 
-            // UI Elements
-            const brushTypeInput = document.getElementById('brush-type');
-            const bgColorInput = document.getElementById('bg-color');
-            const brushSizeInput = document.getElementById('brush-size');
-            const brushSpacingInput = document.getElementById('brush-spacing');
-            const strokeFidelityInput = document.getElementById('stroke-fidelity');
-            const brushBlurInput = document.getElementById('brush-blur');
-            const motionTypeInput = document.getElementById('motion-type');
-            const formatSelect = document.getElementById('canvas-format');
+            document.getElementById('btn-add-layer').addEventListener('click', () => {
+                layerCounter++;
+                const newLayer = { id: `layer-${layerCounter}`, name: `Layer ${layerCounter}`, visible: true };
+                layers.push(newLayer);
+                activeLayerId = newLayer.id;
+                renderLayersUI();
+            });
+
+            // Inicializar menú de capas
+            renderLayersUI();
+
+            // --- CONFIGURACIÓN DE CUADRÍCULA (GRID) ---
+            const gridToggle = document.getElementById('toggle-grid');
+            gridToggle.addEventListener('change', () => { needsRedraw = true; });
+
+            function drawGrid() {
+                if (!gridToggle.checked) return;
+                ctx.save();
+                
+                // Líneas centrales (Cruz)
+                ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.beginPath();
+                ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
+                ctx.moveTo(0, canvas.height/2); ctx.lineTo(canvas.width, canvas.height/2);
+                ctx.stroke();
+
+                // Octavos
+                ctx.lineWidth = 0.5; ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.beginPath();
+                for(let i=1; i<8; i++){
+                    if(i===4) continue; // Salta el centro
+                    ctx.moveTo((canvas.width/8)*i, 0); ctx.lineTo((canvas.width/8)*i, canvas.height);
+                }
+                for(let i=1; i<8; i++){
+                    if(i===4) continue;
+                    ctx.moveTo(0, (canvas.height/8)*i); ctx.lineTo(canvas.width, (canvas.height/8)*i);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // --- VARIABLES DE MEDIOS Y UI ---
+            let mediaRecorder; let recordedChunks = []; let isRecording = false;
+
+            let colorState = { activeMode: 'fill', fill: { color: '#111111', active: true }, stroke: { color: '#ffffff', active: false, width: 4 } };
+
+            const brushTypeInput = document.getElementById('brush-type'); const bgColorInput = document.getElementById('bg-color');
+            const brushSizeInput = document.getElementById('brush-size'); const brushSpacingInput = document.getElementById('brush-spacing');
+            const strokeFidelityInput = document.getElementById('stroke-fidelity'); const brushBlurInput = document.getElementById('brush-blur');
+            const motionTypeInput = document.getElementById('motion-type'); const formatSelect = document.getElementById('canvas-format');
             
-            const btnClear = document.getElementById('btn-clear');
-            const btnExport = document.getElementById('btn-export');
-            const btnRecord = document.getElementById('btn-record'); 
-            const btnUndo = document.getElementById('btn-undo'); 
-            const btnRedo = document.getElementById('btn-redo'); 
-            
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn'); 
-            const sidebar = document.getElementById('sidebar'); 
+            const btnClear = document.getElementById('btn-clear'); const btnExport = document.getElementById('btn-export');
+            const btnRecord = document.getElementById('btn-record'); const btnUndo = document.getElementById('btn-undo'); const btnRedo = document.getElementById('btn-redo'); 
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn'); const sidebar = document.getElementById('sidebar'); 
 
-            const fillSwatch = document.getElementById('color-fill-swatch');
-            const strokeSwatch = document.getElementById('color-stroke-swatch');
-            const fillColorInput = document.getElementById('fill-color-input');
-            const strokeColorInput = document.getElementById('stroke-color-input');
-            const outlineWidthInput = document.getElementById('outline-width');
-            const outlineWidthVal = document.getElementById('outline-width-val');
-            const swapColorsBtn = document.getElementById('swap-colors-btn');
-            const resetColorsBtn = document.getElementById('reset-colors-btn');
-            const applyNoneBtn = document.getElementById('apply-none-btn');
-            const toolButtons = document.querySelectorAll('.tool-btn');
+            const fillSwatch = document.getElementById('color-fill-swatch'); const strokeSwatch = document.getElementById('color-stroke-swatch');
+            const fillColorInput = document.getElementById('fill-color-input'); const strokeColorInput = document.getElementById('stroke-color-input');
+            const outlineWidthInput = document.getElementById('outline-width'); const outlineWidthVal = document.getElementById('outline-width-val');
+            const swapColorsBtn = document.getElementById('swap-colors-btn'); const resetColorsBtn = document.getElementById('reset-colors-btn');
+            const applyNoneBtn = document.getElementById('apply-none-btn'); const toolButtons = document.querySelectorAll('.tool-btn');
             
             mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
             canvas.addEventListener('pointerdown', () => { if(window.innerWidth <= 900) { sidebar.classList.remove('active'); } });
@@ -440,29 +443,21 @@
                     document.getElementById('brush-type-group').style.opacity = opacity;
                     document.getElementById('brush-size-group').style.opacity = opacity;
                     document.getElementById('brush-fidelity-group').style.opacity = opacity;
-                    
                     if(currentMode !== 'brush') { customCursor.style.display = 'none'; canvas.style.cursor = 'crosshair'; }
                 });
             });
 
             function initCanvas() {
                 const format = formatSelect.value;
-                if(format === '3:4') {
-                    canvas.width = 1200; canvas.height = 1600; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto";
-                } else {
-                    canvas.width = 1920; canvas.height = 1080; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw";
-                }
+                if(format === '3:4') { canvas.width = 1200; canvas.height = 1600; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; } 
+                else { canvas.width = 1920; canvas.height = 1080; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; }
                 resetZoom(); updateColorUI(); needsRedraw = true;
             }
 
-            function fillBackground() {
-                ctx.fillStyle = bgColorInput.value; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
+            function fillBackground() { ctx.fillStyle = bgColorInput.value; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
             function getCoordinates(e) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;   
-                const scaleY = canvas.height / rect.height; 
+                const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; 
                 return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
             }
 
@@ -472,16 +467,10 @@
                 fillColorInput.value = colorState.fill.color; strokeColorInput.value = colorState.stroke.color;
                 fillSwatch.classList.remove('active-color'); strokeSwatch.classList.remove('active-color');
                 
-                if (colorState.activeMode === 'fill') {
-                    fillSwatch.classList.add('active-color'); fillSwatch.style.zIndex = "3"; strokeSwatch.style.zIndex = "1";
-                } else {
-                    strokeSwatch.classList.add('active-color'); strokeSwatch.style.zIndex = "3"; fillSwatch.style.zIndex = "1";
-                }
-
-                fillSwatch.classList.toggle('inactive-color', !colorState.fill.active);
-                strokeSwatch.classList.toggle('inactive-color', !colorState.stroke.active);
-                outlineWidthInput.value = colorState.stroke.width;
-                if(outlineWidthVal) outlineWidthVal.textContent = colorState.stroke.width + 'px';
+                if (colorState.activeMode === 'fill') { fillSwatch.classList.add('active-color'); fillSwatch.style.zIndex = "3"; strokeSwatch.style.zIndex = "1"; } 
+                else { strokeSwatch.classList.add('active-color'); strokeSwatch.style.zIndex = "3"; fillSwatch.style.zIndex = "1"; }
+                fillSwatch.classList.toggle('inactive-color', !colorState.fill.active); strokeSwatch.classList.toggle('inactive-color', !colorState.stroke.active);
+                outlineWidthInput.value = colorState.stroke.width; if(outlineWidthVal) outlineWidthVal.textContent = colorState.stroke.width + 'px';
                 needsRedraw = true;
             }
 
@@ -497,71 +486,68 @@
                 const tempActive = colorState.fill.active; colorState.fill.active = colorState.stroke.active; colorState.stroke.active = tempActive;
                 updateColorUI();
             });
-            resetColorsBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); colorState.fill = { color: '#111111', active: true }; colorState.stroke = { color: '#ffffff', active: false, width: colorState.stroke.width }; updateColorUI();
-            });
-            applyNoneBtn.addEventListener('click', () => {
-                if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI();
-            });
+            resetColorsBtn.addEventListener('click', (e) => { e.stopPropagation(); colorState.fill = { color: '#111111', active: true }; colorState.stroke = { color: '#ffffff', active: false, width: colorState.stroke.width }; updateColorUI(); });
+            applyNoneBtn.addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
 
             function executeUndo() { if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; } }
             function executeRedo() { if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; } }
-            btnUndo.addEventListener('click', executeUndo);
-            btnRedo.addEventListener('click', executeRedo);
+            btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
 
             function startPosition(e) {
+                // Verificar que la capa activa es visible antes de dibujar
+                const activeLayerInfo = layers.find(l => l.id === activeLayerId);
+                if(!activeLayerInfo || !activeLayerInfo.visible) return;
+
                 isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const coords = getCoordinates(e);
                 
+                const pathData = {
+                    layerId: activeLayerId, // ASIGNACIÓN DE CAPA
+                    mode: currentMode === 'brush' ? 'brush' : 'shape',
+                    type: currentMode === 'brush' ? brushTypeInput.value : currentMode,
+                    color: colorState.fill.active ? colorState.fill.color : 'transparent',
+                    blur: parseInt(brushBlurInput.value),
+                    hasOutline: colorState.stroke.active,
+                    outlineColor: colorState.stroke.color,
+                    outlineWidth: colorState.stroke.width,
+                    origin: [coords.x, coords.y],
+                    createdAt: performance.now()
+                };
+
                 if (currentMode === 'brush') {
                     rawPointsBuffer = [[coords.x, coords.y]]; 
-                    paths.push({
-                        mode: 'brush', type: brushTypeInput.value, color: colorState.fill.active ? colorState.fill.color : 'transparent',
-                        size: parseInt(brushSizeInput.value), spacing: parseInt(brushSpacingInput.value), fidelity: parseInt(strokeFidelityInput.value),
-                        blur: parseInt(brushBlurInput.value), hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width,
-                        points: [], stamps: [], lastStampPoint: null, origin: [coords.x, coords.y], createdAt: performance.now() 
-                    });
+                    pathData.size = parseInt(brushSizeInput.value);
+                    pathData.spacing = parseInt(brushSpacingInput.value);
+                    pathData.fidelity = parseInt(strokeFidelityInput.value);
+                    pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
                 } else {
-                    paths.push({
-                        mode: 'shape', type: currentMode, color: colorState.fill.active ? colorState.fill.color : 'transparent',
-                        blur: parseInt(brushBlurInput.value), hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color,
-                        outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], end: [coords.x, coords.y], createdAt: performance.now() 
-                    });
+                    pathData.end = [coords.x, coords.y];
                 }
+                paths.push(pathData);
             }
 
             function endPosition() { isDrawing = false; needsRedraw = true; }
 
             function draw(e) {
-                // OPTIMIZACIÓN DEL CURSOR: translate3d empuja el proceso a la GPU
                 if (currentMode === 'brush') {
-                    canvas.style.cursor = 'none';
-                    customCursor.style.display = 'block';
-                    
-                    const rect = canvas.getBoundingClientRect();
-                    const scaleX = rect.width / canvas.width;
+                    canvas.style.cursor = 'none'; customCursor.style.display = 'block';
+                    const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width;
                     const visualSize = parseInt(brushSizeInput.value) * scaleX;
-                    
-                    customCursor.style.width = visualSize + 'px';
-                    customCursor.style.height = visualSize + 'px';
+                    customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px';
                     customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
                 }
 
-                if (!isDrawing) return;
-                e.preventDefault(); needsRedraw = true;
-
-                const currentPath = paths[paths.length - 1];
-                const coords = getCoordinates(e);
+                if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
+                const currentPath = paths[paths.length - 1]; const coords = getCoordinates(e);
                 let rawX = coords.x; let rawY = coords.y;
 
                 if (currentMode === 'brush') {
                     if (e.shiftKey) {
                         const startX = currentPath.origin[0]; const startY = currentPath.origin[1];
                         const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
-                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
-                        const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
+                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy);
+                        rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
                     }
-                    
                     rawPointsBuffer.push([rawX, rawY]);
                     const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
                     let smoothX = rawX; let smoothY = rawY;
@@ -570,13 +556,9 @@
                         const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
                         smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length;
                         smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                        
-                        // --- OPTIMIZACIÓN DE RENDIMIENTO: DECIMACIÓN DE PUNTOS ---
-                        // Ignoramos micro-movimientos para no saturar la memoria con arrays gigantes
                         if (currentPath.points.length > 0) {
                             const lastP = currentPath.points[currentPath.points.length - 1];
-                            const dist = Math.hypot(smoothX - lastP[0], smoothY - lastP[1]);
-                            if (dist < 3) return; // Si se movió menos de 3px, ignoramos.
+                            if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; 
                         }
                     }
                     currentPath.points.push([smoothX, smoothY]);
@@ -587,7 +569,6 @@
                         } else {
                             let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1];
                             let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-                            
                             if (dist >= currentPath.spacing) {
                                 let stampsCount = Math.floor(dist / currentPath.spacing);
                                 for (let j = 1; j <= stampsCount; j++) {
@@ -602,8 +583,8 @@
                 } else {
                     if (e.shiftKey) {
                         let w = rawX - currentPath.origin[0]; let h = rawY - currentPath.origin[1];
-                        let size = Math.max(Math.abs(w), Math.abs(h));
-                        w = Math.sign(w) * size; h = Math.sign(h) * size; rawX = currentPath.origin[0] + w; rawY = currentPath.origin[1] + h;
+                        let size = Math.max(Math.abs(w), Math.abs(h)); w = Math.sign(w) * size; h = Math.sign(h) * size;
+                        rawX = currentPath.origin[0] + w; rawY = currentPath.origin[1] + h;
                     }
                     currentPath.end = [rawX, rawY];
                 }
@@ -614,7 +595,19 @@
                 const motionType = motionTypeInput.value;
                 if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) { return; }
 
-                ctx.save(); fillBackground(); paths.forEach(renderPath); ctx.restore();
+                ctx.save(); fillBackground(); 
+                
+                // RENDERIZAR POR CAPAS (De abajo hacia arriba)
+                layers.forEach(layer => {
+                    if(!layer.visible) return; // Si la capa está oculta, la ignoramos
+                    const layerPaths = paths.filter(p => p.layerId === layer.id);
+                    layerPaths.forEach(renderPath);
+                });
+
+                // Dibujar cuadrícula al final para que quede superpuesta
+                drawGrid();
+
+                ctx.restore();
 
                 if (motionType === 'none' && !isDrawing) { needsRedraw = false; }
             }
@@ -625,25 +618,21 @@
                 let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') {
-                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.3); if(path.mode === 'brush') currentSize = path.size * scaleFactor;
-                } else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
-                } else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 8, Math.cos(time * 0.0015 + path.createdAt) * 8);
-                } else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.02); }
+                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.3); if(path.mode === 'brush') currentSize = path.size * scaleFactor; } 
+                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5); } 
+                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 8, Math.cos(time * 0.0015 + path.createdAt) * 8); } 
+                else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.02); }
                 
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
                 if (path.mode === 'shape') {
-                    ctx.fillStyle = path.color; 
-                    let w = path.end[0] - path.origin[0]; let h = path.end[1] - path.origin[1];
-
+                    ctx.fillStyle = path.color; let w = path.end[0] - path.origin[0]; let h = path.end[1] - path.origin[1];
                     if (path.type === 'rect') {
                         if(path.color !== 'transparent') ctx.fillRect(path.origin[0], path.origin[1], w, h);
                         if (path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(path.origin[0], path.origin[1], w, h); }
                     } else if (path.type === 'ellipse') {
-                        let cx = path.origin[0] + w / 2; let cy = path.origin[1] + h / 2;
-                        let rx = Math.abs(w / 2); let ry = Math.abs(h / 2);
+                        let cx = path.origin[0] + w / 2; let cy = path.origin[1] + h / 2; let rx = Math.abs(w / 2); let ry = Math.abs(h / 2);
                         ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
                         if(path.color !== 'transparent') ctx.fill();
                         if (path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
@@ -655,8 +644,7 @@
                     if (path.hasOutline) {
                         ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor;
                         ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
-                        for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
-                        ctx.stroke();
+                        for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke();
                     }
                     ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; 
                     ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
@@ -674,13 +662,11 @@
 
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
-                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
-                    if(path.hasOutline) strokeShape(path);
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path);
                 } else if (type === 'square') {
                     for(let i = 0; i < 3; i++) {
                         ctx.save(); let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5;
-                        ctx.rotate((rA - 0.5) * 0.8);
-                        const pX = -(size/2) + (rA - 0.5) * size * 0.4; const pY = -(size/2) + (rB - 0.5) * size * 0.4;
+                        ctx.rotate((rA - 0.5) * 0.8); const pX = -(size/2) + (rA - 0.5) * size * 0.4; const pY = -(size/2) + (rB - 0.5) * size * 0.4;
                         if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(pX, pY, size, size); }
                         if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(pX, pY, size, size); }
                         ctx.restore();
@@ -712,26 +698,29 @@
             }
 
             function exportImage() {
+                // Dibujar sin grid para exportar
+                const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid();
                 const link = document.createElement('a'); link.download = `22-DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click();
+                gridToggle.checked = oldGrid; needsRedraw = true;
             }
 
             function toggleRecording() {
                 if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Animation'; btnRecord.classList.remove('recording'); } 
                 else {
+                    const oldGrid = gridToggle.checked; gridToggle.checked = false; // Desactivar grid
                     const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' }); recordedChunks = [];
                     mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); };
                     mediaRecorder.onstop = function() {
                         const url = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
                         const link = document.createElement('a'); link.download = `22-DDM_Animated_${new Date().getTime()}.webm`; link.href = url; link.click(); URL.revokeObjectURL(url); 
+                        gridToggle.checked = oldGrid; needsRedraw = true; // Reactivar grid
                     };
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
                 }
             }
 
-            canvas.addEventListener('pointerdown', startPosition);
-            canvas.addEventListener('pointerup', endPosition);
-            canvas.addEventListener('pointermove', draw);
-            canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; });
+            canvas.addEventListener('pointerdown', startPosition); canvas.addEventListener('pointerup', endPosition);
+            canvas.addEventListener('pointermove', draw); canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; });
             canvas.addEventListener('pointercancel', endPosition);
 
             document.addEventListener('keydown', (e) => {
@@ -743,14 +732,17 @@
             });
 
             formatSelect.addEventListener('change', initCanvas);
-            bgColorInput.addEventListener('input', () => { needsRedraw = true; });
-            motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
-            btnClear.addEventListener('click', () => { paths.length = 0; redoStack.length = 0; needsRedraw = true; }); 
-            btnExport.addEventListener('click', exportImage);
-            btnRecord.addEventListener('click', toggleRecording); 
+            bgColorInput.addEventListener('input', () => { needsRedraw = true; }); motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            
+            // Botón CLEAR ahora solo limpia la capa ACTIVA
+            btnClear.addEventListener('click', () => { 
+                for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } }
+                needsRedraw = true; 
+            }); 
+            
+            btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
 
-            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; }
-            function resetZoom() { currentZoom = 1; applyZoom(); }
+            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; } function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); });
             document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } });
             document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
