@@ -13,7 +13,7 @@
             --border-color: #d1d1d1;
             --accent-color: #bdf271; 
             --font-main: 'Acumin Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-            --radius-soft: 8px; /* Ligeramente más cuadrado para look Pro */
+            --radius-soft: 8px; 
             --radius-round: 50px;
         }
 
@@ -26,7 +26,7 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
-            font-size: 13px; /* Ajuste sutil para paneles */
+            font-size: 13px; 
             -webkit-font-smoothing: antialiased;
         }
 
@@ -202,11 +202,11 @@
 
             <section class="module-section">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                    <h2 class="module-title">Tools & Layers</h2>
+                    <h2 class="module-title">1. Tools</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
-                    <div style="display: flex; gap: 8px; margin-bottom: 12px; margin-top: 4px;">
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; margin-top: 4px;">
                         <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 8px 4px;">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                         </button>
@@ -215,16 +215,23 @@
                         </button>
                     </div>
 
-                    <div class="control-group">
-                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                    <div class="control-group" style="margin-bottom: 0;">
+                        <div style="display: flex; gap: 6px;">
                             <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 8px 4px;">🖌️ Brush</button>
                             <button class="btn btn-outline tool-btn" id="tool-rect" style="flex: 1; padding: 8px 4px;">⬛ Rect</button>
                             <button class="btn btn-outline tool-btn" id="tool-ellipse" style="flex: 1; padding: 8px 4px;">⭕ Ellipse</button>
                         </div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="control-group">
-                        <label>Layers</label>
+            <section class="module-section">
+                <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                    <h2 class="module-title">2. Layers</h2>
+                    <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                </header>
+                <div class="module-content">
+                    <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
                         <div class="layers-container" id="layers-list"></div>
                         <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 11px;">+ New Layer</button>
                     </div>
@@ -233,7 +240,7 @@
 
             <section class="module-section">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                    <h2 class="module-title">Color & Style</h2>
+                    <h2 class="module-title">3. Color & Style</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
@@ -291,13 +298,14 @@
                     <div class="control-group" id="brush-fidelity-group" style="margin-bottom: 0;">
                         <div class="flex-label"><label>Smoothness</label></div>
                         <input type="range" id="stroke-fidelity" min="1" max="100" value="70">
+                        <p style="font-size: 10px; color: #777; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
                     </div>
                 </div>
             </section>
 
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                    <h2 class="module-title">Special Effects</h2>
+                    <h2 class="module-title">4. Special Effects</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
@@ -320,7 +328,7 @@
 
             <section class="module-section collapsed" style="border-bottom: none;">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                    <h2 class="module-title">Canvas Format</h2>
+                    <h2 class="module-title">5. Canvas Format</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
