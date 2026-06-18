@@ -200,21 +200,23 @@
                 <p>Pro Experimental Tool</p>
             </header>
 
-            <section class="module-section">
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
+                    </button>
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                        Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">1. Tools</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
-                    <div style="display: flex; gap: 8px; margin-bottom: 16px; margin-top: 4px;">
-                        <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 8px 4px;">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
-                        </button>
-                        <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 8px 4px;">
-                            Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
-                        </button>
-                    </div>
-
                     <div class="control-group" style="margin-bottom: 0;">
                         <div style="display: flex; gap: 6px;">
                             <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 8px 4px;">🖌️ Brush</button>
@@ -225,7 +227,7 @@
                 </div>
             </section>
 
-            <section class="module-section">
+            <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">2. Layers</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
@@ -238,7 +240,7 @@
                 </div>
             </section>
 
-            <section class="module-section">
+            <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">3. Color & Style</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
