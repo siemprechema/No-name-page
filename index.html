@@ -118,7 +118,7 @@
 
         /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 150px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; user-select: none;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none;}
         .layer-item:last-child { border-bottom: none; }
         .layer-item:hover { background: #eaeaea; }
         .layer-item.active { background: #e0e0e0; border-left: 3px solid var(--text-color); padding-left: 7px; }
@@ -127,7 +127,6 @@
         .layer-vis-btn:hover { opacity: 1; }
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
         
-        /* Input para renombrar capa */
         .layer-rename-input { background: white; border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
         .layer-rename-input:focus { border-color: var(--text-color); }
 
@@ -406,25 +405,31 @@
                         </div>
                     `;
                     
-                    // Click events for selection and visibility
+                    // CORRECCIÓN: Actualizar la clase visualmente para la selección, en lugar de re-renderizar todo
                     div.querySelector('.layer-info').addEventListener('click', (e) => {
-                        if(e.target.tagName === 'BUTTON') { layer.visible = !layer.visible; needsRedraw = true; } 
-                        else if(e.target.tagName !== 'INPUT') { activeLayerId = layer.id; }
-                        renderLayersUI();
+                        if(e.target.tagName === 'BUTTON') { 
+                            layer.visible = !layer.visible; 
+                            needsRedraw = true; 
+                            renderLayersUI(); 
+                        } 
+                        else if(e.target.tagName !== 'INPUT') { 
+                            activeLayerId = layer.id; 
+                            document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
+                            div.classList.add('active');
+                        }
                     });
 
                     // DOUBLE CLICK TO RENAME
                     const nameSpan = div.querySelector('.layer-name-span');
                     nameSpan.addEventListener('dblclick', (e) => {
-                        e.stopPropagation(); // Prevent row selection
+                        e.stopPropagation(); 
                         const currentName = layer.name;
                         nameSpan.innerHTML = `<input type="text" class="layer-rename-input" value="${currentName}" />`;
                         const input = nameSpan.querySelector('input');
                         input.focus();
                         
-                        // Save on blur or Enter
                         const saveName = () => {
-                            layer.name = input.value.trim() || currentName; // Prevent empty names
+                            layer.name = input.value.trim() || currentName; 
                             renderLayersUI();
                         };
                         input.addEventListener('blur', saveName);
