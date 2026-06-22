@@ -315,7 +315,7 @@
                 <div class="module-content">
                     <div class="control-group" style="margin-top: 4px;">
                         <label>Blur Intensity</label>
-                        <input type="range" id="brush-blur" min="0" max="20" value="10">
+                        <input type="range" id="brush-blur" min="0" max="20" value="0">
                     </div>
                     <div class="control-group">
                         <label>Motion Effect</label>
@@ -405,7 +405,6 @@
                         </div>
                     `;
                     
-                    // CORRECCIÓN: Actualizar la clase visualmente para la selección, en lugar de re-renderizar todo
                     div.querySelector('.layer-info').addEventListener('click', (e) => {
                         if(e.target.tagName === 'BUTTON') { 
                             layer.visible = !layer.visible; 
