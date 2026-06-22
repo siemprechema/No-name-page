@@ -82,7 +82,6 @@
 
         .module-content { padding: 0 20px 20px 20px; display: block; }
         
-        /* Estado colapsado */
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
@@ -315,7 +314,7 @@
                         <label>Blur Intensity</label>
                         <input type="range" id="brush-blur" min="0" max="20" value="0">
                     </div>
-                    <div class="control-group" style="margin-bottom: 0;">
+                    <div class="control-group">
                         <label>Motion Effect</label>
                         <select id="motion-type">
                             <option value="none">Static</option>
@@ -324,6 +323,12 @@
                             <option value="wave">Wave</option>
                             <option value="gravity">Gravity</option>
                         </select>
+                    </div>
+                    <div class="control-group" style="margin-top: 12px; margin-bottom: 0;">
+                        <div class="flex-label">
+                            <label>Effect Intensity</label>
+                        </div>
+                        <input type="range" id="motion-intensity" min="1" max="100" value="50">
                     </div>
                 </div>
             </section>
@@ -438,7 +443,9 @@
             const brushTypeInput = document.getElementById('brush-type'); const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size'); const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity'); const brushBlurInput = document.getElementById('brush-blur');
-            const motionTypeInput = document.getElementById('motion-type'); const formatSelect = document.getElementById('canvas-format');
+            const motionTypeInput = document.getElementById('motion-type'); 
+            const motionIntensityInput = document.getElementById('motion-intensity'); // NUEVO INPUT
+            const formatSelect = document.getElementById('canvas-format');
             
             const btnClear = document.getElementById('btn-clear'); const btnExport = document.getElementById('btn-export');
             const btnRecord = document.getElementById('btn-record'); const btnUndo = document.getElementById('btn-undo'); const btnRedo = document.getElementById('btn-redo'); 
@@ -510,10 +517,12 @@
                 isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const coords = getCoordinates(e);
                 
+                // NUEVO: Guardar el efecto y la intensidad DIRECTAMENTE en el trazo al momento de dibujarlo
                 const pathData = {
                     layerId: activeLayerId, mode: currentMode === 'brush' ? 'brush' : 'shape', type: currentMode === 'brush' ? brushTypeInput.value : currentMode,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
-                    hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now()
+                    hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
+                    motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                 };
 
                 if (currentMode === 'brush') {
@@ -576,26 +585,37 @@
 
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
-                const motionType = motionTypeInput.value;
-                if (motionType === 'none' && !isDrawing && !needsRedraw && !isRecording) { return; }
+                
+                // NUEVO: Smart Sleep para optimización
+                // Comprueba si hay algún trazo en el lienzo (en una capa visible) que tenga un efecto animado
+                const hasAnimatedPaths = paths.some(p => p.motionType !== 'none' && layers.find(l => l.id === p.layerId)?.visible);
+                
+                if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording) { return; }
 
                 ctx.save(); fillBackground(); 
                 layers.forEach(layer => { if(!layer.visible) return; const layerPaths = paths.filter(p => p.layerId === layer.id); layerPaths.forEach(renderPath); });
                 drawGrid();
                 ctx.restore();
 
-                if (motionType === 'none' && !isDrawing) { needsRedraw = false; }
+                if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
             }
 
             function renderPath(path) {
                 if (path.mode === 'brush' && path.points.length < 1) return;
-                const motionType = motionTypeInput.value; const time = performance.now(); let currentSize = path.size || 0;
+                
+                // NUEVO: Lee el efecto propio del trazo, no del menú global
+                const motionType = path.motionType || 'none'; 
+                // Normaliza la intensidad. Si el slider estaba en 50, el valor es 1 (fuerza normal con el +15% aplicado).
+                const intensity = (path.motionIntensity || 50) / 50; 
+                
+                const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.3); if(path.mode === 'brush') currentSize = path.size * scaleFactor; } 
-                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5); } 
-                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 8, Math.cos(time * 0.0015 + path.createdAt) * 8); } 
-                else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.02); }
+                // Físicas con la base aumentada +15% multiplicadas por la intensidad del usuario
+                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); if(path.mode === 'brush') currentSize = path.size * scaleFactor; } 
+                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
+                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
+                else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.025 * intensity); }
                 
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -703,7 +723,10 @@
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); }
             });
 
-            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
+            // NUEVO: Actualizar el canvas cuando cambian los inputs globales
+            motionTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            motionIntensityInput.addEventListener('input', () => { needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { 
                 for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } }
