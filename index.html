@@ -12,7 +12,8 @@
             --text-color: #111111;
             --border-color: #d1d1d1;
             --accent-color: #bdf271; 
-            --font-main: 'Acumin Pro', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            /* TIPOGRAFÍA ACTUALIZADA A GT AMERICA MONO */
+            --font-main: 'GT America Mono', monospace, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 8px; 
             --radius-round: 50px;
         }
@@ -202,6 +203,7 @@
                 <p>Pro Experimental Tool</p>
             </header>
 
+            <!-- GLOBAL ACTIONS (ALWAYS VISIBLE) -->
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
                 <div style="display: flex; gap: 8px;">
                     <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
@@ -213,6 +215,7 @@
                 </div>
             </div>
 
+            <!-- MODULE 1: TOOLS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">1. Tools</h2>
@@ -229,6 +232,7 @@
                 </div>
             </section>
 
+            <!-- MODULE 2: LAYERS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">2. Layers</h2>
@@ -242,6 +246,7 @@
                 </div>
             </section>
 
+            <!-- MODULE 3: COLOR & STYLE CONFIGURATION (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">3. Color & Style</h2>
@@ -265,6 +270,7 @@
                         <label>Color & Stroke</label>
                         <div id="color-ui-container">
                             <div class="swatch-area">
+                                <!-- Default colors: #808080 (50% gray) -->
                                 <div id="color-stroke-swatch" class="illustrator-swatch"><input type="color" id="stroke-color-input" value="#808080"><div class="none-line"></div></div>
                                 <div id="color-fill-swatch" class="illustrator-swatch active-color"><input type="color" id="fill-color-input" value="#808080"><div class="none-line"></div></div>
                                 <button class="mini-icon-btn" id="swap-colors-btn" title="Swap colors"><svg viewBox="0 0 24 24"><path d="M19 14l-4 4-4-4h3V9c0-1.66-1.34-3-3-3s-3 1.34-3 3v2h-2V9c0-2.76 2.24-5 5-5s5 2.24 5 5v5h3z"/></svg></button>
@@ -276,6 +282,7 @@
                         </div>
                     </div>
 
+                    <!-- Defaults set to 50% mathematically -->
                     <div class="control-group" id="stroke-width-group">
                         <div class="flex-label"><label>Outline Width</label><span id="outline-width-val" style="font-size: 11px; font-weight: bold;">13px</span></div>
                         <input type="range" id="outline-width" min="1" max="25" value="13">
@@ -307,6 +314,7 @@
                 </div>
             </section>
 
+            <!-- MODULE 4: SPECIAL EFFECTS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">4. Special Effects</h2>
@@ -336,6 +344,7 @@
                 </div>
             </section>
 
+            <!-- MODULE 5: CANVAS (Collapsed) -->
             <section class="module-section collapsed" style="border-bottom: none;">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">5. Canvas Format</h2>
