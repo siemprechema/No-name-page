@@ -265,8 +265,8 @@
                     </div>
 
                     <div class="control-group" id="stroke-width-group">
-                        <div class="flex-label"><label>Outline Width</label><span id="outline-width-val" style="font-size: 11px; font-weight: bold;">13px</span></div>
-                        <input type="range" id="outline-width" min="1" max="25" value="13">
+                        <div class="flex-label"><label>Outline Width</label><span id="outline-width-val" style="font-size: 11px; font-weight: bold;">26px</span></div>
+                        <input type="range" id="outline-width" min="1" max="50" value="26">
                     </div>
 
                     <div class="control-group">
@@ -279,12 +279,12 @@
                             <label>Brush Size</label>
                             <label style="text-transform: none; font-size: 10px;">[ ] to adjust</label>
                         </div>
-                        <input type="range" id="brush-size" min="5" max="100" value="52">
+                        <input type="range" id="brush-size" min="10" max="200" value="104">
                     </div>
 
                     <div class="control-group">
                         <label>Spacing (Modular)</label>
-                        <input type="range" id="brush-spacing" min="10" max="150" value="80"> 
+                        <input type="range" id="brush-spacing" min="20" max="300" value="160"> 
                     </div>
 
                     <div class="control-group" id="brush-fidelity-group" style="margin-bottom: 0;">
@@ -303,7 +303,7 @@
                 <div class="module-content">
                     <div class="control-group" style="margin-top: 4px;">
                         <label>Blur Intensity</label>
-                        <input type="range" id="brush-blur" min="0" max="20" value="0">
+                        <input type="range" id="brush-blur" min="0" max="40" value="0">
                     </div>
                     <div class="control-group">
                         <label>Motion Effect</label>
@@ -339,7 +339,7 @@
                     </div>
                     <div class="control-group checkbox-group" style="padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-grid">
-                        <label for="toggle-grid" style="font-size: 11px;">Show 8x8 Align Grid</label>
+                        <label for="toggle-grid" style="font-size: 11px;">Show Align Grid</label>
                     </div>
                     <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-dark-mode" checked>
@@ -380,6 +380,13 @@
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; let currentMode = 'brush'; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
 
+            // --- DARK MODE LOGIC ---
+            const darkToggle = document.getElementById('toggle-dark-mode');
+            darkToggle.addEventListener('change', (e) => {
+                if(e.target.checked) document.body.classList.add('dark-theme');
+                else document.body.classList.remove('dark-theme');
+            });
+
             // --- LAYERS LOGIC ---
             let layers = [{ id: 'layer-1', name: 'Layer 1', visible: true }];
             let activeLayerId = 'layer-1'; let layerCounter = 1;
@@ -410,7 +417,6 @@
                         }
                     });
 
-                    // DOUBLE CLICK TO RENAME
                     const nameSpan = div.querySelector('.layer-name-span');
                     nameSpan.addEventListener('dblclick', (e) => {
                         e.stopPropagation(); 
@@ -461,7 +467,7 @@
 
             // --- VARIABLES & UI ELEMENTS ---
             let mediaRecorder; let recordedChunks = []; let isRecording = false;
-            let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 13 } };
+            let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 26 } };
 
             const brushTypeInput = document.getElementById('brush-type'); const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size'); const brushSpacingInput = document.getElementById('brush-spacing');
@@ -484,8 +490,14 @@
 
             function initCanvas() {
                 const format = formatSelect.value;
-                if(format === '3:4') { canvas.width = 1200; canvas.height = 1600; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; } 
-                else { canvas.width = 1920; canvas.height = 1080; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; }
+                if(format === '3:4') { 
+                    canvas.width = 2160; canvas.height = 2880; // Doble de 1080x1440 para 4K
+                    canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; 
+                } 
+                else { 
+                    canvas.width = 3840; canvas.height = 2160; // 4K Horizontal UHD
+                    canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; 
+                }
                 resetZoom(); updateColorUI(); needsRedraw = true;
             }
 
@@ -529,7 +541,7 @@
                 const coords = getCoordinates(e);
                 
                 const pathData = {
-                    layerId: activeLayerId, type: brushTypeInput.value,
+                    layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
                     hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
                     motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
@@ -537,7 +549,6 @@
 
                 rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
                 pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
-                
                 paths.push(pathData);
             }
 
@@ -561,7 +572,7 @@
                 if (rawPointsBuffer.length > 1) {
                     const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
                     smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                    if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
+                    if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 6) return; }
                 }
                 currentPath.points.push([smoothX, smoothY]);
 
@@ -601,10 +612,13 @@
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; } 
-                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
-                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
-                else if (motionType === 'gravity') { 
+                if (motionType === 'pulse') { 
+                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; 
+                } else if (motionType === 'vibrate') { 
+                    ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); 
+                } else if (motionType === 'wave') { 
+                    ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); 
+                } else if (motionType === 'gravity') { 
                     const bounceAmplitude = 300; 
                     const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity)));
                     ctx.translate(0, drop); 
@@ -711,7 +725,7 @@
             }
 
             function toggleRecording() {
-                if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Animation'; btnRecord.classList.remove('recording'); } 
+                if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); } 
                 else {
                     const oldGrid = gridToggle.checked; gridToggle.checked = false; 
                     
