@@ -89,15 +89,11 @@
             width: 100%; padding: 10px; border: 1.5px solid var(--border-color); color: var(--text-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
             cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s, background-color 0.3s;
-            /* FIX: Ocultar la doble flecha en todos los navegadores */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
         }
-        select::-ms-expand { display: none; } /* Ocultar flecha en navegadores antiguos de Microsoft */
+        select::-ms-expand { display: none; } 
         select:focus { border-color: var(--text-color); }
         
-        /* Dropdown Icon adapting to dark mode */
         body:not(.dark-theme) select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
         body.dark-theme select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
 
@@ -113,25 +109,23 @@
 
         /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 150px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; user-select: none;}
         .layer-item:last-child { border-bottom: none; }
-        .layer-item:hover { background: #eaeaea; }
-        .layer-item.active { background: #e0e0e0; border-left: 3px solid var(--text-color); padding-left: 7px; }
+        .layer-item:hover { background: var(--hover-color); }
+        .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
         .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12px; width: 100%;}
-        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0;}
+        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0; filter: grayscale(100%);}
         .layer-vis-btn:hover { opacity: 1; }
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
-        
-        .layer-rename-input { background: white; border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
-        .layer-rename-input:focus { border-color: var(--text-color); }
+        .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
 
         /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
-        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, z-index 0s; }
+        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 20px; left: 20px; z-index: 1; }
         #color-fill-swatch { top: 2px; left: 2px; z-index: 2; }
-        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.15); }
+        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.3); }
         .illustrator-swatch input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 4; }
         .none-line { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; display: none; }
         .none-line::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
@@ -155,6 +149,7 @@
 
         /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
+        /* El fondo .canvas-area es gris oscuro en modo dark, pero el #art-canvas será blanco */
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
         .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
@@ -163,7 +158,8 @@
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: white; cursor: crosshair; }
+        /* El canvas nativo siempre arranca blanco para legibilidad */
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
         /* === ACTION BAR === */
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
@@ -225,12 +221,12 @@
                         <select id="brush-type">
                             <option value="line">Line</option>
                             <option value="charcoal">Charcoal</option>
-                            <option value="ant">Ants</option>
                             <option value="dot">Dots</option>
-                            <option value="disordered_dots">Disordered Dots</option>
                             <option value="solid_square">Squares</option>
                             <option value="square">Disordered Squares</option>
                             <option value="disordered">Disordered Rectangles</option>
+                            <option value="disordered_dots">Disordered Dots</option>
+                            <option value="ant">Ants</option>
                         </select>
                     </div>
                 </div>
@@ -277,7 +273,7 @@
 
                     <div class="control-group">
                         <label>Background Color</label>
-                        <input type="color" id="bg-color" value="#1a1a1a">
+                        <input type="color" id="bg-color" value="#ffffff">
                     </div>
                     
                     <div class="control-group" id="brush-size-group">
@@ -383,7 +379,7 @@
             const canvasWrapper = document.getElementById('canvas-wrapper');
             const customCursor = document.getElementById('dynamic-cursor');
             
-            let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
+            let isDrawing = false; let currentZoom = 1; let needsRedraw = true; let currentMode = 'brush'; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
 
             // --- DARK MODE LOGIC ---
@@ -541,56 +537,67 @@
                 const coords = getCoordinates(e);
                 
                 const pathData = {
-                    layerId: activeLayerId, type: brushTypeInput.value,
+                    layerId: activeLayerId, mode: currentMode === 'brush' ? 'brush' : 'shape', type: currentMode === 'brush' ? brushTypeInput.value : currentMode,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
                     hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
                     motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                 };
 
-                rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
-                pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
-                
+                if (currentMode === 'brush') {
+                    rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
+                    pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
+                } else { pathData.end = [coords.x, coords.y]; }
                 paths.push(pathData);
             }
 
             function endPosition() { isDrawing = false; needsRedraw = true; }
 
             function draw(e) {
-                canvas.style.cursor = 'none'; customCursor.style.display = 'block';
-                const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
-                customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+                if (currentMode === 'brush') {
+                    canvas.style.cursor = 'none'; customCursor.style.display = 'block';
+                    const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
+                    customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+                }
 
                 if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
                 const currentPath = paths[paths.length - 1]; const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
 
-                if (e.shiftKey) {
-                    const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
-                    const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
-                }
-                rawPointsBuffer.push([rawX, rawY]);
-                const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
+                if (currentMode === 'brush') {
+                    if (e.shiftKey) {
+                        const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
+                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
+                    }
+                    rawPointsBuffer.push([rawX, rawY]);
+                    const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
 
-                if (rawPointsBuffer.length > 1) {
-                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
-                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                    if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
-                }
-                currentPath.points.push([smoothX, smoothY]);
+                    if (rawPointsBuffer.length > 1) {
+                        const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                        smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                        if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
+                    }
+                    currentPath.points.push([smoothX, smoothY]);
 
-                if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
-                    if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
-                    } else {
-                        let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-                        if (dist >= currentPath.spacing) {
-                            let stampsCount = Math.floor(dist / currentPath.spacing);
-                            for (let j = 1; j <= stampsCount; j++) {
-                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
-                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
-                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
+                    if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
+                        if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                        } else {
+                            let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                            if (dist >= currentPath.spacing) {
+                                let stampsCount = Math.floor(dist / currentPath.spacing);
+                                for (let j = 1; j <= stampsCount; j++) {
+                                    let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                    let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
+                                    currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
+                                }
+                                currentPath.lastStampPoint = [smoothX, smoothY];
                             }
-                            currentPath.lastStampPoint = [smoothX, smoothY];
                         }
                     }
+                } else {
+                    if (e.shiftKey) {
+                        let w = rawX - currentPath.origin[0]; let h = rawY - currentPath.origin[1]; let size = Math.max(Math.abs(w), Math.abs(h));
+                        w = Math.sign(w) * size; h = Math.sign(h) * size; rawX = currentPath.origin[0] + w; rawY = currentPath.origin[1] + h;
+                    }
+                    currentPath.end = [rawX, rawY];
                 }
             }
 
@@ -613,10 +620,18 @@
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; } 
-                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
-                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
-                else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.025 * intensity); }
+                if (motionType === 'pulse') { 
+                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; 
+                } else if (motionType === 'vibrate') { 
+                    ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); 
+                } else if (motionType === 'wave') { 
+                    ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); 
+                } else if (motionType === 'gravity') { 
+                    // REBOTE CONTINUO DE GRAVEDAD
+                    const bounceAmplitude = 300; 
+                    const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity)));
+                    ctx.translate(0, drop); 
+                }
                 
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -663,14 +678,10 @@
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path);
                 } else if (type === 'disordered_dots') {
-                    // NUEVO: Puntos desordenados (Partículas)
                     for(let i = 0; i < 5; i++) {
                         ctx.save(); 
-                        let rA = Math.abs(Math.sin(seedBase + i * 23)); 
-                        let rB = Math.abs(Math.cos(seedBase + i * 29));
-                        let rRadius = (size/2) * (0.3 + rA * 0.7); 
-                        const pX = (rA - 0.5) * size * 1.2; 
-                        const pY = (rB - 0.5) * size * 1.2;
+                        let rA = Math.abs(Math.sin(seedBase + i * 23)); let rB = Math.abs(Math.cos(seedBase + i * 29));
+                        let rRadius = (size/2) * (0.3 + rA * 0.7); const pX = (rA - 0.5) * size * 1.2; const pY = (rB - 0.5) * size * 1.2;
                         ctx.beginPath(); ctx.arc(pX, pY, rRadius, 0, Math.PI * 2);
                         if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
                         if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
@@ -689,28 +700,19 @@
                     }
                 } else if (type === 'ant') {
                     let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; 
-                    let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5;
-                    let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5;
+                    let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5; let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5;
                     ctx.translate(rX, rY); ctx.rotate(rRot);
 
                     ctx.beginPath();
                     let headR = size * 0.15; let thoraxR = size * 0.12; let abdomenR = size * 0.2;
-                    ctx.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2);
-                    ctx.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2);
-                    ctx.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2);
+                    ctx.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2); ctx.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2); ctx.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2);
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
 
                     ctx.beginPath(); ctx.lineWidth = Math.max(1, size * 0.05);
-                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, -size*0.3); ctx.lineTo(-size*0.2, -size*0.4);
-                    ctx.moveTo(0, 0); ctx.lineTo(0, -size*0.35); ctx.lineTo(size*0.1, -size*0.45);
-                    ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, -size*0.3); ctx.lineTo(size*0.3, -size*0.4);
-                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, size*0.3); ctx.lineTo(-size*0.2, size*0.4);
-                    ctx.moveTo(0, 0); ctx.lineTo(0, size*0.35); ctx.lineTo(size*0.1, size*0.45);
-                    ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, size*0.3); ctx.lineTo(size*0.3, size*0.4);
+                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, -size*0.3); ctx.lineTo(-size*0.2, -size*0.4); ctx.moveTo(0, 0); ctx.lineTo(0, -size*0.35); ctx.lineTo(size*0.1, -size*0.45); ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, -size*0.3); ctx.lineTo(size*0.3, -size*0.4);
+                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, size*0.3); ctx.lineTo(-size*0.2, size*0.4); ctx.moveTo(0, 0); ctx.lineTo(0, size*0.35); ctx.lineTo(size*0.1, size*0.45); ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, size*0.3); ctx.lineTo(size*0.3, size*0.4);
                     
-                    if (path.hasOutline) { ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
-                    else if (path.color !== 'transparent') { ctx.strokeStyle = path.color; ctx.stroke(); }
-
+                    if (path.hasOutline) { ctx.strokeStyle = path.outlineColor; ctx.stroke(); } else if (path.color !== 'transparent') { ctx.strokeStyle = path.color; ctx.stroke(); }
                 } else if (type === 'disordered') {
                     for(let i = 0; i < 5; i++) {
                         ctx.save(); let rA = Math.abs(Math.sin(seedBase + i * 13)); let rB = Math.abs(Math.cos(seedBase + i * 17));
@@ -735,11 +737,21 @@
                 if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Animation'; btnRecord.classList.remove('recording'); } 
                 else {
                     const oldGrid = gridToggle.checked; gridToggle.checked = false; 
-                    const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' }); recordedChunks = [];
+                    
+                    // FALLBACK: Intentar MP4 si el navegador lo soporta (Safari)
+                    let mimeType = 'video/webm';
+                    let ext = 'webm';
+                    if (MediaRecorder.isTypeSupported('video/mp4')) {
+                        mimeType = 'video/mp4';
+                        ext = 'mp4';
+                    }
+
+                    const stream = canvas.captureStream(60); 
+                    mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = [];
                     mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); };
                     mediaRecorder.onstop = function() {
-                        const url = URL.createObjectURL(new Blob(recordedChunks, { type: 'video/webm' }));
-                        const link = document.createElement('a'); link.download = `22-DDM_Animated_${new Date().getTime()}.webm`; link.href = url; link.click(); URL.revokeObjectURL(url); 
+                        const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType }));
+                        const link = document.createElement('a'); link.download = `22-DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
                         gridToggle.checked = oldGrid; needsRedraw = true; 
                     };
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
