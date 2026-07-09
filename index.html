@@ -7,28 +7,36 @@
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
+            /* Light Theme Variables */
             --bg-color: #f7f7f7;
             --panel-bg: #ffffff;
             --text-color: #111111;
             --border-color: #d1d1d1;
             --accent-color: #bdf271; 
-            /* TIPOGRAFÍA ACTUALIZADA A GT AMERICA MONO */
+            --hover-color: #eaeaea;
+            --shadow-color: rgba(0,0,0,0.05);
+            
             --font-main: 'GT America Mono', monospace, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 8px; 
             --radius-round: 50px;
         }
 
+        /* Dark Theme Variables */
+        body.dark-theme {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #f5f5f5;
+            --border-color: #333333;
+            --hover-color: #2a2a2a;
+            --shadow-color: rgba(0,0,0,0.3);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: var(--font-main);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            font-size: 13px; 
-            -webkit-font-smoothing: antialiased;
+            font-family: var(--font-main); background-color: var(--bg-color); color: var(--text-color);
+            display: flex; height: 100vh; overflow: hidden; font-size: 13px; -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
@@ -36,7 +44,7 @@
         /* === CURSOR DINÁMICO === */
         #dynamic-cursor {
             position: fixed; top: 0; left: 0; pointer-events: none;
-            border: 1.5px solid #111111; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.8);
+            border: 1.5px solid var(--text-color); box-shadow: 0 0 0 1.5px var(--bg-color);
             border-radius: 50%; z-index: 9999; display: none; will-change: transform;
         }
 
@@ -44,7 +52,7 @@
         .mobile-toggle {
             display: none; position: fixed; top: 16px; left: 16px; z-index: 100;
             background: var(--panel-bg); border: 1px solid var(--border-color);
-            border-radius: var(--radius-soft); padding: 10px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: var(--radius-soft); padding: 10px; cursor: pointer; box-shadow: 0 4px 10px var(--shadow-color);
         }
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
@@ -52,60 +60,41 @@
         .sidebar {
             width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.03);
+            box-shadow: 2px 0 15px var(--shadow-color); transition: background-color 0.3s, border-color 0.3s;
         }
 
-        .header-brand { padding: 20px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg); }
+        .header-brand { padding: 20px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg); transition: background-color 0.3s; }
         .header-brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 2px; }
+        .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 2px; }
 
-        /* === PANELES COLAPSABLES (ACORDEONES) === */
-        .module-section { 
-            background-color: var(--panel-bg); 
-            border-bottom: 1px solid var(--border-color); 
-            display: flex; flex-direction: column;
-        }
-        
-        .module-header {
-            padding: 16px 20px; 
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; user-select: none; transition: background-color 0.2s;
-        }
-        .module-header:hover { background-color: #fafafa; }
-        
-        .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #333; margin: 0; pointer-events: none;}
-        
-        .chevron-icon {
-            width: 12px; height: 12px; fill: #888;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
-        }
-
+        /* === PANELES COLAPSABLES === */
+        .module-section { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s;}
+        .module-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
+        .module-header:hover { background-color: var(--hover-color); }
+        .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); margin: 0; pointer-events: none;}
+        .chevron-icon { width: 12px; height: 12px; fill: #888; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
         .module-content { padding: 0 20px 20px 20px; display: block; }
-        
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
         /* === UI CONTROLS === */
         .control-group { margin-bottom: 14px; }
-        .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #555; }
+        .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
         .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .checkbox-group input { cursor: pointer; width: 14px; height: 14px; accent-color: var(--text-color);}
         .checkbox-group label { margin-bottom: 0; cursor: pointer; }
 
         select, input[type="color"]:not(.illustrator-swatch input) {
-            width: 100%; padding: 10px; border: 1.5px solid var(--border-color);
+            width: 100%; padding: 10px; border: 1.5px solid var(--border-color); color: var(--text-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
-            cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s ease;
+            cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s, background-color 0.3s;
         }
         select:focus { border-color: var(--text-color); }
-        select {
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-            background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%;
-            background-size: 18px;
-        }
+        
+        /* Dropdown Icon adapting to dark mode */
+        body:not(.dark-theme) select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
+        body.dark-theme select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
 
         input[type="color"]:not(.illustrator-swatch input) { height: 38px; padding: 3px; }
         input[type="color"]:not(.illustrator-swatch input)::-webkit-color-swatch-wrapper { padding: 0; border-radius: 4px;}
@@ -113,67 +102,73 @@
 
         input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 4px; margin-bottom: 4px;}
         input[type="range"]::-webkit-slider-thumb { 
-            -webkit-appearance: none; height: 16px; width: 16px; background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -6px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            -webkit-appearance: none; height: 16px; width: 16px; background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e0e0e0; border-radius: 2px; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
 
         /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 150px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; user-select: none;}
         .layer-item:last-child { border-bottom: none; }
-        .layer-item:hover { background: #eaeaea; }
-        .layer-item.active { background: #e0e0e0; border-left: 3px solid var(--text-color); padding-left: 7px; }
+        .layer-item:hover { background: var(--hover-color); }
+        .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
         .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12px; width: 100%;}
-        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0;}
+        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0; filter: grayscale(100%);}
         .layer-vis-btn:hover { opacity: 1; }
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
-        
-        .layer-rename-input { background: white; border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
-        .layer-rename-input:focus { border-color: var(--text-color); }
+        .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
 
         /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
-        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, z-index 0s; }
+        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 20px; left: 20px; z-index: 1; }
         #color-fill-swatch { top: 2px; left: 2px; z-index: 2; }
-        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.15); }
+        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.3); }
         .illustrator-swatch input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 4; }
         .none-line { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; display: none; }
         .none-line::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
-        .illustrator-swatch.inactive-color { background-color: #ffffff !important; }
+        .illustrator-swatch.inactive-color { background-color: var(--panel-bg) !important; }
         .illustrator-swatch.inactive-color .none-line { display: block; }
-        .mini-icon-btn { position: absolute; width: 18px; height: 18px; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #555; transition: color 0.2s; z-index: 5; }
-        .mini-icon-btn:hover { color: var(--text-color); }
+        
+        .mini-icon-btn { position: absolute; width: 18px; height: 18px; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-color); transition: background 0.2s; z-index: 5; }
+        .mini-icon-btn:hover { background: var(--hover-color); }
         .mini-icon-btn svg { fill: currentColor; width: 12px; height: 12px;}
         #swap-colors-btn { top: -4px; right: -8px; }
         #reset-colors-btn { bottom: -6px; left: -6px; }
+        
         .reset-icon-swatches { position: relative; width: 10px; height: 10px; }
         .reset-icon-swatches::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 6px; background: white; border: 1px solid black; }
         .reset-icon-swatches::after { content: ''; position: absolute; bottom: 0; right: 0; width: 6px; height: 6px; background: black; border: 1px solid white; }
-        .action-btn-none { width: 28px; height: 28px; background: #ffffff; border: 1.5px solid var(--border-color); border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; }
-        .action-btn-none:hover { border-color: #e74c3c; background: #fff0f0; }
+        
+        .action-btn-none { width: 28px; height: 28px; background: var(--panel-bg); border: 1.5px solid var(--border-color); border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s ease; overflow: hidden; }
+        .action-btn-none:hover { border-color: #e74c3c; }
         .none-line-large { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .none-line-large::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
 
         /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
-        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(255,255,255,0.9); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 5; backdrop-filter: blur(5px); }
+        body.dark-theme .canvas-area { background-color: #0a0a0a; } /* canvas bg darker in dark mode */
+        
+        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
         .zoom-toolbar button { background: transparent; border: none; padding: 6px 14px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
-        .zoom-toolbar button:hover { background: #f0f0f0; }
+        .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
-        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border-radius: 4px; overflow: hidden; position: relative; }
+        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
+        
+        /* The canvas itself should stay light or transparent based on BG setting, 
+           but since it's generative art we leave its CSS bg white unless changed via code */
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: white; cursor: crosshair; }
 
         /* === ACTION BAR === */
-        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; }
-        .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-outline { background-color: var(--bg-color); color: var(--text-color); border: 1.5px solid var(--border-color); }
-        .btn-outline:hover { background-color: #eaeaea; }
-        .btn-solid { background-color: var(--text-color); color: white; border: 1.5px solid var(--text-color); }
-        .btn-solid:hover { background-color: #333333; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
-        .btn-record { background-color: #333; color: white; }
-        .btn-record.recording { background-color: #e74c3c; animation: pulse-red 1.5s infinite; }
+        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
+        .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
+        .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
+        .btn-outline:hover { background-color: var(--hover-color); }
+        .btn-solid { background-color: var(--text-color); color: var(--panel-bg); border: 1.5px solid var(--text-color); }
+        .btn-solid:hover { opacity: 0.8; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
+        .btn-record { background-color: #e74c3c; color: white; border-color: #e74c3c;}
+        .btn-record.recording { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
         /* === MEDIA QUERIES === */
@@ -203,36 +198,38 @@
                 <p>Pro Experimental Tool</p>
             </header>
 
-            <!-- GLOBAL ACTIONS (ALWAYS VISIBLE) -->
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px;">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
-                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px;">
                         Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- MODULE 1: TOOLS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
-                    <h2 class="module-title">1. Tools</h2>
+                    <h2 class="module-title">1. Brush</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
                     <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
-                        <div style="display: flex; gap: 6px;">
-                            <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 8px 4px;">🖌️ Brush</button>
-                            <button class="btn btn-outline tool-btn" id="tool-rect" style="flex: 1; padding: 8px 4px;">⬛ Rect</button>
-                            <button class="btn btn-outline tool-btn" id="tool-ellipse" style="flex: 1; padding: 8px 4px;">⭕ Ellipse</button>
-                        </div>
+                        <label>Brush Type</label>
+                        <select id="brush-type">
+                            <option value="line">Continuous Line</option>
+                            <option value="charcoal">Rough Line (Charcoal)</option>
+                            <option value="ant">Modular: Ants</option>
+                            <option value="dot">Modular: Dots</option>
+                            <option value="solid_square">Modular: Solid Squares</option>
+                            <option value="square">Modular: Rough Squares</option>
+                            <option value="disordered">Modular: Disordered Rectangles</option>
+                        </select>
                     </div>
                 </div>
             </section>
 
-            <!-- MODULE 2: LAYERS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">2. Layers</h2>
@@ -246,31 +243,16 @@
                 </div>
             </section>
 
-            <!-- MODULE 3: COLOR & STYLE CONFIGURATION (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">3. Color & Style</h2>
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
-                    <div class="control-group" id="brush-type-group" style="margin-top: 4px;">
-                        <label>Brush Type</label>
-                        <select id="brush-type">
-                            <option value="line">Continuous Line</option>
-                            <option value="ant">Modular: Ants</option>
-                            <option value="bee">Modular: Bees</option>
-                            <option value="star">Modular: Stars</option>
-                            <option value="square">Modular: Rough Squares</option>
-                            <option value="dot">Modular: Dots</option>
-                            <option value="disordered">Modular: Disordered Rectangles</option>
-                        </select>
-                    </div>
-
-                    <div class="control-group">
+                    <div class="control-group" style="margin-top: 4px;">
                         <label>Color & Stroke</label>
                         <div id="color-ui-container">
                             <div class="swatch-area">
-                                <!-- Default colors: #808080 (50% gray) -->
                                 <div id="color-stroke-swatch" class="illustrator-swatch"><input type="color" id="stroke-color-input" value="#808080"><div class="none-line"></div></div>
                                 <div id="color-fill-swatch" class="illustrator-swatch active-color"><input type="color" id="fill-color-input" value="#808080"><div class="none-line"></div></div>
                                 <button class="mini-icon-btn" id="swap-colors-btn" title="Swap colors"><svg viewBox="0 0 24 24"><path d="M19 14l-4 4-4-4h3V9c0-1.66-1.34-3-3-3s-3 1.34-3 3v2h-2V9c0-2.76 2.24-5 5-5s5 2.24 5 5v5h3z"/></svg></button>
@@ -282,7 +264,6 @@
                         </div>
                     </div>
 
-                    <!-- Defaults set to 50% mathematically -->
                     <div class="control-group" id="stroke-width-group">
                         <div class="flex-label"><label>Outline Width</label><span id="outline-width-val" style="font-size: 11px; font-weight: bold;">13px</span></div>
                         <input type="range" id="outline-width" min="1" max="25" value="13">
@@ -309,12 +290,11 @@
                     <div class="control-group" id="brush-fidelity-group" style="margin-bottom: 0;">
                         <div class="flex-label"><label>Smoothness</label></div>
                         <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
-                        <p style="font-size: 10px; color: #777; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
+                        <p style="font-size: 10px; color: #888; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
                     </div>
                 </div>
             </section>
 
-            <!-- MODULE 4: SPECIAL EFFECTS (Collapsed) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">4. Special Effects</h2>
@@ -344,7 +324,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 5: CANVAS (Collapsed) -->
             <section class="module-section collapsed" style="border-bottom: none;">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">5. Canvas Format</h2>
@@ -358,9 +337,13 @@
                             <option value="16:9">Horizontal 16:9</option>
                         </select>
                     </div>
-                    <div class="control-group checkbox-group" style="margin-bottom: 0; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                    <div class="control-group checkbox-group" style="padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-grid">
                         <label for="toggle-grid" style="font-size: 11px;">Show 8x8 Align Grid</label>
+                    </div>
+                    <div class="control-group checkbox-group" style="margin-bottom: 0; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                        <input type="checkbox" id="toggle-dark-mode">
+                        <label for="toggle-dark-mode" style="font-size: 11px;">Enable Dark Mode</label>
                     </div>
                 </div>
             </section>
@@ -382,7 +365,7 @@
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear" title="Clears only active layer">Clear Layer</button>
                 <button class="btn btn-solid" id="btn-export">Export Image</button>
-                <button class="btn btn-record" id="btn-record">Record Animation</button>
+                <button class="btn btn-record" id="btn-record">Record Video</button>
             </div>
         </main>
     </div>
@@ -394,8 +377,15 @@
             const canvasWrapper = document.getElementById('canvas-wrapper');
             const customCursor = document.getElementById('dynamic-cursor');
             
-            let isDrawing = false; let currentZoom = 1; let needsRedraw = true; let currentMode = 'brush'; 
+            let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
+
+            // --- DARK MODE LOGIC ---
+            const darkToggle = document.getElementById('toggle-dark-mode');
+            darkToggle.addEventListener('change', (e) => {
+                if(e.target.checked) document.body.classList.add('dark-theme');
+                else document.body.classList.remove('dark-theme');
+            });
 
             // --- LAYERS LOGIC ---
             let layers = [{ id: 'layer-1', name: 'Layer 1', visible: true }];
@@ -427,7 +417,6 @@
                         }
                     });
 
-                    // DOUBLE CLICK TO RENAME
                     const nameSpan = div.querySelector('.layer-name-span');
                     nameSpan.addEventListener('dblclick', (e) => {
                         e.stopPropagation(); 
@@ -494,21 +483,10 @@
             const fillColorInput = document.getElementById('fill-color-input'); const strokeColorInput = document.getElementById('stroke-color-input');
             const outlineWidthInput = document.getElementById('outline-width'); const outlineWidthVal = document.getElementById('outline-width-val');
             const swapColorsBtn = document.getElementById('swap-colors-btn'); const resetColorsBtn = document.getElementById('reset-colors-btn');
-            const applyNoneBtn = document.getElementById('apply-none-btn'); const toolButtons = document.querySelectorAll('.tool-btn');
+            const applyNoneBtn = document.getElementById('apply-none-btn');
             
             mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
             canvas.addEventListener('pointerdown', () => { if(window.innerWidth <= 900) { sidebar.classList.remove('active'); } });
-
-            toolButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    toolButtons.forEach(b => { b.classList.remove('btn-solid'); b.classList.add('btn-outline'); });
-                    e.target.classList.remove('btn-outline'); e.target.classList.add('btn-solid'); currentMode = e.target.id.replace('tool-', '');
-                    
-                    const opacity = currentMode === 'brush' ? '1' : '0.4';
-                    document.getElementById('brush-type-group').style.opacity = opacity; document.getElementById('brush-size-group').style.opacity = opacity; document.getElementById('brush-fidelity-group').style.opacity = opacity;
-                    if(currentMode !== 'brush') { customCursor.style.display = 'none'; canvas.style.cursor = 'crosshair'; }
-                });
-            });
 
             function initCanvas() {
                 const format = formatSelect.value;
@@ -557,67 +535,56 @@
                 const coords = getCoordinates(e);
                 
                 const pathData = {
-                    layerId: activeLayerId, mode: currentMode === 'brush' ? 'brush' : 'shape', type: currentMode === 'brush' ? brushTypeInput.value : currentMode,
+                    layerId: activeLayerId, type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
                     hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
                     motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                 };
 
-                if (currentMode === 'brush') {
-                    rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
-                    pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
-                } else { pathData.end = [coords.x, coords.y]; }
+                rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
+                pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
+                
                 paths.push(pathData);
             }
 
             function endPosition() { isDrawing = false; needsRedraw = true; }
 
             function draw(e) {
-                if (currentMode === 'brush') {
-                    canvas.style.cursor = 'none'; customCursor.style.display = 'block';
-                    const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
-                    customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-                }
+                canvas.style.cursor = 'none'; customCursor.style.display = 'block';
+                const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
+                customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 
                 if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
                 const currentPath = paths[paths.length - 1]; const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
 
-                if (currentMode === 'brush') {
-                    if (e.shiftKey) {
-                        const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
-                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
-                    }
-                    rawPointsBuffer.push([rawX, rawY]);
-                    const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
+                if (e.shiftKey) {
+                    const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
+                    const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
+                }
+                rawPointsBuffer.push([rawX, rawY]);
+                const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
 
-                    if (rawPointsBuffer.length > 1) {
-                        const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
-                        smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                        if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
-                    }
-                    currentPath.points.push([smoothX, smoothY]);
+                if (rawPointsBuffer.length > 1) {
+                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                    if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
+                }
+                currentPath.points.push([smoothX, smoothY]);
 
-                    if (currentPath.type !== 'line') {
-                        if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
-                        } else {
-                            let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-                            if (dist >= currentPath.spacing) {
-                                let stampsCount = Math.floor(dist / currentPath.spacing);
-                                for (let j = 1; j <= stampsCount; j++) {
-                                    let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
-                                    let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
-                                    currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
-                                }
-                                currentPath.lastStampPoint = [smoothX, smoothY];
+                if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
+                    if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                    } else {
+                        let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                        if (dist >= currentPath.spacing) {
+                            let stampsCount = Math.floor(dist / currentPath.spacing);
+                            for (let j = 1; j <= stampsCount; j++) {
+                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
+                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
                             }
+                            currentPath.lastStampPoint = [smoothX, smoothY];
                         }
                     }
-                } else {
-                    if (e.shiftKey) {
-                        let w = rawX - currentPath.origin[0]; let h = rawY - currentPath.origin[1]; let size = Math.max(Math.abs(w), Math.abs(h));
-                        w = Math.sign(w) * size; h = Math.sign(h) * size; rawX = currentPath.origin[0] + w; rawY = currentPath.origin[1] + h;
-                    }
-                    currentPath.end = [rawX, rawY];
                 }
             }
 
@@ -635,12 +602,12 @@
             }
 
             function renderPath(path) {
-                if (path.mode === 'brush' && path.points.length < 1) return;
+                if (path.points.length < 1) return;
                 const motionType = path.motionType || 'none'; const intensity = (path.motionIntensity || 50) / 50; 
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); if(path.mode === 'brush') currentSize = path.size * scaleFactor; } 
+                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; } 
                 else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
                 else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
                 else if (motionType === 'gravity') { ctx.translate(0, Math.max(0, time - path.createdAt) * 0.025 * intensity); }
@@ -648,30 +615,36 @@
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
 
-                if (path.mode === 'shape') {
-                    ctx.fillStyle = path.color; let w = path.end[0] - path.origin[0]; let h = path.end[1] - path.origin[1];
-                    if (path.type === 'rect') {
-                        if(path.color !== 'transparent') ctx.fillRect(path.origin[0], path.origin[1], w, h);
-                        if (path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(path.origin[0], path.origin[1], w, h); }
-                    } else if (path.type === 'ellipse') {
-                        let cx = path.origin[0] + w / 2; let cy = path.origin[1] + h / 2; let rx = Math.abs(w / 2); let ry = Math.abs(h / 2);
-                        ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
-                        if(path.color !== 'transparent') ctx.fill();
-                        if (path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
-                    }
-                    ctx.restore(); return;
-                }
-
-                if (path.type === 'line') {
-                    if (path.hasOutline) {
-                        ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor;
+                if (path.type === 'line' || path.type === 'charcoal') {
+                    if (path.type === 'line') {
+                        if (path.hasOutline) {
+                            ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor;
+                            ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
+                            for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke();
+                        }
+                        ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; 
                         ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
-                        for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke();
+                        for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
+                        if(path.color !== 'transparent') ctx.stroke();
+                    } else if (path.type === 'charcoal') {
+                        // Charcoal effect: Multiple overlapping jittered lines
+                        if(path.color !== 'transparent') {
+                            ctx.lineWidth = currentSize * 0.2; // Thinner
+                            ctx.strokeStyle = path.color;
+                            ctx.globalAlpha = 0.4;
+                            for(let k = 1; k <= 4; k++) {
+                                ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
+                                for(let i = 1; i < path.points.length; i++) {
+                                    // Math.sin is deterministic, prevents boiling effect on re-render
+                                    let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4;
+                                    let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4;
+                                    ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY);
+                                }
+                                ctx.stroke();
+                            }
+                            ctx.globalAlpha = 1.0;
+                        }
                     }
-                    ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; 
-                    ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
-                    for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
-                    if(path.color !== 'transparent') ctx.stroke();
                 } else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed); }
                 }
@@ -680,11 +653,15 @@
 
             function drawStampOnPoint(path, x, y, angle, size, seedBase) {
                 const type = path.type; ctx.save(); ctx.translate(x, y);
-                if(type === 'ant' || type === 'bee') ctx.rotate(angle + Math.PI / 2); else if(type === 'star' || type === 'square') ctx.rotate(angle); 
+                if(type === 'ant') ctx.rotate(angle + Math.PI / 2); else if(type === 'square') ctx.rotate(angle); 
 
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path);
+                } else if (type === 'solid_square') {
+                    // Nuevo Cuadrado Perfecto
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-size/2, -size/2, size, size); }
+                    if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-size/2, -size/2, size, size); }
                 } else if (type === 'square') {
                     for(let i = 0; i < 3; i++) {
                         ctx.save(); let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5;
@@ -693,12 +670,40 @@
                         if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(pX, pY, size, size); }
                         ctx.restore();
                     }
-                } else if (type === 'star') {
-                    drawStar(0, 0, 5, size/2, size/4); if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path);
-                } else if (type === 'ant' || type === 'bee') {
-                    const emoji = type === 'ant' ? "🐜" : "🐝"; ctx.font = `${size}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; 
-                    if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeText(emoji, 0, 0); }
-                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillText(emoji, 0, 0); }
+                } else if (type === 'ant') {
+                    // HORMIGAS TIPO DIBUJO (Desordenadas y orgánicas)
+                    // Ruido determinístico para desordenarlas sutilmente
+                    let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; // +/- ángulo aleatorio
+                    let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5;
+                    let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5;
+                    ctx.translate(rX, rY);
+                    ctx.rotate(rRot);
+
+                    ctx.beginPath();
+                    let headR = size * 0.15; let thoraxR = size * 0.12; let abdomenR = size * 0.2;
+                    
+                    // Cuerpo (Abdomen, Torax, Cabeza)
+                    ctx.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2);
+                    ctx.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2);
+                    ctx.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2);
+                    if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
+
+                    // Patas
+                    ctx.beginPath();
+                    ctx.lineWidth = Math.max(1, size * 0.05);
+                    // Arriba
+                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, -size*0.3); ctx.lineTo(-size*0.2, -size*0.4);
+                    ctx.moveTo(0, 0); ctx.lineTo(0, -size*0.35); ctx.lineTo(size*0.1, -size*0.45);
+                    ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, -size*0.3); ctx.lineTo(size*0.3, -size*0.4);
+                    // Abajo
+                    ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, size*0.3); ctx.lineTo(-size*0.2, size*0.4);
+                    ctx.moveTo(0, 0); ctx.lineTo(0, size*0.35); ctx.lineTo(size*0.1, size*0.45);
+                    ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, size*0.3); ctx.lineTo(size*0.3, size*0.4);
+                    
+                    // Contorno/Color Patas
+                    if (path.hasOutline) { ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
+                    else if (path.color !== 'transparent') { ctx.strokeStyle = path.color; ctx.stroke(); }
+
                 } else if (type === 'disordered') {
                     for(let i = 0; i < 5; i++) {
                         ctx.save(); let rA = Math.abs(Math.sin(seedBase + i * 13)); let rB = Math.abs(Math.cos(seedBase + i * 17));
@@ -712,11 +717,6 @@
             }
             
             function strokeShape(path) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.lineJoin = 'miter'; ctx.stroke(); }
-            function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
-                let rot = Math.PI / 2 * 3; let step = Math.PI / spikes; ctx.beginPath(); ctx.moveTo(cx, cy - outerRadius);
-                for (let i = 0; i < spikes; i++) { ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius); rot += step; ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius); rot += step; }
-                ctx.closePath();
-            }
 
             function exportImage() {
                 const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid();
@@ -753,6 +753,7 @@
 
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
             motionTypeInput.addEventListener('change', () => { needsRedraw = true; }); motionIntensityInput.addEventListener('input', () => { needsRedraw = true; });
+            brushTypeInput.addEventListener('change', () => { needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { 
                 for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } }
