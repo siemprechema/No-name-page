@@ -7,6 +7,7 @@
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
+            /* Light Theme Variables */
             --bg-color: #f7f7f7;
             --panel-bg: #ffffff;
             --text-color: #111111;
@@ -14,11 +15,13 @@
             --accent-color: #bdf271; 
             --hover-color: #eaeaea;
             --shadow-color: rgba(0,0,0,0.05);
+            
             --font-main: 'GT America Mono', monospace, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 8px; 
             --radius-round: 50px;
         }
 
+        /* Dark Theme Variables */
         body.dark-theme {
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
@@ -38,12 +41,14 @@
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
+        /* === CURSOR DINÁMICO === */
         #dynamic-cursor {
             position: fixed; top: 0; left: 0; pointer-events: none;
             border: 1.5px solid var(--text-color); box-shadow: 0 0 0 1.5px var(--bg-color);
             border-radius: 50%; z-index: 9999; display: none; will-change: transform;
         }
 
+        /* === MENÚ MÓVIL === */
         .mobile-toggle {
             display: none; position: fixed; top: 16px; left: 16px; z-index: 100;
             background: var(--panel-bg); border: 1px solid var(--border-color);
@@ -51,6 +56,7 @@
         }
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
+        /* === SIDEBAR === */
         .sidebar {
             width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
@@ -61,6 +67,7 @@
         .header-brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
         .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 2px; }
 
+        /* === PANELES COLAPSABLES === */
         .module-section { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s;}
         .module-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
         .module-header:hover { background-color: var(--hover-color); }
@@ -70,6 +77,7 @@
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
+        /* === UI CONTROLS === */
         .control-group { margin-bottom: 14px; }
         .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
@@ -99,6 +107,7 @@
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
 
+        /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 180px; overflow-y: auto;}
         .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: grab; transition: background 0.2s, opacity 0.2s; user-select: none;}
         .layer-item:active { cursor: grabbing; }
@@ -115,6 +124,7 @@
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
         .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 100%; outline: none;}
 
+        /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
         .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
@@ -142,6 +152,7 @@
         .none-line-large { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .none-line-large::after { position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); content: ''; }
 
+        /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
@@ -152,6 +163,7 @@
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
+        /* === ACTION BAR === */
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
@@ -205,7 +217,12 @@
                     <svg class="chevron-icon" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                 </header>
                 <div class="module-content">
-                    <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
+                    <div style="display: flex; gap: 6px; margin-bottom: 12px; margin-top: 4px;">
+                        <button class="btn btn-outline tool-btn" id="tool-select" style="flex: 1; padding: 8px 4px;">↖️ Move / Scale</button>
+                        <button class="btn btn-solid tool-btn" id="tool-brush" style="flex: 1; padding: 8px 4px;">🖌️ Draw</button>
+                    </div>
+
+                    <div class="control-group" style="margin-bottom: 0;" id="brush-type-group">
                         <label>Brush Type</label>
                         <select id="brush-type">
                             <option value="line">Line</option>
@@ -230,6 +247,8 @@
                     <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
                         <div class="layers-container" id="layers-list"></div>
                         <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 11px;">+ New Layer</button>
+                        <button class="btn btn-outline" id="btn-import" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px; border-color: var(--border-color);">📥 Import</button>
+                        <input type="file" id="import-file" accept="image/*" style="display:none;">
                     </div>
                 </div>
             </section>
@@ -372,6 +391,13 @@
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
             let draggedLayerId = null;
 
+            // Variables for Image Selection & Transforming
+            let selectedPath = null;
+            let transformAction = null; // 'move', 'tl', 'tr', 'bl', 'br'
+            let tStartX = 0; let tStartY = 0;
+            let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
+            let isExporting = false; // Flag to hide bounding boxes during export
+
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
                 if(e.target.checked) document.body.classList.add('dark-theme');
@@ -401,7 +427,6 @@
                         </div>
                     `;
                     
-                    // --- EVENTOS DE CLIC ---
                     div.addEventListener('click', (e) => {
                         if (e.target.closest('.layer-vis-btn')) {
                             layer.visible = !layer.visible;
@@ -413,18 +438,21 @@
                             activeLayerId = layer.id;
                             document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
                             div.classList.add('active');
+                            // Deseleccionar imagen al cambiar de capa
+                            if (selectedPath && selectedPath.layerId !== activeLayerId) {
+                                selectedPath = null;
+                                needsRedraw = true;
+                            }
                         }
                     });
 
-                    // --- DOBLE CLIC MEJORADO (ZONA AMPLIA) ---
                     const infoDiv = div.querySelector('.layer-info');
                     infoDiv.addEventListener('dblclick', (e) => {
                         e.stopPropagation();
-                        
                         const nameSpan = div.querySelector('.layer-name-span');
-                        if (nameSpan.querySelector('input')) return; // Ya estamos editando
+                        if (nameSpan.querySelector('input')) return; 
                         
-                        div.setAttribute('draggable', false); // IMPORTANTE: Apagar arrastre temporalmente
+                        div.setAttribute('draggable', false); 
                         
                         const oldName = layer.name;
                         nameSpan.innerHTML = `<input type="text" class="layer-rename-input" value="${oldName}" />`;
@@ -432,13 +460,12 @@
                         input.focus();
                         input.select();
                         
-                        // Evitar que al dar clic en el input se disparen otros eventos
                         input.addEventListener('click', (evt) => evt.stopPropagation());
                         input.addEventListener('mousedown', (evt) => evt.stopPropagation());
                         
                         const finishRename = () => {
                             layer.name = input.value.trim() || oldName;
-                            div.setAttribute('draggable', true); // Reactivar arrastre
+                            div.setAttribute('draggable', true); 
                             renderLayersUI();
                         };
                         
@@ -448,29 +475,12 @@
                         });
                     });
 
-                    // --- EVENTOS DE ARRASTRE ---
-                    div.addEventListener('dragstart', (e) => {
-                        draggedLayerId = layer.id;
-                        div.classList.add('dragging');
-                        e.dataTransfer.effectAllowed = 'move';
-                    });
-                    
-                    div.addEventListener('dragend', () => {
-                        div.classList.remove('dragging');
-                        draggedLayerId = null;
-                    });
-                    
-                    div.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        e.dataTransfer.dropEffect = 'move';
-                    });
-                    
+                    div.addEventListener('dragstart', (e) => { draggedLayerId = layer.id; div.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+                    div.addEventListener('dragend', () => { div.classList.remove('dragging'); draggedLayerId = null; });
+                    div.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
                     div.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        const targetId = layer.id;
-                        if (draggedLayerId && draggedLayerId !== targetId) {
-                            reorderLayers(draggedLayerId, targetId);
-                        }
+                        e.preventDefault(); const targetId = layer.id;
+                        if (draggedLayerId && draggedLayerId !== targetId) reorderLayers(draggedLayerId, targetId);
                     });
 
                     layersListEl.appendChild(div);
@@ -481,9 +491,9 @@
                 if (layers.length <= 1) return;
                 layers = layers.filter(l => l.id !== id);
                 paths = paths.filter(p => p.layerId !== id); 
+                if (selectedPath && selectedPath.layerId === id) selectedPath = null;
                 if (activeLayerId === id) activeLayerId = layers[layers.length - 1].id;
-                needsRedraw = true;
-                renderLayersUI();
+                needsRedraw = true; renderLayersUI();
             }
 
             function reorderLayers(draggedId, targetId) {
@@ -491,19 +501,53 @@
                 const targetIndex = layers.findIndex(l => l.id === targetId);
                 const [removed] = layers.splice(draggedIndex, 1);
                 layers.splice(targetIndex, 0, removed);
-                needsRedraw = true;
-                renderLayersUI();
+                needsRedraw = true; renderLayersUI();
             }
 
             document.getElementById('btn-add-layer').addEventListener('click', () => {
-                layerCounter++;
-                const newLayer = { id: `layer-${layerCounter}`, name: `Layer ${layerCounter}`, visible: true };
-                layers.push(newLayer);
-                activeLayerId = newLayer.id;
-                renderLayersUI();
+                layerCounter++; const newLayer = { id: `layer-${layerCounter}`, name: `Layer ${layerCounter}`, visible: true };
+                layers.push(newLayer); activeLayerId = newLayer.id; renderLayersUI();
             });
             renderLayersUI();
 
+            // --- IMAGE IMPORT LOGIC ---
+            const btnImport = document.getElementById('btn-import');
+            const importFile = document.getElementById('import-file');
+            btnImport.addEventListener('click', () => importFile.click());
+
+            importFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let w = img.width; let h = img.height;
+                        const maxW = canvas.width * 0.6; const maxH = canvas.height * 0.6;
+                        if (w > maxW || h > maxH) {
+                            const ratio = Math.min(maxW / w, maxH / h);
+                            w *= ratio; h *= ratio;
+                        }
+                        const x = (canvas.width - w) / 2; const y = (canvas.height - h) / 2;
+
+                        const imgPath = {
+                            layerId: activeLayerId, mode: 'image', img: img, type: 'image',
+                            x: x, y: y, w: w, h: h,
+                            blur: parseInt(brushBlurInput.value), createdAt: performance.now(),
+                            motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
+                        };
+                        paths.push(imgPath);
+                        document.getElementById('tool-select').click(); // Auto-switch to Select tool
+                        selectedPath = imgPath;
+                        needsRedraw = true;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+                e.target.value = ''; 
+            });
+
+            // --- GRID LOGIC ---
             const gridToggle = document.getElementById('toggle-grid');
             gridToggle.addEventListener('change', () => { needsRedraw = true; });
 
@@ -523,6 +567,7 @@
                 ctx.stroke(); ctx.restore();
             }
 
+            // --- VARIABLES & UI ELEMENTS ---
             let mediaRecorder; let recordedChunks = []; let isRecording = false;
             let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 26 } };
 
@@ -541,9 +586,23 @@
             const outlineWidthInput = document.getElementById('outline-width'); const outlineWidthVal = document.getElementById('outline-width-val');
             const swapColorsBtn = document.getElementById('swap-colors-btn'); const resetColorsBtn = document.getElementById('reset-colors-btn');
             const applyNoneBtn = document.getElementById('apply-none-btn');
+            const toolButtons = document.querySelectorAll('.tool-btn');
             
             mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
             canvas.addEventListener('pointerdown', () => { if(window.innerWidth <= 900) { sidebar.classList.remove('active'); } });
+
+            toolButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    toolButtons.forEach(b => { b.classList.remove('btn-solid'); b.classList.add('btn-outline'); });
+                    e.target.classList.remove('btn-outline'); e.target.classList.add('btn-solid'); currentMode = e.target.id.replace('tool-', '');
+                    
+                    const opacity = currentMode === 'brush' ? '1' : '0.4';
+                    document.getElementById('brush-type-group').style.opacity = opacity; document.getElementById('brush-size-group').style.opacity = opacity; document.getElementById('brush-fidelity-group').style.opacity = opacity;
+                    
+                    if(currentMode !== 'brush') { customCursor.style.display = 'none'; canvas.style.cursor = 'default'; }
+                    else { selectedPath = null; needsRedraw = true; } // Deseleccionar al cambiar a brocha
+                });
+            });
 
             function initCanvas() {
                 const format = formatSelect.value;
@@ -579,39 +638,124 @@
             function executeRedo() { if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; } }
             btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
 
+            function getHandle(x, y, path) {
+                // Zona de detección en la escala del canvas
+                const s = 60; // 60px de hitbox en un canvas 4k
+                const hx = path.x, hy = path.y, hw = path.w, hh = path.h;
+                if (Math.abs(x - hx) < s && Math.abs(y - hy) < s) return 'tl';
+                if (Math.abs(x - (hx + hw)) < s && Math.abs(y - hy) < s) return 'tr';
+                if (Math.abs(x - hx) < s && Math.abs(y - (hy + hh)) < s) return 'bl';
+                if (Math.abs(x - (hx + hw)) < s && Math.abs(y - (hy + hh)) < s) return 'br';
+                if (x > hx && x < hx + hw && y > hy && y < hy + hh) return 'move';
+                return null;
+            }
+
             function startPosition(e) {
                 const activeLayerInfo = layers.find(l => l.id === activeLayerId);
                 if(!activeLayerInfo || !activeLayerInfo.visible) return;
-                isDrawing = true; needsRedraw = true; redoStack.length = 0; 
+                
                 const coords = getCoordinates(e);
+
+                // LÓGICA DE HERRAMIENTA SELECT / MOVE
+                if (currentMode === 'select') {
+                    isDrawing = true;
+                    // 1. Check if clicking handles of currently selected image
+                    if (selectedPath && selectedPath.mode === 'image') {
+                        const handle = getHandle(coords.x, coords.y, selectedPath);
+                        if (handle) {
+                            transformAction = handle;
+                            tStartX = coords.x; tStartY = coords.y;
+                            tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
+                            tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
+                            return;
+                        }
+                    }
+
+                    // 2. Select new image
+                    selectedPath = null;
+                    for (let i = paths.length - 1; i >= 0; i--) {
+                        const p = paths[i];
+                        const layer = layers.find(l => l.id === p.layerId);
+                        if (layer && layer.visible && p.mode === 'image') {
+                            if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
+                                selectedPath = p; transformAction = 'move';
+                                tStartX = coords.x; tStartY = coords.y;
+                                tStartImgX = p.x; tStartImgY = p.y;
+                                // Auto-activar la capa de la imagen al tocarla
+                                activeLayerId = p.layerId;
+                                renderLayersUI();
+                                break;
+                            }
+                        }
+                    }
+                    needsRedraw = true;
+                    return;
+                }
+
+                // LÓGICA DE DIBUJO NORMAL
+                isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
                     hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
                     motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                 };
+
                 rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
                 pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
                 paths.push(pathData);
             }
 
-            function endPosition() { isDrawing = false; needsRedraw = true; }
+            function endPosition() { isDrawing = false; transformAction = null; needsRedraw = true; }
 
             function draw(e) {
+                const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
+
+                if (currentMode === 'select') {
+                    canvas.style.cursor = 'default'; customCursor.style.display = 'none';
+                    if (isDrawing && selectedPath && transformAction) {
+                        const dx = rawX - tStartX; const dy = rawY - tStartY;
+                        if (transformAction === 'move') {
+                            selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy;
+                        } else {
+                            const ratio = tStartImgW / tStartImgH;
+                            if (transformAction === 'br') {
+                                let newW = Math.max(20, tStartImgW + dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
+                            } else if (transformAction === 'bl') {
+                                let newW = Math.max(20, tStartImgW - dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
+                                selectedPath.x = tStartImgX + (tStartImgW - newW);
+                            } else if (transformAction === 'tr') {
+                                let newW = Math.max(20, tStartImgW + dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
+                                selectedPath.y = tStartImgY + (tStartImgH - selectedPath.h);
+                            } else if (transformAction === 'tl') {
+                                let newW = Math.max(20, tStartImgW - dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
+                                selectedPath.x = tStartImgX + (tStartImgW - newW); selectedPath.y = tStartImgY + (tStartImgH - selectedPath.h);
+                            }
+                        }
+                        needsRedraw = true;
+                    }
+                    return;
+                }
+
+                // Dibujo de pincel normal
                 canvas.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+
                 if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
-                const currentPath = paths[paths.length - 1]; const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
+                const currentPath = paths[paths.length - 1]; 
+
                 if (e.shiftKey) { const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx); const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist; }
                 rawPointsBuffer.push([rawX, rawY]);
                 const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
+
                 if (rawPointsBuffer.length > 1) {
                     const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
                     smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
                     if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 6) return; }
                 }
                 currentPath.points.push([smoothX, smoothY]);
+
                 if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
                     if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 }); } 
                     else {
@@ -632,29 +776,59 @@
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
                 const hasAnimatedPaths = paths.some(p => p.motionType !== 'none' && layers.find(l => l.id === p.layerId)?.visible);
-                if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording) { return; }
+                if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording && !isExporting) { return; }
+                
                 ctx.save(); fillBackground(); 
+                
                 layers.forEach(layer => { 
                     if(!layer.visible) return; 
                     const layerPaths = paths.filter(p => p.layerId === layer.id); 
                     layerPaths.forEach(renderPath); 
                 });
-                drawGrid(); ctx.restore();
+                
+                drawGrid(); 
+
+                // DRAW BOUNDING BOX FOR SELECTED IMAGE
+                if (currentMode === 'select' && selectedPath && !isRecording && !isExporting) {
+                    ctx.save();
+                    ctx.strokeStyle = '#bdf271'; ctx.lineWidth = 4;
+                    ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
+                    ctx.fillStyle = '#ffffff'; const s = 16;
+                    const drawHandle = (hx, hy) => { ctx.fillRect(hx - s/2, hy - s/2, s, s); ctx.strokeRect(hx - s/2, hy - s/2, s, s); };
+                    drawHandle(selectedPath.x, selectedPath.y); drawHandle(selectedPath.x + selectedPath.w, selectedPath.y);
+                    drawHandle(selectedPath.x, selectedPath.y + selectedPath.h); drawHandle(selectedPath.x + selectedPath.w, selectedPath.y + selectedPath.h);
+                    ctx.restore();
+                }
+
+                ctx.restore();
                 if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
             }
 
             function renderPath(path) {
-                if (path.points.length < 1) return;
+                if (path.mode !== 'image' && path.points.length < 1) return;
                 const motionType = path.motionType || 'none'; const intensity = (path.motionIntensity || 50) / 50; 
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
-                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; } 
+
+                if (motionType === 'pulse') { 
+                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); 
+                    if (path.mode === 'image') {
+                        // Escalar desde el centro la imagen
+                        ctx.translate(path.x + path.w/2, path.y + path.h/2);
+                        ctx.scale(scaleFactor, scaleFactor);
+                        ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2));
+                    } else { currentSize = path.size * scaleFactor; }
+                } 
                 else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
                 else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
                 else if (motionType === 'gravity') { const bounceAmplitude = 300; const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity))); ctx.translate(0, drop); }
+                
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-                if (path.type === 'line' || path.type === 'charcoal') {
+
+                if (path.mode === 'image') {
+                    ctx.drawImage(path.img, path.x, path.y, path.w, path.h);
+                } else if (path.type === 'line' || path.type === 'charcoal') {
                     if (path.type === 'line') {
                         if (path.hasOutline) { ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke(); }
                         ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') ctx.stroke();
@@ -680,16 +854,79 @@
             }
             
             function strokeShape(path) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.lineJoin = 'miter'; ctx.stroke(); }
-            function exportImage() { const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid(); const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); gridToggle.checked = oldGrid; needsRedraw = true; }
-            function toggleRecording() { if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); } else { const oldGrid = gridToggle.checked; gridToggle.checked = false; let mimeType = 'video/webm'; let ext = 'webm'; if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = []; mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); }; mediaRecorder.onstop = function() { const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); gridToggle.checked = oldGrid; needsRedraw = true; }; mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; } }
+            
+            function exportImage() { 
+                isExporting = true;
+                const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid(); 
+                // Render one frame clean
+                renderAllPaths(); 
+                
+                setTimeout(() => {
+                    const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); 
+                    gridToggle.checked = oldGrid; 
+                    isExporting = false;
+                    needsRedraw = true; 
+                }, 100);
+            }
+
+            function toggleRecording() { 
+                if (isRecording) { 
+                    mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); 
+                } else { 
+                    const oldGrid = gridToggle.checked; gridToggle.checked = false; 
+                    let mimeType = 'video/webm'; let ext = 'webm'; 
+                    if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } 
+                    const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = []; 
+                    mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); }; 
+                    mediaRecorder.onstop = function() { 
+                        const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); 
+                        const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
+                        gridToggle.checked = oldGrid; needsRedraw = true; 
+                    }; 
+                    mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
+                } 
+            }
 
             canvas.addEventListener('pointerdown', startPosition); canvas.addEventListener('pointerup', endPosition); canvas.addEventListener('pointermove', draw); canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; }); canvas.addEventListener('pointercancel', endPosition);
-            document.addEventListener('keydown', (e) => { const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); } if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); } if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); } if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); } });
-            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); motionTypeInput.addEventListener('change', () => { needsRedraw = true; }); motionIntensityInput.addEventListener('input', () => { needsRedraw = true; }); brushTypeInput.addEventListener('change', () => { needsRedraw = true; });
+            
+            document.addEventListener('keydown', (e) => { 
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
+                if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); } 
+                if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); } 
+                if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); } 
+                if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); } 
+                
+                // Borrar imagen seleccionada
+                if ((e.key === 'Backspace' || e.key === 'Delete') && currentMode === 'select' && selectedPath) {
+                    if(!e.target.closest('input')) {
+                        paths = paths.filter(p => p !== selectedPath);
+                        selectedPath = null;
+                        needsRedraw = true;
+                    }
+                }
+            });
+            
+            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
+            
+            // Edit Image Effects Live
+            motionTypeInput.addEventListener('change', (e) => { 
+                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; 
+                needsRedraw = true; 
+            }); 
+            motionIntensityInput.addEventListener('input', (e) => { 
+                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); 
+                needsRedraw = true; 
+            }); 
+            brushBlurInput.addEventListener('input', (e) => { 
+                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); 
+                needsRedraw = true; 
+            });
+            
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; } function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
+            
             initCanvas(); requestAnimationFrame(renderAllPaths); 
         });
     </script>
