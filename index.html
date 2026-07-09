@@ -247,7 +247,7 @@
                     <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
                         <div class="layers-container" id="layers-list"></div>
                         <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 11px;">+ New Layer</button>
-                        <button class="btn btn-outline" id="btn-import" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px; border-color: var(--border-color);">📥 Import</button>
+                        <button class="btn btn-outline" id="btn-import" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px; border-color: var(--border-color);">📥 Import Image</button>
                         <input type="file" id="import-file" accept="image/*" style="display:none;">
                     </div>
                 </div>
@@ -393,10 +393,10 @@
 
             // Variables for Image Selection & Transforming
             let selectedPath = null;
-            let transformAction = null; // 'move', 'tl', 'tr', 'bl', 'br'
+            let transformAction = null; 
             let tStartX = 0; let tStartY = 0;
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
-            let isExporting = false; // Flag to hide bounding boxes during export
+            let isExporting = false;
 
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
@@ -411,7 +411,7 @@
 
             function renderLayersUI() {
                 layersListEl.innerHTML = '';
-                [...layers].reverse().forEach((layer, index) => {
+                [...layers].reverse().forEach((layer) => {
                     const div = document.createElement('div');
                     div.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
                     div.setAttribute('draggable', true);
@@ -438,7 +438,6 @@
                             activeLayerId = layer.id;
                             document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
                             div.classList.add('active');
-                            // Deseleccionar imagen al cambiar de capa
                             if (selectedPath && selectedPath.layerId !== activeLayerId) {
                                 selectedPath = null;
                                 needsRedraw = true;
@@ -457,8 +456,7 @@
                         const oldName = layer.name;
                         nameSpan.innerHTML = `<input type="text" class="layer-rename-input" value="${oldName}" />`;
                         const input = nameSpan.querySelector('input');
-                        input.focus();
-                        input.select();
+                        input.focus(); input.select();
                         
                         input.addEventListener('click', (evt) => evt.stopPropagation());
                         input.addEventListener('mousedown', (evt) => evt.stopPropagation());
@@ -468,11 +466,8 @@
                             div.setAttribute('draggable', true); 
                             renderLayersUI();
                         };
-                        
                         input.addEventListener('blur', finishRename);
-                        input.addEventListener('keydown', (evt) => {
-                            if (evt.key === 'Enter') input.blur();
-                        });
+                        input.addEventListener('keydown', (evt) => { if (evt.key === 'Enter') input.blur(); });
                     });
 
                     div.addEventListener('dragstart', (e) => { draggedLayerId = layer.id; div.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
@@ -537,7 +532,7 @@
                             motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                         };
                         paths.push(imgPath);
-                        document.getElementById('tool-select').click(); // Auto-switch to Select tool
+                        document.getElementById('tool-select').click(); 
                         selectedPath = imgPath;
                         needsRedraw = true;
                     };
@@ -600,7 +595,7 @@
                     document.getElementById('brush-type-group').style.opacity = opacity; document.getElementById('brush-size-group').style.opacity = opacity; document.getElementById('brush-fidelity-group').style.opacity = opacity;
                     
                     if(currentMode !== 'brush') { customCursor.style.display = 'none'; canvas.style.cursor = 'default'; }
-                    else { selectedPath = null; needsRedraw = true; } // Deseleccionar al cambiar a brocha
+                    else { selectedPath = null; needsRedraw = true; } 
                 });
             });
 
@@ -639,13 +634,20 @@
             btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
 
             function getHandle(x, y, path) {
-                // Zona de detección en la escala del canvas
-                const s = 60; // 60px de hitbox en un canvas 4k
+                const s = 60; // Área de detección en pixeles de canvas 4k
                 const hx = path.x, hy = path.y, hw = path.w, hh = path.h;
+                const cx = hx + hw/2, cy = hy + hh/2;
+
                 if (Math.abs(x - hx) < s && Math.abs(y - hy) < s) return 'tl';
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - hy) < s) return 'tr';
                 if (Math.abs(x - hx) < s && Math.abs(y - (hy + hh)) < s) return 'bl';
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - (hy + hh)) < s) return 'br';
+
+                if (Math.abs(x - cx) < s && Math.abs(y - hy) < s) return 't';
+                if (Math.abs(x - cx) < s && Math.abs(y - (hy + hh)) < s) return 'b';
+                if (Math.abs(x - hx) < s && Math.abs(y - cy) < s) return 'l';
+                if (Math.abs(x - (hx + hw)) < s && Math.abs(y - cy) < s) return 'r';
+
                 if (x > hx && x < hx + hw && y > hy && y < hy + hh) return 'move';
                 return null;
             }
@@ -653,13 +655,10 @@
             function startPosition(e) {
                 const activeLayerInfo = layers.find(l => l.id === activeLayerId);
                 if(!activeLayerInfo || !activeLayerInfo.visible) return;
-                
                 const coords = getCoordinates(e);
 
-                // LÓGICA DE HERRAMIENTA SELECT / MOVE
                 if (currentMode === 'select') {
                     isDrawing = true;
-                    // 1. Check if clicking handles of currently selected image
                     if (selectedPath && selectedPath.mode === 'image') {
                         const handle = getHandle(coords.x, coords.y, selectedPath);
                         if (handle) {
@@ -671,7 +670,6 @@
                         }
                     }
 
-                    // 2. Select new image
                     selectedPath = null;
                     for (let i = paths.length - 1; i >= 0; i--) {
                         const p = paths[i];
@@ -681,7 +679,6 @@
                                 selectedPath = p; transformAction = 'move';
                                 tStartX = coords.x; tStartY = coords.y;
                                 tStartImgX = p.x; tStartImgY = p.y;
-                                // Auto-activar la capa de la imagen al tocarla
                                 activeLayerId = p.layerId;
                                 renderLayersUI();
                                 break;
@@ -692,7 +689,6 @@
                     return;
                 }
 
-                // LÓGICA DE DIBUJO NORMAL
                 isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
@@ -708,36 +704,73 @@
 
             function endPosition() { isDrawing = false; transformAction = null; needsRedraw = true; }
 
+            // LÓGICA MOUSE MOVE
+            canvas.addEventListener('pointermove', (e) => {
+                const coords = getCoordinates(e);
+                
+                // Actualizar cursores visuales
+                if (currentMode === 'select') {
+                    if (!isDrawing && selectedPath) {
+                        const handle = getHandle(coords.x, coords.y, selectedPath);
+                        if (handle === 'tl' || handle === 'br') canvas.style.cursor = 'nwse-resize';
+                        else if (handle === 'tr' || handle === 'bl') canvas.style.cursor = 'nesw-resize';
+                        else if (handle === 't' || handle === 'b') canvas.style.cursor = 'ns-resize';
+                        else if (handle === 'l' || handle === 'r') canvas.style.cursor = 'ew-resize';
+                        else if (handle === 'move') canvas.style.cursor = 'move';
+                        else canvas.style.cursor = 'default';
+                    }
+                }
+            });
+
             function draw(e) {
                 const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
 
                 if (currentMode === 'select') {
-                    canvas.style.cursor = 'default'; customCursor.style.display = 'none';
+                    customCursor.style.display = 'none';
                     if (isDrawing && selectedPath && transformAction) {
                         const dx = rawX - tStartX; const dy = rawY - tStartY;
+                        const alt = e.altKey; const shift = e.shiftKey;
+                        const ratio = tStartImgW / tStartImgH;
+
                         if (transformAction === 'move') {
                             selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy;
-                        } else {
-                            const ratio = tStartImgW / tStartImgH;
-                            if (transformAction === 'br') {
-                                let newW = Math.max(20, tStartImgW + dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
-                            } else if (transformAction === 'bl') {
-                                let newW = Math.max(20, tStartImgW - dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
-                                selectedPath.x = tStartImgX + (tStartImgW - newW);
-                            } else if (transformAction === 'tr') {
-                                let newW = Math.max(20, tStartImgW + dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
-                                selectedPath.y = tStartImgY + (tStartImgH - selectedPath.h);
-                            } else if (transformAction === 'tl') {
-                                let newW = Math.max(20, tStartImgW - dx); selectedPath.w = newW; selectedPath.h = newW / ratio;
-                                selectedPath.x = tStartImgX + (tStartImgW - newW); selectedPath.y = tStartImgY + (tStartImgH - selectedPath.h);
+                        } 
+                        else if (['l', 'r'].includes(transformAction)) {
+                            let newW = transformAction === 'r' ? tStartImgW + (alt ? 2*dx : dx) : tStartImgW - (alt ? 2*dx : dx);
+                            if (newW < 20) newW = 20;
+                            selectedPath.w = newW;
+                            selectedPath.x = transformAction === 'l' ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
+                        }
+                        else if (['t', 'b'].includes(transformAction)) {
+                            let newH = transformAction === 'b' ? tStartImgH + (alt ? 2*dy : dy) : tStartImgH - (alt ? 2*dy : dy);
+                            if (newH < 20) newH = 20;
+                            selectedPath.h = newH;
+                            selectedPath.y = transformAction === 't' ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
+                        }
+                        else { // Corners
+                            let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1;
+                            let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
+                            
+                            let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX);
+                            let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
+
+                            if (shift) {
+                                let scale = Math.max(newW / tStartImgW, newH / tStartImgH);
+                                if (scale < 0.1) scale = 0.1;
+                                newW = tStartImgW * scale; newH = tStartImgH * scale;
+                            } else {
+                                if (newW < 20) newW = 20; if (newH < 20) newH = 20;
                             }
+
+                            selectedPath.w = newW; selectedPath.h = newH;
+                            selectedPath.x = (factorX === -1) ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
+                            selectedPath.y = (factorY === -1) ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
                         }
                         needsRedraw = true;
                     }
                     return;
                 }
 
-                // Dibujo de pincel normal
                 canvas.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
@@ -788,15 +821,18 @@
                 
                 drawGrid(); 
 
-                // DRAW BOUNDING BOX FOR SELECTED IMAGE
                 if (currentMode === 'select' && selectedPath && !isRecording && !isExporting) {
                     ctx.save();
                     ctx.strokeStyle = '#bdf271'; ctx.lineWidth = 4;
                     ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
                     ctx.fillStyle = '#ffffff'; const s = 16;
-                    const drawHandle = (hx, hy) => { ctx.fillRect(hx - s/2, hy - s/2, s, s); ctx.strokeRect(hx - s/2, hy - s/2, s, s); };
-                    drawHandle(selectedPath.x, selectedPath.y); drawHandle(selectedPath.x + selectedPath.w, selectedPath.y);
-                    drawHandle(selectedPath.x, selectedPath.y + selectedPath.h); drawHandle(selectedPath.x + selectedPath.w, selectedPath.y + selectedPath.h);
+                    const drawH = (hx, hy) => { ctx.fillRect(hx - s/2, hy - s/2, s, s); ctx.strokeRect(hx - s/2, hy - s/2, s, s); };
+                    const hx = selectedPath.x, hy = selectedPath.y, hw = selectedPath.w, hh = selectedPath.h;
+                    const cx = hx + hw/2, cy = hy + hh/2;
+                    // Corners
+                    drawH(hx, hy); drawH(hx + hw, hy); drawH(hx, hy + hh); drawH(hx + hw, hy + hh);
+                    // Edges
+                    drawH(cx, hy); drawH(cx, hy + hh); drawH(hx, cy); drawH(hx + hw, cy);
                     ctx.restore();
                 }
 
@@ -813,10 +849,7 @@
                 if (motionType === 'pulse') { 
                     const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); 
                     if (path.mode === 'image') {
-                        // Escalar desde el centro la imagen
-                        ctx.translate(path.x + path.w/2, path.y + path.h/2);
-                        ctx.scale(scaleFactor, scaleFactor);
-                        ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2));
+                        ctx.translate(path.x + path.w/2, path.y + path.h/2); ctx.scale(scaleFactor, scaleFactor); ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2));
                     } else { currentSize = path.size * scaleFactor; }
                 } 
                 else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
@@ -858,14 +891,10 @@
             function exportImage() { 
                 isExporting = true;
                 const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid(); 
-                // Render one frame clean
                 renderAllPaths(); 
-                
                 setTimeout(() => {
                     const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); 
-                    gridToggle.checked = oldGrid; 
-                    isExporting = false;
-                    needsRedraw = true; 
+                    gridToggle.checked = oldGrid; isExporting = false; needsRedraw = true; 
                 }, 100);
             }
 
@@ -896,31 +925,16 @@
                 if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); } 
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); } 
                 
-                // Borrar imagen seleccionada
                 if ((e.key === 'Backspace' || e.key === 'Delete') && currentMode === 'select' && selectedPath) {
-                    if(!e.target.closest('input')) {
-                        paths = paths.filter(p => p !== selectedPath);
-                        selectedPath = null;
-                        needsRedraw = true;
-                    }
+                    if(!e.target.closest('input')) { paths = paths.filter(p => p !== selectedPath); selectedPath = null; needsRedraw = true; }
                 }
             });
             
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            
-            // Edit Image Effects Live
-            motionTypeInput.addEventListener('change', (e) => { 
-                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; 
-                needsRedraw = true; 
-            }); 
-            motionIntensityInput.addEventListener('input', (e) => { 
-                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); 
-                needsRedraw = true; 
-            }); 
-            brushBlurInput.addEventListener('input', (e) => { 
-                if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); 
-                needsRedraw = true; 
-            });
+            motionTypeInput.addEventListener('change', (e) => { if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
+            motionIntensityInput.addEventListener('input', (e) => { if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; }); 
+            brushBlurInput.addEventListener('input', (e) => { if(currentMode === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); needsRedraw = true; });
+            brushTypeInput.addEventListener('change', () => { needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
