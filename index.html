@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>22-DDM Pro</title>
+    <title>DDM</title>
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
@@ -109,7 +109,7 @@
 
         /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 150px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; user-select: none;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none;}
         .layer-item:last-child { border-bottom: none; }
         .layer-item:hover { background: var(--hover-color); }
         .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
@@ -122,10 +122,10 @@
         /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
-        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
+        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 20px; left: 20px; z-index: 1; }
         #color-fill-swatch { top: 2px; left: 2px; z-index: 2; }
-        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.3); }
+        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.15); }
         .illustrator-swatch input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 4; }
         .none-line { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; display: none; }
         .none-line::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
@@ -149,7 +149,6 @@
 
         /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
-        /* El fondo .canvas-area es gris oscuro en modo dark, pero el #art-canvas será blanco */
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
         .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
@@ -158,7 +157,6 @@
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         
-        /* El canvas nativo siempre arranca blanco para legibilidad */
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
         /* === ACTION BAR === */
@@ -195,7 +193,7 @@
         
         <aside class="sidebar" id="sidebar">
             <header class="header-brand">
-                <h1>22-DDM</h1>
+                <h1>DDM</h1>
                 <p>Pro Experimental Tool</p>
             </header>
 
@@ -222,10 +220,10 @@
                             <option value="line">Line</option>
                             <option value="charcoal">Charcoal</option>
                             <option value="dot">Dots</option>
+                            <option value="disordered_dots">Disordered Dots</option>
                             <option value="solid_square">Squares</option>
                             <option value="square">Disordered Squares</option>
                             <option value="disordered">Disordered Rectangles</option>
-                            <option value="disordered_dots">Disordered Dots</option>
                             <option value="ant">Ants</option>
                         </select>
                     </div>
@@ -382,13 +380,6 @@
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; let currentMode = 'brush'; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
 
-            // --- DARK MODE LOGIC ---
-            const darkToggle = document.getElementById('toggle-dark-mode');
-            darkToggle.addEventListener('change', (e) => {
-                if(e.target.checked) document.body.classList.add('dark-theme');
-                else document.body.classList.remove('dark-theme');
-            });
-
             // --- LAYERS LOGIC ---
             let layers = [{ id: 'layer-1', name: 'Layer 1', visible: true }];
             let activeLayerId = 'layer-1'; let layerCounter = 1;
@@ -419,6 +410,7 @@
                         }
                     });
 
+                    // DOUBLE CLICK TO RENAME
                     const nameSpan = div.querySelector('.layer-name-span');
                     nameSpan.addEventListener('dblclick', (e) => {
                         e.stopPropagation(); 
@@ -454,13 +446,13 @@
             function drawGrid() {
                 if (!gridToggle.checked) return;
                 ctx.save();
-                ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(128,128,128,0.6)';
                 ctx.beginPath();
                 ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
                 ctx.moveTo(0, canvas.height/2); ctx.lineTo(canvas.width, canvas.height/2);
                 ctx.stroke();
 
-                ctx.lineWidth = 0.5; ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.lineWidth = 0.5; ctx.strokeStyle = 'rgba(128,128,128,0.3)';
                 ctx.beginPath();
                 for(let i=1; i<8; i++){ if(i===4) continue; ctx.moveTo((canvas.width/8)*i, 0); ctx.lineTo((canvas.width/8)*i, canvas.height); }
                 for(let i=1; i<8; i++){ if(i===4) continue; ctx.moveTo(0, (canvas.height/8)*i); ctx.lineTo(canvas.width, (canvas.height/8)*i); }
@@ -537,67 +529,56 @@
                 const coords = getCoordinates(e);
                 
                 const pathData = {
-                    layerId: activeLayerId, mode: currentMode === 'brush' ? 'brush' : 'shape', type: currentMode === 'brush' ? brushTypeInput.value : currentMode,
+                    layerId: activeLayerId, type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
                     hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
                     motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
                 };
 
-                if (currentMode === 'brush') {
-                    rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
-                    pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
-                } else { pathData.end = [coords.x, coords.y]; }
+                rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
+                pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
+                
                 paths.push(pathData);
             }
 
             function endPosition() { isDrawing = false; needsRedraw = true; }
 
             function draw(e) {
-                if (currentMode === 'brush') {
-                    canvas.style.cursor = 'none'; customCursor.style.display = 'block';
-                    const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
-                    customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-                }
+                canvas.style.cursor = 'none'; customCursor.style.display = 'block';
+                const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
+                customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 
                 if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
                 const currentPath = paths[paths.length - 1]; const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
 
-                if (currentMode === 'brush') {
-                    if (e.shiftKey) {
-                        const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
-                        const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
-                    }
-                    rawPointsBuffer.push([rawX, rawY]);
-                    const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
+                if (e.shiftKey) {
+                    const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx);
+                    const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist;
+                }
+                rawPointsBuffer.push([rawX, rawY]);
+                const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); let smoothX = rawX; let smoothY = rawY;
 
-                    if (rawPointsBuffer.length > 1) {
-                        const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
-                        smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
-                        if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
-                    }
-                    currentPath.points.push([smoothX, smoothY]);
+                if (rawPointsBuffer.length > 1) {
+                    const bufferToAverage = rawPointsBuffer.slice(-lookbackCount);
+                    smoothX = bufferToAverage.reduce((sum, p) => sum + p[0], 0) / bufferToAverage.length; smoothY = bufferToAverage.reduce((sum, p) => sum + p[1], 0) / bufferToAverage.length;
+                    if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 3) return; }
+                }
+                currentPath.points.push([smoothX, smoothY]);
 
-                    if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
-                        if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
-                        } else {
-                            let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
-                            if (dist >= currentPath.spacing) {
-                                let stampsCount = Math.floor(dist / currentPath.spacing);
-                                for (let j = 1; j <= stampsCount; j++) {
-                                    let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
-                                    let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
-                                    currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
-                                }
-                                currentPath.lastStampPoint = [smoothX, smoothY];
+                if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
+                    if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 });
+                    } else {
+                        let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
+                        if (dist >= currentPath.spacing) {
+                            let stampsCount = Math.floor(dist / currentPath.spacing);
+                            for (let j = 1; j <= stampsCount; j++) {
+                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
+                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
+                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
                             }
+                            currentPath.lastStampPoint = [smoothX, smoothY];
                         }
                     }
-                } else {
-                    if (e.shiftKey) {
-                        let w = rawX - currentPath.origin[0]; let h = rawY - currentPath.origin[1]; let size = Math.max(Math.abs(w), Math.abs(h));
-                        w = Math.sign(w) * size; h = Math.sign(h) * size; rawX = currentPath.origin[0] + w; rawY = currentPath.origin[1] + h;
-                    }
-                    currentPath.end = [rawX, rawY];
                 }
             }
 
@@ -620,14 +601,10 @@
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
 
-                if (motionType === 'pulse') { 
-                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; 
-                } else if (motionType === 'vibrate') { 
-                    ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); 
-                } else if (motionType === 'wave') { 
-                    ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); 
-                } else if (motionType === 'gravity') { 
-                    // REBOTE CONTINUO DE GRAVEDAD
+                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); currentSize = path.size * scaleFactor; } 
+                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
+                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
+                else if (motionType === 'gravity') { 
                     const bounceAmplitude = 300; 
                     const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity)));
                     ctx.translate(0, drop); 
@@ -729,7 +706,7 @@
 
             function exportImage() {
                 const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid();
-                const link = document.createElement('a'); link.download = `22-DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click();
+                const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click();
                 gridToggle.checked = oldGrid; needsRedraw = true;
             }
 
@@ -738,7 +715,6 @@
                 else {
                     const oldGrid = gridToggle.checked; gridToggle.checked = false; 
                     
-                    // FALLBACK: Intentar MP4 si el navegador lo soporta (Safari)
                     let mimeType = 'video/webm';
                     let ext = 'webm';
                     if (MediaRecorder.isTypeSupported('video/mp4')) {
@@ -751,7 +727,7 @@
                     mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); };
                     mediaRecorder.onstop = function() {
                         const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType }));
-                        const link = document.createElement('a'); link.download = `22-DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
+                        const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
                         gridToggle.checked = oldGrid; needsRedraw = true; 
                     };
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
