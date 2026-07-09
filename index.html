@@ -7,6 +7,7 @@
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
+            /* Light Theme Variables */
             --bg-color: #f7f7f7;
             --panel-bg: #ffffff;
             --text-color: #111111;
@@ -14,11 +15,13 @@
             --accent-color: #bdf271; 
             --hover-color: #eaeaea;
             --shadow-color: rgba(0,0,0,0.05);
+            
             --font-main: 'GT America Mono', monospace, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 8px; 
             --radius-round: 50px;
         }
 
+        /* Dark Theme Variables */
         body.dark-theme {
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
@@ -38,12 +41,14 @@
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
+        /* === CURSOR DINÁMICO === */
         #dynamic-cursor {
             position: fixed; top: 0; left: 0; pointer-events: none;
             border: 1.5px solid var(--text-color); box-shadow: 0 0 0 1.5px var(--bg-color);
             border-radius: 50%; z-index: 9999; display: none; will-change: transform;
         }
 
+        /* === MENÚ MÓVIL === */
         .mobile-toggle {
             display: none; position: fixed; top: 16px; left: 16px; z-index: 100;
             background: var(--panel-bg); border: 1px solid var(--border-color);
@@ -51,6 +56,7 @@
         }
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
+        /* === SIDEBAR === */
         .sidebar {
             width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
@@ -61,6 +67,7 @@
         .header-brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
         .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 2px; }
 
+        /* === PANELES COLAPSABLES === */
         .module-section { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s;}
         .module-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
         .module-header:hover { background-color: var(--hover-color); }
@@ -70,6 +77,7 @@
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
+        /* === UI CONTROLS === */
         .control-group { margin-bottom: 14px; }
         .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
@@ -99,6 +107,7 @@
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
 
+        /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 180px; overflow-y: auto;}
         .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: grab; transition: background 0.2s, opacity 0.2s; user-select: none;}
         .layer-item:active { cursor: grabbing; }
@@ -115,6 +124,7 @@
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
         .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 100%; outline: none;}
 
+        /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
         .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
@@ -142,6 +152,7 @@
         .none-line-large { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .none-line-large::after { position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); content: ''; }
 
+        /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
@@ -150,8 +161,9 @@
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
 
+        /* === ACTION BAR === */
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
@@ -161,6 +173,9 @@
         .btn-record { background-color: #e74c3c; color: white; border-color: #e74c3c;}
         .btn-record.recording { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+
+        /* Indicador sutil de herramienta activa */
+        .tool-indicator { font-size: 10px; color: #888; margin-top: 6px; font-weight: 600; letter-spacing: 0.5px;}
 
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
@@ -199,7 +214,6 @@
                 </div>
             </div>
 
-            <!-- MODULE 1: BRUSH (Simplified UI) -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">1. Brush</h2>
@@ -218,11 +232,11 @@
                             <option value="disordered">Disordered Rectangles</option>
                             <option value="ant">Ants</option>
                         </select>
+                        <div class="tool-indicator" id="active-tool-display">CURRENT TOOL: BRUSH (B)</div>
                     </div>
                 </div>
             </section>
 
-            <!-- MODULE 2: LAYERS -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">2. Layers</h2>
@@ -238,7 +252,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 3: COLOR & STYLE CONFIGURATION -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">3. Color & Style</h2>
@@ -291,7 +304,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 4: SPECIAL EFFECTS -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">4. Special Effects</h2>
@@ -321,7 +333,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 5: CANVAS FORMAT -->
             <section class="module-section collapsed" style="border-bottom: none;">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">5. Canvas Format</h2>
@@ -374,10 +385,14 @@
             const ctx = canvas.getContext('2d'); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
             const customCursor = document.getElementById('dynamic-cursor');
+            const activeToolDisplay = document.getElementById('active-tool-display');
             
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
             let draggedLayerId = null;
+
+            // Herramientas V y B
+            let activeTool = 'brush'; // 'brush' or 'select'
 
             // Variables for Image Selection & Transforming
             let selectedPath = null;
@@ -391,6 +406,21 @@
                 if(e.target.checked) document.body.classList.add('dark-theme');
                 else document.body.classList.remove('dark-theme');
             });
+
+            function setTool(tool) {
+                activeTool = tool;
+                if (tool === 'select') {
+                    customCursor.style.display = 'none';
+                    canvas.style.cursor = 'default';
+                    activeToolDisplay.textContent = 'CURRENT TOOL: SELECT (V)';
+                } else {
+                    canvas.style.cursor = 'none';
+                    customCursor.style.display = 'block';
+                    selectedPath = null; 
+                    activeToolDisplay.textContent = 'CURRENT TOOL: BRUSH (B)';
+                }
+                needsRedraw = true;
+            }
 
             // --- LAYERS LOGIC ---
             let layers = [{ id: 'layer-1', name: 'Layer 1', visible: true }];
@@ -521,7 +551,7 @@
                         };
                         paths.push(imgPath);
                         selectedPath = imgPath;
-                        needsRedraw = true;
+                        setTool('select'); // Cambia automáticamente a la flecha al importar
                     };
                     img.src = event.target.result;
                 };
@@ -630,44 +660,44 @@
                 if(!activeLayerInfo || !activeLayerInfo.visible) return;
                 const coords = getCoordinates(e);
 
-                // 1. Verificar si tocamos los puntos de anclaje de la imagen seleccionada
-                if (selectedPath && selectedPath.mode === 'image') {
-                    const handle = getHandle(coords.x, coords.y, selectedPath);
-                    if (handle) {
-                        isDrawing = true;
-                        transformAction = handle;
-                        tStartX = coords.x; tStartY = coords.y;
-                        tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
-                        tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
-                        return; // Se detiene aquí, no dibuja.
-                    }
-                }
-
-                // 2. Verificar si damos clic sobre una imagen en la capa activa para seleccionarla
-                let hitImage = false;
-                for (let i = paths.length - 1; i >= 0; i--) {
-                    const p = paths[i];
-                    if (p.layerId === activeLayerId && p.mode === 'image') {
-                        if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
+                if (activeTool === 'select') {
+                    if (selectedPath && selectedPath.mode === 'image') {
+                        const handle = getHandle(coords.x, coords.y, selectedPath);
+                        if (handle) {
                             isDrawing = true;
-                            selectedPath = p; 
-                            transformAction = 'move';
+                            transformAction = handle;
                             tStartX = coords.x; tStartY = coords.y;
-                            tStartImgX = p.x; tStartImgY = p.y;
-                            hitImage = true;
-                            needsRedraw = true;
-                            break;
+                            tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
+                            tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
+                            return; 
                         }
                     }
-                }
-                // Si atrapó una imagen, se detiene para no dibujar encima
-                if (hitImage) return;
 
-                // 3. Si no tocó imagen, deselecciona y DIBUJA.
-                selectedPath = null;
-                needsRedraw = true;
-                
-                isDrawing = true; redoStack.length = 0; 
+                    let hitImage = false;
+                    for (let i = paths.length - 1; i >= 0; i--) {
+                        const p = paths[i];
+                        if (p.layerId === activeLayerId && p.mode === 'image') {
+                            if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
+                                isDrawing = true;
+                                selectedPath = p; 
+                                transformAction = 'move';
+                                tStartX = coords.x; tStartY = coords.y;
+                                tStartImgX = p.x; tStartImgY = p.y;
+                                hitImage = true;
+                                needsRedraw = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!hitImage) {
+                        selectedPath = null;
+                        needsRedraw = true;
+                    }
+                    return; 
+                }
+
+                // BRUSH TOOL
+                isDrawing = true; needsRedraw = true; redoStack.length = 0; 
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
@@ -682,76 +712,78 @@
 
             function endPosition() { isDrawing = false; transformAction = null; needsRedraw = true; }
 
-            // LÓGICA DE CURSORES DINÁMICOS
             canvas.addEventListener('pointermove', (e) => {
-                if (isDrawing && transformAction) return; 
-
-                if (!isDrawing && selectedPath) {
-                    const coords = getCoordinates(e);
-                    const handle = getHandle(coords.x, coords.y, selectedPath);
-                    if (handle) {
-                        customCursor.style.display = 'none';
-                        if (handle === 'tl' || handle === 'br') canvas.style.cursor = 'nwse-resize';
-                        else if (handle === 'tr' || handle === 'bl') canvas.style.cursor = 'nesw-resize';
-                        else if (handle === 't' || handle === 'b') canvas.style.cursor = 'ns-resize';
-                        else if (handle === 'l' || handle === 'r') canvas.style.cursor = 'ew-resize';
-                        else if (handle === 'move') canvas.style.cursor = 'move';
-                        return; 
-                    }
-                }
-            });
-
-            function draw(e) {
                 const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
 
-                // LÓGICA DE TRANSFORMACIÓN (MOVER / ESCALAR)
-                if (transformAction && selectedPath) {
+                if (activeTool === 'select') {
                     customCursor.style.display = 'none';
-                    if (!isDrawing) return;
-                    
-                    const dx = rawX - tStartX; const dy = rawY - tStartY;
-                    const alt = e.altKey; const shift = e.shiftKey;
-                    const ratio = tStartImgW / tStartImgH;
+                    if (isDrawing && transformAction && selectedPath) {
+                        const dx = rawX - tStartX; const dy = rawY - tStartY;
+                        const alt = e.altKey; const shift = e.shiftKey;
+                        const ratio = tStartImgW / tStartImgH;
 
-                    if (transformAction === 'move') {
-                        selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy;
-                    } 
-                    else if (['l', 'r'].includes(transformAction)) {
-                        let newW = transformAction === 'r' ? tStartImgW + (alt ? 2*dx : dx) : tStartImgW - (alt ? 2*dx : dx);
-                        if (newW < 20) newW = 20;
-                        selectedPath.w = newW;
-                        selectedPath.x = transformAction === 'l' ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
-                    }
-                    else if (['t', 'b'].includes(transformAction)) {
-                        let newH = transformAction === 'b' ? tStartImgH + (alt ? 2*dy : dy) : tStartImgH - (alt ? 2*dy : dy);
-                        if (newH < 20) newH = 20;
-                        selectedPath.h = newH;
-                        selectedPath.y = transformAction === 't' ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
-                    }
-                    else { // Corners
-                        let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1;
-                        let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
-                        
-                        let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX);
-                        let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
-
-                        if (shift) {
-                            let scale = Math.max(newW / tStartImgW, newH / tStartImgH);
-                            if (scale < 0.1) scale = 0.1;
-                            newW = tStartImgW * scale; newH = tStartImgH * scale;
-                        } else {
-                            if (newW < 20) newW = 20; if (newH < 20) newH = 20;
+                        if (transformAction === 'move') {
+                            selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy;
+                        } 
+                        else if (['l', 'r'].includes(transformAction)) {
+                            let newW = transformAction === 'r' ? tStartImgW + (alt ? 2*dx : dx) : tStartImgW - (alt ? 2*dx : dx);
+                            if (newW < 20) newW = 20;
+                            selectedPath.w = newW;
+                            selectedPath.x = transformAction === 'l' ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
                         }
+                        else if (['t', 'b'].includes(transformAction)) {
+                            let newH = transformAction === 'b' ? tStartImgH + (alt ? 2*dy : dy) : tStartImgH - (alt ? 2*dy : dy);
+                            if (newH < 20) newH = 20;
+                            selectedPath.h = newH;
+                            selectedPath.y = transformAction === 't' ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
+                        }
+                        else { 
+                            let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1;
+                            let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
+                            
+                            let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX);
+                            let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
 
-                        selectedPath.w = newW; selectedPath.h = newH;
-                        selectedPath.x = (factorX === -1) ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
-                        selectedPath.y = (factorY === -1) ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
+                            if (shift) {
+                                let scale = Math.max(newW / tStartImgW, newH / tStartImgH);
+                                if (scale < 0.1) scale = 0.1;
+                                newW = tStartImgW * scale; newH = tStartImgH * scale;
+                            } else {
+                                if (newW < 20) newW = 20; if (newH < 20) newH = 20;
+                            }
+
+                            selectedPath.w = newW; selectedPath.h = newH;
+                            selectedPath.x = (factorX === -1) ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
+                            selectedPath.y = (factorY === -1) ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
+                        }
+                        needsRedraw = true;
+                    } else if (!isDrawing) {
+                        let cursorStyle = 'default';
+                        if (selectedPath) {
+                            const handle = getHandle(coords.x, coords.y, selectedPath);
+                            if (handle === 'tl' || handle === 'br') cursorStyle = 'nwse-resize';
+                            else if (handle === 'tr' || handle === 'bl') cursorStyle = 'nesw-resize';
+                            else if (handle === 't' || handle === 'b') cursorStyle = 'ns-resize';
+                            else if (handle === 'l' || handle === 'r') cursorStyle = 'ew-resize';
+                            else if (handle === 'move') cursorStyle = 'move';
+                        }
+                        if (cursorStyle === 'default') {
+                            for (let i = paths.length - 1; i >= 0; i--) {
+                                const p = paths[i];
+                                if (p.layerId === activeLayerId && p.mode === 'image') {
+                                    if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
+                                        cursorStyle = 'pointer'; 
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        canvas.style.cursor = cursorStyle;
                     }
-                    needsRedraw = true;
                     return;
                 }
 
-                // LÓGICA DE DIBUJO DE PINCEL
+                // BRUSH TOOL LOGIC
                 canvas.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
@@ -785,7 +817,7 @@
                         }
                     }
                 }
-            }
+            });
 
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
@@ -802,32 +834,21 @@
                 
                 drawGrid(); 
 
-                // RENDERIZADO DEL BOUNDING BOX (NEGRO Y VISIBLE)
-                if (selectedPath && !isRecording && !isExporting) {
+                if (activeTool === 'select' && selectedPath && !isRecording && !isExporting) {
                     ctx.save();
-                    
-                    // Línea de borde negro
                     ctx.strokeStyle = '#000000'; ctx.lineWidth = 3;
                     ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
-                    
-                    // Línea interna blanca (contraste)
                     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
                     ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
                     
-                    const s = 18; // Tamaño de anclajes
+                    const s = 18; 
                     const drawH = (hx, hy) => { 
-                        ctx.fillStyle = '#000000'; // Relleno negro
-                        ctx.fillRect(hx - s/2, hy - s/2, s, s); 
-                        ctx.strokeStyle = '#ffffff'; // Contorno blanco
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(hx - s/2, hy - s/2, s, s); 
+                        ctx.fillStyle = '#000000'; ctx.fillRect(hx - s/2, hy - s/2, s, s); 
+                        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(hx - s/2, hy - s/2, s, s); 
                     };
                     const hx = selectedPath.x, hy = selectedPath.y, hw = selectedPath.w, hh = selectedPath.h;
                     const cx = hx + hw/2, cy = hy + hh/2;
-                    
-                    // Esquinas
                     drawH(hx, hy); drawH(hx + hw, hy); drawH(hx, hy + hh); drawH(hx + hw, hy + hh);
-                    // Lados
                     drawH(cx, hy); drawH(cx, hy + hh); drawH(hx, cy); drawH(hx + hw, cy);
                     ctx.restore();
                 }
@@ -912,27 +933,32 @@
                 } 
             }
 
-            canvas.addEventListener('pointerdown', startPosition); canvas.addEventListener('pointerup', endPosition); canvas.addEventListener('pointermove', draw); canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; }); canvas.addEventListener('pointercancel', endPosition);
+            canvas.addEventListener('pointerdown', startPosition); canvas.addEventListener('pointerup', endPosition); canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; }); canvas.addEventListener('pointercancel', endPosition);
             
             document.addEventListener('keydown', (e) => { 
+                if (e.target.tagName === 'INPUT') return; // Evita activar atajos si escribes un nombre de capa
+
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
-                if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); } 
-                if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); } 
-                if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); } 
-                if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); } 
                 
-                if ((e.key === 'Backspace' || e.key === 'Delete') && selectedPath) {
-                    if(!e.target.closest('input')) { paths = paths.filter(p => p !== selectedPath); selectedPath = null; needsRedraw = true; }
+                if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
+                if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); return;} 
+                if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); return;} 
+                if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); return;} 
+                
+                if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
+                    paths = paths.filter(p => p !== selectedPath); selectedPath = null; needsRedraw = true; return;
                 }
+
+                // ATAJOS DE TECLADO V Y B
+                if (e.key.toLowerCase() === 'v' && !modifier) setTool('select');
+                if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
             
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            motionTypeInput.addEventListener('change', (e) => { if(selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
-            motionIntensityInput.addEventListener('input', (e) => { if(selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; }); 
-            brushBlurInput.addEventListener('input', (e) => { if(selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); needsRedraw = true; });
-            
-            // Al elegir un nuevo pincel, se deselecciona cualquier imagen para volver a dibujar
-            brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
+            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
+            motionIntensityInput.addEventListener('input', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; }); 
+            brushBlurInput.addEventListener('input', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); needsRedraw = true; });
+            brushTypeInput.addEventListener('change', () => { needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
