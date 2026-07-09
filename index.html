@@ -89,7 +89,12 @@
             width: 100%; padding: 10px; border: 1.5px solid var(--border-color); color: var(--text-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
             cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s, background-color 0.3s;
+            /* FIX: Ocultar la doble flecha en todos los navegadores */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
+        select::-ms-expand { display: none; } /* Ocultar flecha en navegadores antiguos de Microsoft */
         select:focus { border-color: var(--text-color); }
         
         /* Dropdown Icon adapting to dark mode */
@@ -108,23 +113,25 @@
 
         /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 150px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; user-select: none;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s; -webkit-user-select: none; user-select: none;}
         .layer-item:last-child { border-bottom: none; }
-        .layer-item:hover { background: var(--hover-color); }
-        .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
+        .layer-item:hover { background: #eaeaea; }
+        .layer-item.active { background: #e0e0e0; border-left: 3px solid var(--text-color); padding-left: 7px; }
         .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12px; width: 100%;}
-        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0; filter: grayscale(100%);}
+        .layer-vis-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0;}
         .layer-vis-btn:hover { opacity: 1; }
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
-        .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
+        
+        .layer-rename-input { background: white; border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 2px 4px; border-radius: 4px; width: calc(100% - 25px); outline: none;}
+        .layer-rename-input:focus { border-color: var(--text-color); }
 
         /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
-        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
+        .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 20px; left: 20px; z-index: 1; }
         #color-fill-swatch { top: 2px; left: 2px; z-index: 2; }
-        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.3); }
+        .illustrator-swatch.active-color { z-index: 3 !important; border-color: var(--text-color); box-shadow: 0 0 0 2px var(--accent-color), 0 3px 6px rgba(0,0,0,0.15); }
         .illustrator-swatch input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 4; }
         .none-line { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; display: none; }
         .none-line::after { content: ''; position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); }
@@ -148,7 +155,7 @@
 
         /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
-        body.dark-theme .canvas-area { background-color: #0a0a0a; } /* canvas bg darker in dark mode */
+        body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
         .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
         .zoom-toolbar button { background: transparent; border: none; padding: 6px 14px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
@@ -156,8 +163,6 @@
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         
-        /* The canvas itself should stay light or transparent based on BG setting, 
-           but since it's generative art we leave its CSS bg white unless changed via code */
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: white; cursor: crosshair; }
 
         /* === ACTION BAR === */
@@ -183,7 +188,7 @@
         }
     </style>
 </head>
-<body>
+<body class="dark-theme">
 
     <button id="mobile-menu-btn" class="mobile-toggle" title="Toggle Menu">
         <svg viewBox="0 0 24 24" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
@@ -200,10 +205,10 @@
 
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px;">
+                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
-                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px;">
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
@@ -218,13 +223,14 @@
                     <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
                         <label>Brush Type</label>
                         <select id="brush-type">
-                            <option value="line">Continuous Line</option>
-                            <option value="charcoal">Rough Line (Charcoal)</option>
-                            <option value="ant">Modular: Ants</option>
-                            <option value="dot">Modular: Dots</option>
-                            <option value="solid_square">Modular: Solid Squares</option>
-                            <option value="square">Modular: Rough Squares</option>
-                            <option value="disordered">Modular: Disordered Rectangles</option>
+                            <option value="line">Line</option>
+                            <option value="charcoal">Charcoal</option>
+                            <option value="ant">Ants</option>
+                            <option value="dot">Dots</option>
+                            <option value="disordered_dots">Disordered Dots</option>
+                            <option value="solid_square">Squares</option>
+                            <option value="square">Disordered Squares</option>
+                            <option value="disordered">Disordered Rectangles</option>
                         </select>
                     </div>
                 </div>
@@ -271,7 +277,7 @@
 
                     <div class="control-group">
                         <label>Background Color</label>
-                        <input type="color" id="bg-color" value="#f7f7f7">
+                        <input type="color" id="bg-color" value="#1a1a1a">
                     </div>
                     
                     <div class="control-group" id="brush-size-group">
@@ -341,8 +347,8 @@
                         <input type="checkbox" id="toggle-grid">
                         <label for="toggle-grid" style="font-size: 11px;">Show 8x8 Align Grid</label>
                     </div>
-                    <div class="control-group checkbox-group" style="margin-bottom: 0; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
-                        <input type="checkbox" id="toggle-dark-mode">
+                    <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                        <input type="checkbox" id="toggle-dark-mode" checked>
                         <label for="toggle-dark-mode" style="font-size: 11px;">Enable Dark Mode</label>
                     </div>
                 </div>
@@ -627,15 +633,13 @@
                         for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]);
                         if(path.color !== 'transparent') ctx.stroke();
                     } else if (path.type === 'charcoal') {
-                        // Charcoal effect: Multiple overlapping jittered lines
                         if(path.color !== 'transparent') {
-                            ctx.lineWidth = currentSize * 0.2; // Thinner
+                            ctx.lineWidth = currentSize * 0.2;
                             ctx.strokeStyle = path.color;
                             ctx.globalAlpha = 0.4;
                             for(let k = 1; k <= 4; k++) {
                                 ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]);
                                 for(let i = 1; i < path.points.length; i++) {
-                                    // Math.sin is deterministic, prevents boiling effect on re-render
                                     let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4;
                                     let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4;
                                     ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY);
@@ -658,8 +662,21 @@
                 if(type === 'dot') {
                     ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); 
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path);
+                } else if (type === 'disordered_dots') {
+                    // NUEVO: Puntos desordenados (Partículas)
+                    for(let i = 0; i < 5; i++) {
+                        ctx.save(); 
+                        let rA = Math.abs(Math.sin(seedBase + i * 23)); 
+                        let rB = Math.abs(Math.cos(seedBase + i * 29));
+                        let rRadius = (size/2) * (0.3 + rA * 0.7); 
+                        const pX = (rA - 0.5) * size * 1.2; 
+                        const pY = (rB - 0.5) * size * 1.2;
+                        ctx.beginPath(); ctx.arc(pX, pY, rRadius, 0, Math.PI * 2);
+                        if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
+                        if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
+                        ctx.restore();
+                    }
                 } else if (type === 'solid_square') {
-                    // Nuevo Cuadrado Perfecto
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-size/2, -size/2, size, size); }
                     if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-size/2, -size/2, size, size); }
                 } else if (type === 'square') {
@@ -671,36 +688,26 @@
                         ctx.restore();
                     }
                 } else if (type === 'ant') {
-                    // HORMIGAS TIPO DIBUJO (Desordenadas y orgánicas)
-                    // Ruido determinístico para desordenarlas sutilmente
-                    let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; // +/- ángulo aleatorio
+                    let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; 
                     let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5;
                     let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5;
-                    ctx.translate(rX, rY);
-                    ctx.rotate(rRot);
+                    ctx.translate(rX, rY); ctx.rotate(rRot);
 
                     ctx.beginPath();
                     let headR = size * 0.15; let thoraxR = size * 0.12; let abdomenR = size * 0.2;
-                    
-                    // Cuerpo (Abdomen, Torax, Cabeza)
                     ctx.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2);
                     ctx.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2);
                     ctx.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2);
                     if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); }
 
-                    // Patas
-                    ctx.beginPath();
-                    ctx.lineWidth = Math.max(1, size * 0.05);
-                    // Arriba
+                    ctx.beginPath(); ctx.lineWidth = Math.max(1, size * 0.05);
                     ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, -size*0.3); ctx.lineTo(-size*0.2, -size*0.4);
                     ctx.moveTo(0, 0); ctx.lineTo(0, -size*0.35); ctx.lineTo(size*0.1, -size*0.45);
                     ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, -size*0.3); ctx.lineTo(size*0.3, -size*0.4);
-                    // Abajo
                     ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, size*0.3); ctx.lineTo(-size*0.2, size*0.4);
                     ctx.moveTo(0, 0); ctx.lineTo(0, size*0.35); ctx.lineTo(size*0.1, size*0.45);
                     ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, size*0.3); ctx.lineTo(size*0.3, size*0.4);
                     
-                    // Contorno/Color Patas
                     if (path.hasOutline) { ctx.strokeStyle = path.outlineColor; ctx.stroke(); }
                     else if (path.color !== 'transparent') { ctx.strokeStyle = path.color; ctx.stroke(); }
 
