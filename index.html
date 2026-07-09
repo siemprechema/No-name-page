@@ -7,7 +7,6 @@
     <style>
         /* === VARIABLES & TYPOGRAPHY === */
         :root {
-            /* Light Theme Variables */
             --bg-color: #f7f7f7;
             --panel-bg: #ffffff;
             --text-color: #111111;
@@ -15,13 +14,11 @@
             --accent-color: #bdf271; 
             --hover-color: #eaeaea;
             --shadow-color: rgba(0,0,0,0.05);
-            
             --font-main: 'GT America Mono', monospace, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
             --radius-soft: 8px; 
             --radius-round: 50px;
         }
 
-        /* Dark Theme Variables */
         body.dark-theme {
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
@@ -41,14 +38,12 @@
 
         .app-container { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* === CURSOR DINÁMICO === */
         #dynamic-cursor {
             position: fixed; top: 0; left: 0; pointer-events: none;
             border: 1.5px solid var(--text-color); box-shadow: 0 0 0 1.5px var(--bg-color);
             border-radius: 50%; z-index: 9999; display: none; will-change: transform;
         }
 
-        /* === MENÚ MÓVIL === */
         .mobile-toggle {
             display: none; position: fixed; top: 16px; left: 16px; z-index: 100;
             background: var(--panel-bg); border: 1px solid var(--border-color);
@@ -56,7 +51,6 @@
         }
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
-        /* === SIDEBAR === */
         .sidebar {
             width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
@@ -67,7 +61,6 @@
         .header-brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
         .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 2px; }
 
-        /* === PANELES COLAPSABLES === */
         .module-section { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s;}
         .module-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
         .module-header:hover { background-color: var(--hover-color); }
@@ -77,7 +70,6 @@
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
-        /* === UI CONTROLS === */
         .control-group { margin-bottom: 14px; }
         .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
         .flex-label { display: flex; justify-content: space-between; align-items: center; }
@@ -107,7 +99,6 @@
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
 
-        /* === LAYERS === */
         .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 180px; overflow-y: auto;}
         .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: grab; transition: background 0.2s, opacity 0.2s; user-select: none;}
         .layer-item:active { cursor: grabbing; }
@@ -115,7 +106,7 @@
         .layer-item:last-child { border-bottom: none; }
         .layer-item:hover { background: var(--hover-color); }
         .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
-        .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 11px; width: 100%; overflow: hidden;}
+        .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 11px; width: 100%; overflow: hidden; cursor: text;}
         .layer-name-span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
         .layer-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .layer-vis-btn, .layer-del-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0; display: flex; align-items: center; justify-content: center;}
@@ -124,7 +115,6 @@
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
         .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 100%; outline: none;}
 
-        /* === COLOR PANEL === */
         #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
         .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
@@ -152,7 +142,6 @@
         .none-line-large { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .none-line-large::after { position: absolute; top: 50%; left: -10%; width: 120%; height: 2px; background: #e74c3c; transform: translateY(-50%) rotate(-45deg); content: ''; }
 
-        /* === CANVAS AREA === */
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
@@ -163,7 +152,6 @@
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
-        /* === ACTION BAR === */
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
@@ -174,7 +162,6 @@
         .btn-record.recording { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
-        /* === MEDIA QUERIES === */
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
             .sidebar { position: absolute; left: -340px; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 20px rgba(0,0,0,0.2); }
@@ -385,7 +372,6 @@
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
             let draggedLayerId = null;
 
-            // --- DARK MODE LOGIC ---
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
                 if(e.target.checked) document.body.classList.add('dark-theme');
@@ -399,7 +385,6 @@
 
             function renderLayersUI() {
                 layersListEl.innerHTML = '';
-                // Mostramos las capas en orden inverso para que la de arriba sea la superior visualmente
                 [...layers].reverse().forEach((layer, index) => {
                     const div = document.createElement('div');
                     div.className = `layer-item ${layer.id === activeLayerId ? 'active' : ''}`;
@@ -407,7 +392,7 @@
                     div.setAttribute('data-id', layer.id);
                     
                     div.innerHTML = `
-                        <div class="layer-info">
+                        <div class="layer-info" title="Double click to rename">
                             <span class="layer-name-span">${layer.name}</span>
                         </div>
                         <div class="layer-controls">
@@ -424,32 +409,46 @@
                             renderLayersUI();
                         } else if (e.target.closest('.layer-del-btn')) {
                             deleteLayer(layer.id);
-                        } else if (!div.querySelector('input')) {
+                        } else if (!e.target.closest('input')) {
                             activeLayerId = layer.id;
-                            renderLayersUI();
+                            document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
+                            div.classList.add('active');
                         }
                     });
 
-                    // --- DOBLE CLIC PARA RENOMBRAR ---
-                    div.querySelector('.layer-name-span').addEventListener('dblclick', (e) => {
+                    // --- DOBLE CLIC MEJORADO (ZONA AMPLIA) ---
+                    const infoDiv = div.querySelector('.layer-info');
+                    infoDiv.addEventListener('dblclick', (e) => {
                         e.stopPropagation();
-                        const span = e.target;
+                        
+                        const nameSpan = div.querySelector('.layer-name-span');
+                        if (nameSpan.querySelector('input')) return; // Ya estamos editando
+                        
+                        div.setAttribute('draggable', false); // IMPORTANTE: Apagar arrastre temporalmente
+                        
                         const oldName = layer.name;
-                        span.innerHTML = `<input type="text" class="layer-rename-input" value="${oldName}" />`;
-                        const input = span.querySelector('input');
+                        nameSpan.innerHTML = `<input type="text" class="layer-rename-input" value="${oldName}" />`;
+                        const input = nameSpan.querySelector('input');
                         input.focus();
                         input.select();
                         
+                        // Evitar que al dar clic en el input se disparen otros eventos
+                        input.addEventListener('click', (evt) => evt.stopPropagation());
+                        input.addEventListener('mousedown', (evt) => evt.stopPropagation());
+                        
                         const finishRename = () => {
                             layer.name = input.value.trim() || oldName;
+                            div.setAttribute('draggable', true); // Reactivar arrastre
                             renderLayersUI();
                         };
                         
                         input.addEventListener('blur', finishRename);
-                        input.addEventListener('keydown', (ke) => { if(ke.key === 'Enter') input.blur(); });
+                        input.addEventListener('keydown', (evt) => {
+                            if (evt.key === 'Enter') input.blur();
+                        });
                     });
 
-                    // --- EVENTOS DE ARRASTRE (REORDENAR) ---
+                    // --- EVENTOS DE ARRASTRE ---
                     div.addEventListener('dragstart', (e) => {
                         draggedLayerId = layer.id;
                         div.classList.add('dragging');
@@ -469,7 +468,7 @@
                     div.addEventListener('drop', (e) => {
                         e.preventDefault();
                         const targetId = layer.id;
-                        if (draggedLayerId !== targetId) {
+                        if (draggedLayerId && draggedLayerId !== targetId) {
                             reorderLayers(draggedLayerId, targetId);
                         }
                     });
@@ -479,9 +478,9 @@
             }
 
             function deleteLayer(id) {
-                if (layers.length <= 1) return; // Protección: no borrar la única capa
+                if (layers.length <= 1) return;
                 layers = layers.filter(l => l.id !== id);
-                paths = paths.filter(p => p.layerId !== id); // Borrar dibujos de esa capa
+                paths = paths.filter(p => p.layerId !== id); 
                 if (activeLayerId === id) activeLayerId = layers[layers.length - 1].id;
                 needsRedraw = true;
                 renderLayersUI();
@@ -505,7 +504,6 @@
             });
             renderLayersUI();
 
-            // --- GRID LOGIC ---
             const gridToggle = document.getElementById('toggle-grid');
             gridToggle.addEventListener('change', () => { needsRedraw = true; });
 
@@ -525,7 +523,6 @@
                 ctx.stroke(); ctx.restore();
             }
 
-            // --- VARIABLES & UI ELEMENTS ---
             let mediaRecorder; let recordedChunks = []; let isRecording = false;
             let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 26 } };
 
