@@ -148,14 +148,14 @@
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
-        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
+        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 11; opacity: 0.9; }
         .zoom-toolbar button { background: transparent; border: none; padding: 6px 14px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
         .zoom-toolbar button:hover { background: var(--hover-color); }
-        .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
-        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; position: relative; z-index: 1; }
+        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; z-index: 1; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
 
-        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
+        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; position: relative; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
         .btn-outline:hover { background-color: var(--hover-color); }
@@ -366,8 +366,6 @@
         </aside>
 
         <main class="canvas-area">
-            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;"></canvas>
-            
             <div class="zoom-toolbar">
                 <button id="btn-zoom-out">Zoom Out</button>
                 <button id="btn-zoom-fit">Fit Screen</button>
@@ -379,6 +377,8 @@
                     <canvas id="art-canvas"></canvas>
                 </div>
             </div>
+
+            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9;"></canvas>
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear" title="Clears only active layer">Clear Layer</button>
@@ -416,7 +416,7 @@
             let tStartX = 0; let tStartY = 0;
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
             let isExporting = false;
-            let isStateChanged = false; // Bandera para saber si se modificó algo y debemos guardar
+            let isStateChanged = false;
 
             // Reglas
             let showRulers = false;
@@ -442,7 +442,7 @@
 
             toggleRulersInput.addEventListener('change', (e) => {
                 showRulers = e.target.checked;
-                if(showRulers) resizeUICanvas();
+                resizeUICanvas(); 
                 needsRedraw = true;
             });
 
@@ -650,7 +650,6 @@
                         points: p.points ? p.points.map(pt => [...pt]) : [], 
                         stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
                     })),
-                    // Deep copy local para guías
                     guides: { h: [...state.guides.h], v: [...state.guides.v] },
                     activeLayerId: state.activeLayerId
                 };
@@ -773,7 +772,7 @@
                 return null;
             }
 
-            // POINT EVENTS (ATTACHED TO CANVAS AREA)
+            // POINT EVENTS
             canvasArea.addEventListener('pointerdown', (e) => {
                 if(e.target.closest('.zoom-toolbar') || e.target.closest('.action-bar') || e.target.closest('.sidebar')) return;
                 
@@ -984,7 +983,7 @@
                 uiCtx.save();
                 const isDark = document.body.classList.contains('dark-theme');
                 
-                uiCtx.strokeStyle = '#e74c3c'; uiCtx.lineWidth = 1.5; uiCtx.setLineDash([4, 4]); 
+                uiCtx.strokeStyle = '#ff0000'; uiCtx.lineWidth = 1.5; uiCtx.setLineDash([4, 4]); 
                 guides.v.forEach(canvasX => { const screenX = getScreenX(canvasX); uiCtx.beginPath(); uiCtx.moveTo(screenX, 0); uiCtx.lineTo(screenX, uiCanvas.height); uiCtx.stroke(); });
                 guides.h.forEach(canvasY => { const screenY = getScreenY(canvasY); uiCtx.beginPath(); uiCtx.moveTo(0, screenY); uiCtx.lineTo(uiCanvas.width, screenY); uiCtx.stroke(); });
                 uiCtx.setLineDash([]);
@@ -1116,8 +1115,8 @@
             
             function exportImage() { 
                 isExporting = true;
-                needsRedraw = true; // Forzar redibujo sin UI
-                renderAllPaths(); // Asegurar que todo se pinte limpio
+                needsRedraw = true; 
+                renderAllPaths(); 
                 
                 setTimeout(() => {
                     const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); 
@@ -1145,19 +1144,20 @@
             }
             
             document.addEventListener('keydown', (e) => { 
-                // SOLUCIÓN: Si estás en un input de tipo texto (escribiendo un nombre), ignora los atajos de teclado
+                // Ignorar comandos si estás escribiendo
                 if (e.target.tagName === 'INPUT' && e.target.type === 'text') return; 
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
-                // Mostrar/Ocultar Reglas
+                // ATAJO: SHIFT + R para mostrar/ocultar reglas
                 if (e.key.toLowerCase() === 'r' && e.shiftKey && !modifier) { 
-                    e.preventDefault(); showRulers = !showRulers; toggleRulersInput.checked = showRulers;
-                    if(showRulers) resizeUICanvas(); 
-                    needsRedraw = true; return; 
+                    e.preventDefault(); 
+                    toggleRulersInput.checked = !toggleRulersInput.checked;
+                    toggleRulersInput.dispatchEvent(new Event('change'));
+                    return; 
                 }
 
-                // Historial
+                // ATAJO: CMD + Z (Historial Completo)
                 if (modifier && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
                 if ((modifier && e.shiftKey && e.key.toLowerCase() === 'z') || (modifier && e.key.toLowerCase() === 'y')) { e.preventDefault(); executeRedo(); return;} 
                 
@@ -1165,7 +1165,7 @@
                 if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 
-                // Eliminar imagen seleccionada
+                // Eliminar imagen
                 if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
                     paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return;
                 }
@@ -1175,13 +1175,17 @@
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
             
+            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
+            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; saveState(); needsRedraw = true; }); 
+            brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
+            
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } saveState(); needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
-            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; } function resetZoom() { currentZoom = 1; applyZoom(); }
+            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; resizeUICanvas(); } function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
             
             initCanvas(); 
-            saveState(); // Guardar el lienzo blanco base en el historial
+            saveState(); // Guardar el lienzo blanco base
             requestAnimationFrame(renderAllPaths); 
         });
     </script>
