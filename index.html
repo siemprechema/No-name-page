@@ -152,8 +152,11 @@
         .zoom-toolbar button { background: transparent; border: none; padding: 8px 16px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 24px 24px 24px; overflow: auto; }
-        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; display: flex; }
+        
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; position: relative; z-index: 1;}
+        /* NUEVO: Lienzo superpuesto para optimizar el dibujo */
+        #active-canvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
 
         .action-bar { padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 16px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-color); }
@@ -371,6 +374,7 @@
             <div class="canvas-container" id="canvas-container">
                 <div class="canvas-wrapper" id="canvas-wrapper">
                     <canvas id="art-canvas"></canvas>
+                    <canvas id="active-canvas"></canvas>
                 </div>
             </div>
 
@@ -386,6 +390,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('art-canvas');
             const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }); 
+            
+            // NUEVO: Contexto secundario para procesar trazos activos rápidamente
+            const activeCanvas = document.getElementById('active-canvas');
+            const activeCtx = activeCanvas.getContext('2d', { desynchronized: true });
+
             const canvasWrapper = document.getElementById('canvas-wrapper');
             const customCursor = document.getElementById('dynamic-cursor');
             const activeToolDisplay = document.getElementById('active-tool-display');
@@ -393,6 +402,7 @@
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
             let paths = []; const redoStack = []; let rawPointsBuffer = []; 
             let draggedLayerId = null;
+            let currentDrawingPath = null; // Ruta activa actual
 
             let activeTool = 'brush'; 
             let selectedPath = null;
@@ -400,11 +410,13 @@
             let tStartX = 0; let tStartY = 0;
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
             let isExporting = false;
+            let isRecording = false;
+            let mediaRecorder; let recordedChunks = [];
 
             // Rulers & Guides
             let showRulers = false;
             let guides = { h: [], v: [] };
-            let draggingGuide = null; // { type: 'h'|'v', index: number }
+            let draggingGuide = null;
             const RULER_SIZE = 80;
 
             const darkToggle = document.getElementById('toggle-dark-mode');
@@ -648,8 +660,14 @@
 
             function initCanvas() {
                 const format = formatSelect.value;
-                if(format === '3:4') { canvas.width = 2160; canvas.height = 2880; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; } 
-                else { canvas.width = 3840; canvas.height = 2160; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; }
+                if(format === '3:4') { 
+                    canvas.width = 2160; canvas.height = 2880; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; 
+                    activeCanvas.width = 2160; activeCanvas.height = 2880;
+                } 
+                else { 
+                    canvas.width = 3840; canvas.height = 2160; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; 
+                    activeCanvas.width = 3840; activeCanvas.height = 2160;
+                }
                 resetZoom(); updateColorUI(); needsRedraw = true;
             }
 
@@ -677,18 +695,16 @@
             applyNoneBtn.addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
 
             // SLIDER VALUES LIVE UPDATE
-            brushSizeInput.addEventListener('input', (e) => { document.getElementById('brush-size-val').textContent = e.target.value; needsRedraw = true; });
-            brushSpacingInput.addEventListener('input', (e) => { document.getElementById('brush-spacing-val').textContent = e.target.value; needsRedraw = true; });
-            strokeFidelityInput.addEventListener('input', (e) => { document.getElementById('stroke-fidelity-val').textContent = e.target.value; needsRedraw = true; });
+            brushSizeInput.addEventListener('input', (e) => { document.getElementById('brush-size-val').textContent = e.target.value; });
+            brushSpacingInput.addEventListener('input', (e) => { document.getElementById('brush-spacing-val').textContent = e.target.value; });
+            strokeFidelityInput.addEventListener('input', (e) => { document.getElementById('stroke-fidelity-val').textContent = e.target.value; });
             brushBlurInput.addEventListener('input', (e) => { 
                 document.getElementById('brush-blur-val').textContent = e.target.value; 
-                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); 
-                needsRedraw = true; 
+                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') { selectedPath.blur = parseInt(e.target.value); needsRedraw = true; }
             });
             motionIntensityInput.addEventListener('input', (e) => { 
                 document.getElementById('motion-intensity-val').textContent = e.target.value; 
-                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); 
-                needsRedraw = true; 
+                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') { selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; }
             });
 
             function executeUndo() { if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; } }
@@ -710,6 +726,13 @@
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - cy) < s) return 'r';
                 if (x > hx && x < hx + hw && y > hy && y < hy + hh) return 'move';
                 return null;
+            }
+
+            function renderActivePath() {
+                activeCtx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+                if (currentDrawingPath) {
+                    renderPath(currentDrawingPath, activeCtx);
+                }
             }
 
             function startPosition(e) {
@@ -763,8 +786,8 @@
                     return; 
                 }
 
-                // BRUSH TOOL
-                isDrawing = true; needsRedraw = true; redoStack.length = 0; 
+                // BRUSH TOOL (Iniciando en lienzo secundario)
+                isDrawing = true; redoStack.length = 0; 
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
@@ -774,11 +797,21 @@
 
                 rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
                 pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
-                paths.push(pathData);
+                
+                currentDrawingPath = pathData;
+
+                if (isRecording) needsRedraw = true; else renderActivePath();
             }
 
             function endPosition() { 
                 isDrawing = false; transformAction = null; 
+                
+                if (currentDrawingPath) {
+                    paths.push(currentDrawingPath);
+                    currentDrawingPath = null;
+                    activeCtx.clearRect(0, 0, activeCanvas.width, activeCanvas.height);
+                }
+
                 if (draggingGuide) {
                     if (draggingGuide.type === 'v' && guides.v[draggingGuide.index] < RULER_SIZE) guides.v.splice(draggingGuide.index, 1);
                     else if (draggingGuide.type === 'h' && guides.h[draggingGuide.index] < RULER_SIZE) guides.h.splice(draggingGuide.index, 1);
@@ -858,8 +891,9 @@
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 
-                if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
-                const currentPath = paths[paths.length - 1]; 
+                if (!isDrawing) return; e.preventDefault(); 
+                const currentPath = currentDrawingPath; 
+                if (!currentPath) return;
 
                 if (e.shiftKey) { const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx); const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist; }
                 rawPointsBuffer.push([rawX, rawY]);
@@ -871,7 +905,8 @@
 
                 if (currentPath.points.length > 0) { 
                     const lastP = currentPath.points[currentPath.points.length - 1]; 
-                    if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 12) return; 
+                    // Menor umbral de corte al estar en su propio lienzo (mucho más fluido)
+                    if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 6) return; 
                 }
                 
                 currentPath.points.push([smoothX, smoothY]);
@@ -891,6 +926,13 @@
                         }
                     }
                 }
+
+                // Sólo actualizamos el lienzo activo en lugar de redibujar todo
+                if (isRecording) {
+                    needsRedraw = true; // Forzamos base si está grabando video
+                } else {
+                    renderActivePath();
+                }
             });
 
             function renderAllPaths() {
@@ -903,15 +945,27 @@
                     }
                     if (hasAnimatedPaths) break;
                 }
+                if (currentDrawingPath && currentDrawingPath.motionType !== 'none') hasAnimatedPaths = true;
 
-                if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording && !isExporting) { return; }
+                if (!hasAnimatedPaths && !needsRedraw && !isRecording && !isExporting) { 
+                    // Animar trazo actual en el lienzo activo si no estamos grabando
+                    if (currentDrawingPath && currentDrawingPath.motionType !== 'none' && !isRecording && !isExporting) {
+                        renderActivePath();
+                    }
+                    return; 
+                }
                 
                 ctx.save(); fillBackground(); 
                 
                 for (let i = 0; i < layers.length; i++) {
                     const layer = layers[i];
                     if (!layer.visible) continue;
-                    for (let j = 0; j < paths.length; j++) { const path = paths[j]; if (path.layerId === layer.id) renderPath(path); }
+                    for (let j = 0; j < paths.length; j++) { const path = paths[j]; if (path.layerId === layer.id) renderPath(path, ctx); }
+                    
+                    // Solo renderizamos en el canvas base el trazo que se está dibujando si es exportado o se está grabando
+                    if (currentDrawingPath && currentDrawingPath.layerId === layer.id && (isRecording || isExporting)) {
+                        renderPath(currentDrawingPath, ctx);
+                    }
                 }
                 
                 drawGrid(); 
@@ -937,63 +991,68 @@
                 }
 
                 ctx.restore();
-                if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
+                needsRedraw = false; 
+
+                // Si hay animaciones y estamos dibujando (pero no grabando), animar también el canvas activo
+                if (currentDrawingPath && !isRecording && !isExporting && hasAnimatedPaths) {
+                    renderActivePath();
+                }
             }
 
-            function renderPath(path) {
+            function renderPath(path, context) {
                 if (path.mode !== 'image' && path.points.length < 1) return;
                 const motionType = path.motionType || 'none'; const intensity = (path.motionIntensity || 50) / 50; 
                 const time = performance.now(); let currentSize = path.size || 0;
-                ctx.save();
+                context.save();
 
                 if (motionType === 'pulse') { 
                     const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); 
                     if (path.mode === 'image') {
-                        ctx.translate(path.x + path.w/2, path.y + path.h/2); ctx.scale(scaleFactor, scaleFactor); ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2));
+                        context.translate(path.x + path.w/2, path.y + path.h/2); context.scale(scaleFactor, scaleFactor); context.translate(-(path.x + path.w/2), -(path.y + path.h/2));
                     } else { currentSize = path.size * scaleFactor; }
                 } 
-                else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
-                else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
-                else if (motionType === 'gravity') { const bounceAmplitude = 300; const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity))); ctx.translate(0, drop); }
+                else if (motionType === 'vibrate') { context.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
+                else if (motionType === 'wave') { context.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
+                else if (motionType === 'gravity') { const bounceAmplitude = 300; const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity))); context.translate(0, drop); }
                 
-                if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
-                ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                if (path.blur > 0) context.filter = `blur(${path.blur}px)`;
+                context.lineCap = 'round'; context.lineJoin = 'round';
 
                 if (path.mode === 'image') {
-                    ctx.drawImage(path.img, path.x, path.y, path.w, path.h);
+                    context.drawImage(path.img, path.x, path.y, path.w, path.h);
                 } else if (path.type === 'line' || path.type === 'charcoal') {
                     if (path.type === 'line') {
-                        if (path.hasOutline) { ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke(); }
-                        ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') ctx.stroke();
+                        if (path.hasOutline) { context.lineWidth = currentSize + (path.outlineWidth * 2); context.strokeStyle = path.outlineColor; context.beginPath(); context.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) context.lineTo(path.points[i][0], path.points[i][1]); context.stroke(); }
+                        context.lineWidth = currentSize; context.strokeStyle = path.color; context.beginPath(); context.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) context.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') context.stroke();
                     } else if (path.type === 'charcoal') {
                         if(path.color !== 'transparent') { 
-                            ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; 
+                            context.lineWidth = currentSize * 0.2; context.strokeStyle = path.color; context.globalAlpha = 0.4; 
                             for(let k = 1; k <= 3; k++) { 
-                                ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); 
-                                for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); 
+                                context.beginPath(); context.moveTo(path.points[0][0], path.points[0][1]); 
+                                for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; context.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } context.stroke(); 
                             } 
-                            ctx.globalAlpha = 1.0; 
+                            context.globalAlpha = 1.0; 
                         }
                     }
                 } else if (path.stamps) {
-                    for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed); }
+                    for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed, context); }
                 }
-                ctx.restore();
+                context.restore();
             }
 
-            function drawStampOnPoint(path, x, y, angle, size, seedBase) {
-                const type = path.type; ctx.save(); ctx.translate(x, y);
-                if(type === 'ant') ctx.rotate(angle + Math.PI / 2); else if(type === 'square') ctx.rotate(angle); 
-                if(type === 'dot') { ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI * 2); if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) strokeShape(path); } 
-                else if (type === 'disordered_dots') { for(let i = 0; i < 5; i++) { ctx.save(); let rA = Math.abs(Math.sin(seedBase + i * 23)); let rB = Math.abs(Math.cos(seedBase + i * 29)); let rRadius = (size/2) * (0.3 + rA * 0.7); const pX = (rA - 0.5) * size * 1.2; const pY = (rB - 0.5) * size * 1.2; ctx.beginPath(); ctx.arc(pX, pY, rRadius, 0, Math.PI * 2); if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.stroke(); } ctx.restore(); } } 
-                else if (type === 'solid_square') { if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(-size/2, -size/2, size, size); } if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(-size/2, -size/2, size, size); } } 
-                else if (type === 'square') { for(let i = 0; i < 3; i++) { ctx.save(); let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5; ctx.rotate((rA - 0.5) * 0.8); const pX = -(size/2) + (rA - 0.5) * size * 0.4; const pY = -(size/2) + (rB - 0.5) * size * 0.4; if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(pX, pY, size, size); } if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(pX, pY, size, size); } ctx.restore(); } } 
-                else if (type === 'ant') { let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5; let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5; ctx.translate(rX, rY); ctx.rotate(rRot); ctx.beginPath(); let headR = size * 0.15; let thoraxR = size * 0.12; let abdomenR = size * 0.2; ctx.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2); ctx.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2); ctx.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2); if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fill(); } ctx.beginPath(); ctx.lineWidth = Math.max(1, size * 0.05); ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, -size*0.3); ctx.lineTo(-size*0.2, -size*0.4); ctx.moveTo(0, 0); ctx.lineTo(0, -size*0.35); ctx.lineTo(size*0.1, -size*0.45); ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, -size*0.3); ctx.lineTo(size*0.3, -size*0.4); ctx.moveTo(0, 0); ctx.lineTo(-size*0.1, size*0.3); ctx.lineTo(-size*0.2, size*0.4); ctx.moveTo(0, 0); ctx.lineTo(0, size*0.35); ctx.lineTo(size*0.1, size*0.45); ctx.moveTo(size*0.1, 0); ctx.lineTo(size*0.2, size*0.3); ctx.lineTo(size*0.3, size*0.4); if (path.hasOutline) { ctx.strokeStyle = path.outlineColor; ctx.stroke(); } else if (path.color !== 'transparent') { ctx.strokeStyle = path.color; ctx.stroke(); } } 
-                else if (type === 'disordered') { for(let i = 0; i < 5; i++) { ctx.save(); let rA = Math.abs(Math.sin(seedBase + i * 13)); let rB = Math.abs(Math.cos(seedBase + i * 17)); const rW = size * (0.8 + rA * 0.4); const rH = size * (0.4 + rB * 1.5); const pX = -(rW/2) + (rA - 0.5) * size * 0.3; const pY = -(rH/2) + (rB - 0.5) * size * 0.3; if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(pX, pY, rW, rH); } if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(pX, pY, rW, rH); } ctx.restore(); } }
-                ctx.restore();
+            function drawStampOnPoint(path, x, y, angle, size, seedBase, context) {
+                const type = path.type; context.save(); context.translate(x, y);
+                if(type === 'ant') context.rotate(angle + Math.PI / 2); else if(type === 'square') context.rotate(angle); 
+                if(type === 'dot') { context.beginPath(); context.arc(0, 0, size/2, 0, Math.PI * 2); if(path.color !== 'transparent') { context.fillStyle = path.color; context.fill(); } if(path.hasOutline) strokeShape(path, context); } 
+                else if (type === 'disordered_dots') { for(let i = 0; i < 5; i++) { context.save(); let rA = Math.abs(Math.sin(seedBase + i * 23)); let rB = Math.abs(Math.cos(seedBase + i * 29)); let rRadius = (size/2) * (0.3 + rA * 0.7); const pX = (rA - 0.5) * size * 1.2; const pY = (rB - 0.5) * size * 1.2; context.beginPath(); context.arc(pX, pY, rRadius, 0, Math.PI * 2); if(path.color !== 'transparent') { context.fillStyle = path.color; context.fill(); } if(path.hasOutline) { context.lineWidth = path.outlineWidth; context.strokeStyle = path.outlineColor; context.stroke(); } context.restore(); } } 
+                else if (type === 'solid_square') { if(path.color !== 'transparent') { context.fillStyle = path.color; context.fillRect(-size/2, -size/2, size, size); } if(path.hasOutline) { context.lineWidth = path.outlineWidth; context.strokeStyle = path.outlineColor; context.strokeRect(-size/2, -size/2, size, size); } } 
+                else if (type === 'square') { for(let i = 0; i < 3; i++) { context.save(); let rA = Math.sin(seedBase + i * 10) * 0.5 + 0.5; let rB = Math.cos(seedBase + i * 20) * 0.5 + 0.5; context.rotate((rA - 0.5) * 0.8); const pX = -(size/2) + (rA - 0.5) * size * 0.4; const pY = -(size/2) + (rB - 0.5) * size * 0.4; if(path.color !== 'transparent') { context.fillStyle = path.color; context.fillRect(pX, pY, size, size); } if(path.hasOutline) { context.lineWidth = path.outlineWidth; context.strokeStyle = path.outlineColor; context.strokeRect(pX, pY, size, size); } context.restore(); } } 
+                else if (type === 'ant') { let rRot = (Math.sin(seedBase * 13) - 0.5) * 0.8; let rX = (Math.sin(seedBase * 7) - 0.5) * size * 0.5; let rY = (Math.cos(seedBase * 11) - 0.5) * size * 0.5; context.translate(rX, rY); context.rotate(rRot); context.beginPath(); let headR = size * 0.15; let thoraxR = size * 0.12; let abdomenR = size * 0.2; context.ellipse(-size*0.25, 0, abdomenR, abdomenR*0.7, 0, 0, Math.PI*2); context.ellipse(0, 0, thoraxR, thoraxR*0.6, 0, 0, Math.PI*2); context.ellipse(size*0.25, 0, headR, headR*0.8, 0, 0, Math.PI*2); if(path.color !== 'transparent') { context.fillStyle = path.color; context.fill(); } context.beginPath(); context.lineWidth = Math.max(1, size * 0.05); context.moveTo(0, 0); context.lineTo(-size*0.1, -size*0.3); context.lineTo(-size*0.2, -size*0.4); context.moveTo(0, 0); context.lineTo(0, -size*0.35); context.lineTo(size*0.1, -size*0.45); context.moveTo(size*0.1, 0); context.lineTo(size*0.2, -size*0.3); context.lineTo(size*0.3, -size*0.4); context.moveTo(0, 0); context.lineTo(-size*0.1, size*0.3); context.lineTo(-size*0.2, size*0.4); context.moveTo(0, 0); context.lineTo(0, size*0.35); context.lineTo(size*0.1, size*0.45); context.moveTo(size*0.1, 0); context.lineTo(size*0.2, size*0.3); context.lineTo(size*0.3, size*0.4); if (path.hasOutline) { context.strokeStyle = path.outlineColor; context.stroke(); } else if (path.color !== 'transparent') { context.strokeStyle = path.color; context.stroke(); } } 
+                else if (type === 'disordered') { for(let i = 0; i < 5; i++) { context.save(); let rA = Math.abs(Math.sin(seedBase + i * 13)); let rB = Math.abs(Math.cos(seedBase + i * 17)); const rW = size * (0.8 + rA * 0.4); const rH = size * (0.4 + rB * 1.5); const pX = -(rW/2) + (rA - 0.5) * size * 0.3; const pY = -(rH/2) + (rB - 0.5) * size * 0.3; if(path.color !== 'transparent') { context.fillStyle = path.color; context.fillRect(pX, pY, rW, rH); } if(path.hasOutline) { context.lineWidth = path.outlineWidth; context.strokeStyle = path.outlineColor; context.strokeRect(pX, pY, rW, rH); } context.restore(); } }
+                context.restore();
             }
             
-            function strokeShape(path) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.lineJoin = 'miter'; ctx.stroke(); }
+            function strokeShape(path, context) { context.lineWidth = path.outlineWidth; context.strokeStyle = path.outlineColor; context.lineJoin = 'miter'; context.stroke(); }
             
             function exportImage() { 
                 isExporting = true;
@@ -1032,7 +1091,6 @@
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
-                // ATAJO: SHIFT + R para mostrar/ocultar reglas
                 if (e.key.toLowerCase() === 'r' && e.shiftKey) { e.preventDefault(); showRulers = !showRulers; needsRedraw = true; return; }
 
                 if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
@@ -1049,7 +1107,7 @@
             });
             
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
+            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') { selectedPath.motionType = e.target.value; needsRedraw = true; } }); 
             brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
