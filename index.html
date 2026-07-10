@@ -355,7 +355,7 @@
                     </div>
                     <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-rulers">
-                        <label for="toggle-rulers" style="font-size: 11px;">Show Rulers & Guides (Shift+R)</label>
+                        <label for="toggle-rulers" style="font-size: 11px;">Show Rulers & Guides (Cmd+R)</label>
                     </div>
                     <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-dark-mode" checked>
@@ -366,6 +366,8 @@
         </aside>
 
         <main class="canvas-area">
+            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9;"></canvas>
+
             <div class="zoom-toolbar">
                 <button id="btn-zoom-out">Zoom Out</button>
                 <button id="btn-zoom-fit">Fit Screen</button>
@@ -377,8 +379,6 @@
                     <canvas id="art-canvas"></canvas>
                 </div>
             </div>
-
-            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9;"></canvas>
 
             <div class="action-bar">
                 <button class="btn btn-outline" id="btn-clear" title="Clears only active layer">Clear Layer</button>
@@ -983,10 +983,9 @@
                 uiCtx.save();
                 const isDark = document.body.classList.contains('dark-theme');
                 
-                uiCtx.strokeStyle = '#ff0000'; uiCtx.lineWidth = 1.5; uiCtx.setLineDash([4, 4]); 
+                uiCtx.strokeStyle = '#ff0000'; uiCtx.lineWidth = 1.5; 
                 guides.v.forEach(canvasX => { const screenX = getScreenX(canvasX); uiCtx.beginPath(); uiCtx.moveTo(screenX, 0); uiCtx.lineTo(screenX, uiCanvas.height); uiCtx.stroke(); });
                 guides.h.forEach(canvasY => { const screenY = getScreenY(canvasY); uiCtx.beginPath(); uiCtx.moveTo(0, screenY); uiCtx.lineTo(uiCanvas.width, screenY); uiCtx.stroke(); });
-                uiCtx.setLineDash([]);
                 
                 uiCtx.fillStyle = isDark ? '#2a2a2a' : '#eaeaea';
                 uiCtx.fillRect(0, 0, uiCanvas.width, RULER_SIZE); uiCtx.fillRect(0, 0, RULER_SIZE, uiCanvas.height);
@@ -1144,33 +1143,28 @@
             }
             
             document.addEventListener('keydown', (e) => { 
-                // Ignorar comandos si estás escribiendo
                 if (e.target.tagName === 'INPUT' && e.target.type === 'text') return; 
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
-                // ATAJO: SHIFT + R para mostrar/ocultar reglas
-                if (e.key.toLowerCase() === 'r' && e.shiftKey && !modifier) { 
-                    e.preventDefault(); 
+                // Mostrar/Ocultar Reglas con Cmd/Ctrl + R
+                if (modifier && e.key.toLowerCase() === 'r' && !e.shiftKey) { 
+                    e.preventDefault(); // Evitar que la página se recargue!
                     toggleRulersInput.checked = !toggleRulersInput.checked;
                     toggleRulersInput.dispatchEvent(new Event('change'));
                     return; 
                 }
 
-                // ATAJO: CMD + Z (Historial Completo)
                 if (modifier && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
                 if ((modifier && e.shiftKey && e.key.toLowerCase() === 'z') || (modifier && e.key.toLowerCase() === 'y')) { e.preventDefault(); executeRedo(); return;} 
                 
-                // Ajuste de Brocha
                 if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 
-                // Eliminar imagen
                 if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
                     paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return;
                 }
 
-                // Herramientas
                 if (e.key.toLowerCase() === 'v' && !modifier) setTool('select');
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
@@ -1185,7 +1179,7 @@
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
             
             initCanvas(); 
-            saveState(); // Guardar el lienzo blanco base
+            saveState(); 
             requestAnimationFrame(renderAllPaths); 
         });
     </script>
