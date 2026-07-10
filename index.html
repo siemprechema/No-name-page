@@ -153,7 +153,7 @@
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
 
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
@@ -198,7 +198,7 @@
                     <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
-                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Shift+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
@@ -362,6 +362,8 @@
         </aside>
 
         <main class="canvas-area">
+            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;"></canvas>
+            
             <div class="zoom-toolbar">
                 <button id="btn-zoom-out">Zoom Out</button>
                 <button id="btn-zoom-fit">Fit Screen</button>
@@ -384,28 +386,38 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const canvasArea = document.querySelector('.canvas-area');
             const canvas = document.getElementById('art-canvas');
             const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
+            
+            const uiCanvas = document.getElementById('ui-canvas');
+            const uiCtx = uiCanvas.getContext('2d');
+
             const customCursor = document.getElementById('dynamic-cursor');
             const activeToolDisplay = document.getElementById('active-tool-display');
             
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
-            let paths = []; const redoStack = []; let rawPointsBuffer = []; 
+            
+            // --- GLOBAL STATE (UNDO / REDO) ---
+            let undoStack = []; let redoStack = [];
+            let paths = []; 
+            let guides = { h: [], v: [] };
+            let rawPointsBuffer = []; 
+            
             let draggedLayerId = null;
-
             let activeTool = 'brush'; 
             let selectedPath = null;
             let transformAction = null; 
             let tStartX = 0; let tStartY = 0;
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
             let isExporting = false;
+            let isStateChanged = false; // Bandera para guardar estado en pointerup
 
-            // Rulers & Guides
+            // Variables de Reglas
             let showRulers = false;
-            let guides = { h: [], v: [] };
-            let draggingGuide = null; // { type: 'h'|'v', index: number }
-            const RULER_SIZE = 80;
+            let draggingGuide = null; 
+            const RULER_SIZE = 24;
 
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
@@ -414,14 +426,22 @@
                 needsRedraw = true;
             });
 
+            function resizeUICanvas() {
+                const rect = canvasArea.getBoundingClientRect();
+                uiCanvas.width = rect.width;
+                uiCanvas.height = rect.height;
+                needsRedraw = true;
+            }
+            window.addEventListener('resize', resizeUICanvas);
+
             function setTool(tool) {
                 activeTool = tool;
                 if (tool === 'select') {
                     customCursor.style.display = 'none';
-                    canvas.style.cursor = 'default';
+                    canvasArea.style.cursor = 'default';
                     activeToolDisplay.textContent = 'CURRENT TOOL: SELECT (V)';
                 } else {
-                    canvas.style.cursor = 'none';
+                    canvasArea.style.cursor = 'none';
                     customCursor.style.display = 'block';
                     selectedPath = null; 
                     activeToolDisplay.textContent = 'CURRENT TOOL: BRUSH (B)';
@@ -455,8 +475,7 @@
                     div.addEventListener('click', (e) => {
                         if (e.target.closest('.layer-vis-btn')) {
                             layer.visible = !layer.visible;
-                            needsRedraw = true;
-                            renderLayersUI();
+                            saveState(); needsRedraw = true; renderLayersUI();
                         } else if (e.target.closest('.layer-del-btn')) {
                             deleteLayer(layer.id);
                         } else if (!e.target.closest('input')) {
@@ -464,8 +483,7 @@
                             document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('active'));
                             div.classList.add('active');
                             if (selectedPath && selectedPath.layerId !== activeLayerId) {
-                                selectedPath = null;
-                                needsRedraw = true;
+                                selectedPath = null; needsRedraw = true;
                             }
                         }
                     });
@@ -489,7 +507,7 @@
                         const finishRename = () => {
                             layer.name = input.value.trim() || oldName;
                             div.setAttribute('draggable', true); 
-                            renderLayersUI();
+                            saveState(); renderLayersUI();
                         };
                         input.addEventListener('blur', finishRename);
                         input.addEventListener('keydown', (evt) => { if (evt.key === 'Enter') input.blur(); });
@@ -513,7 +531,7 @@
                 paths = paths.filter(p => p.layerId !== id); 
                 if (selectedPath && selectedPath.layerId === id) selectedPath = null;
                 if (activeLayerId === id) activeLayerId = layers[layers.length - 1].id;
-                needsRedraw = true; renderLayersUI();
+                saveState(); needsRedraw = true; renderLayersUI();
             }
 
             function reorderLayers(draggedId, targetId) {
@@ -521,14 +539,15 @@
                 const targetIndex = layers.findIndex(l => l.id === targetId);
                 const [removed] = layers.splice(draggedIndex, 1);
                 layers.splice(targetIndex, 0, removed);
-                needsRedraw = true; renderLayersUI();
+                saveState(); needsRedraw = true; renderLayersUI();
             }
 
             document.getElementById('btn-add-layer').addEventListener('click', () => {
                 layerCounter++; const newLayer = { id: `layer-${layerCounter}`, name: `Layer ${layerCounter}`, visible: true };
-                layers.push(newLayer); activeLayerId = newLayer.id; renderLayersUI();
+                layers.push(newLayer); activeLayerId = newLayer.id; 
+                saveState(); renderLayersUI();
             });
-            renderLayersUI();
+            
 
             // --- IMAGE IMPORT LOGIC ---
             const btnImport = document.getElementById('btn-import');
@@ -559,6 +578,7 @@
                         paths.push(imgPath);
                         selectedPath = imgPath;
                         setTool('select'); 
+                        saveState(); needsRedraw = true;
                     };
                     img.src = event.target.result;
                 };
@@ -566,7 +586,65 @@
                 e.target.value = ''; 
             });
 
-            // --- GRID & RULERS LOGIC ---
+            // --- GLOBAL UNDO / REDO LOGIC ---
+            function cloneState() {
+                return {
+                    layers: layers.map(l => ({...l})),
+                    paths: paths.map(p => ({
+                        ...p, 
+                        points: p.points ? p.points.map(pt => [...pt]) : [], 
+                        stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
+                    })),
+                    guides: { h: [...guides.h], v: [...guides.v] },
+                    activeLayerId: activeLayerId
+                };
+            }
+            
+            function saveState() {
+                redoStack.length = 0;
+                undoStack.push(cloneState());
+            }
+
+            function executeUndo() {
+                if (undoStack.length > 1) {
+                    redoStack.push(undoStack.pop());
+                    restoreState(undoStack[undoStack.length - 1]);
+                }
+            }
+
+            function executeRedo() {
+                if (redoStack.length > 0) {
+                    const state = redoStack.pop();
+                    undoStack.push(state);
+                    restoreState(state);
+                }
+            }
+
+            function restoreState(state) {
+                const cloned = cloneStateFrom(state);
+                layers = cloned.layers;
+                paths = cloned.paths;
+                guides = cloned.guides;
+                activeLayerId = cloned.activeLayerId;
+                selectedPath = null; 
+                renderLayersUI();
+                needsRedraw = true;
+            }
+
+            function cloneStateFrom(state) {
+                 return {
+                    layers: state.layers.map(l => ({...l})),
+                    paths: state.paths.map(p => ({
+                        ...p, 
+                        points: p.points ? p.points.map(pt => [...pt]) : [], 
+                        stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
+                    })),
+                    guides: { h: [...state.guides.h], v: [...state.guides.v] },
+                    activeLayerId: state.activeLayerId
+                };
+            }
+
+            // --- GRID LOGIC ---
             const gridToggle = document.getElementById('toggle-grid');
             gridToggle.addEventListener('change', () => { needsRedraw = true; });
 
@@ -574,54 +652,12 @@
                 if (!gridToggle.checked) return;
                 ctx.save();
                 ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(128,128,128,0.6)';
-                ctx.beginPath();
-                ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height);
-                ctx.moveTo(0, canvas.height/2); ctx.lineTo(canvas.width, canvas.height/2);
-                ctx.stroke();
-
+                ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height); ctx.moveTo(0, canvas.height/2); ctx.lineTo(canvas.width, canvas.height/2); ctx.stroke();
                 ctx.lineWidth = 0.5; ctx.strokeStyle = 'rgba(128,128,128,0.3)';
                 ctx.beginPath();
                 for(let i=1; i<8; i++){ if(i===4) continue; ctx.moveTo((canvas.width/8)*i, 0); ctx.lineTo((canvas.width/8)*i, canvas.height); }
                 for(let i=1; i<8; i++){ if(i===4) continue; ctx.moveTo(0, (canvas.height/8)*i); ctx.lineTo(canvas.width, (canvas.height/8)*i); }
                 ctx.stroke(); ctx.restore();
-            }
-
-            function drawRulersAndGuides() {
-                ctx.save();
-                
-                // Dibujar Guías Rojas
-                ctx.strokeStyle = '#ff0000';
-                ctx.lineWidth = 2;
-                guides.v.forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); });
-                guides.h.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); });
-
-                // Dibujar fondo de reglas
-                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#2a2a2a' : '#eaeaea';
-                ctx.fillRect(0, 0, canvas.width, RULER_SIZE); 
-                ctx.fillRect(0, 0, RULER_SIZE, canvas.height); 
-
-                // Ticks de reglas
-                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#888888' : '#555555';
-                ctx.font = '24px var(--font-main)';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-
-                for (let x = 0; x < canvas.width; x += 200) {
-                    ctx.fillRect(x, RULER_SIZE - 20, 2, 20);
-                    if (x > 0) ctx.fillText(x, x, 10);
-                }
-                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                for (let y = 0; y < canvas.height; y += 200) {
-                    ctx.fillRect(RULER_SIZE - 20, y, 20, 2);
-                    if (y > 0) {
-                        ctx.save(); ctx.translate(15, y); ctx.rotate(-Math.PI / 2); ctx.fillText(y, 0, 0); ctx.restore();
-                    }
-                }
-                
-                // Cuadro esquina
-                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#1e1e1e' : '#d1d1d1';
-                ctx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
-
-                ctx.restore();
             }
 
             // --- VARIABLES & UI ELEMENTS ---
@@ -644,17 +680,34 @@
             const applyNoneBtn = document.getElementById('apply-none-btn');
             
             mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
-            canvas.addEventListener('pointerdown', () => { if(window.innerWidth <= 900) { sidebar.classList.remove('active'); } });
 
             function initCanvas() {
                 const format = formatSelect.value;
                 if(format === '3:4') { canvas.width = 2160; canvas.height = 2880; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; } 
                 else { canvas.width = 3840; canvas.height = 2160; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; }
-                resetZoom(); updateColorUI(); needsRedraw = true;
+                resetZoom(); updateColorUI(); resizeUICanvas(); needsRedraw = true;
             }
 
             function fillBackground() { ctx.fillStyle = bgColorInput.value; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-            function getCoordinates(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }; }
+            
+            function getCoordinates(e) { 
+                const rect = canvas.getBoundingClientRect(); 
+                const scaleX = canvas.width / rect.width; 
+                const scaleY = canvas.height / rect.height; 
+                return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }; 
+            }
+            
+            function getScreenX(canvasX) {
+                const artRect = canvas.getBoundingClientRect();
+                const areaRect = canvasArea.getBoundingClientRect();
+                return (artRect.left - areaRect.left) + (canvasX * (artRect.width / canvas.width));
+            }
+            
+            function getScreenY(canvasY) {
+                const artRect = canvas.getBoundingClientRect();
+                const areaRect = canvasArea.getBoundingClientRect();
+                return (artRect.top - areaRect.top) + (canvasY * (artRect.height / canvas.height));
+            }
 
             function updateColorUI() {
                 fillSwatch.style.backgroundColor = colorState.fill.active ? colorState.fill.color : 'white'; strokeSwatch.style.backgroundColor = colorState.stroke.active ? colorState.stroke.color : 'white';
@@ -676,7 +729,6 @@
             resetColorsBtn.addEventListener('click', (e) => { e.stopPropagation(); colorState.fill = { color: '#808080', active: true }; colorState.stroke = { color: '#808080', active: false, width: colorState.stroke.width }; updateColorUI(); });
             applyNoneBtn.addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
 
-            // SLIDER VALUES LIVE UPDATE
             brushSizeInput.addEventListener('input', (e) => { document.getElementById('brush-size-val').textContent = e.target.value; needsRedraw = true; });
             brushSpacingInput.addEventListener('input', (e) => { document.getElementById('brush-spacing-val').textContent = e.target.value; needsRedraw = true; });
             strokeFidelityInput.addEventListener('input', (e) => { document.getElementById('stroke-fidelity-val').textContent = e.target.value; needsRedraw = true; });
@@ -691,15 +743,12 @@
                 needsRedraw = true; 
             });
 
-            function executeUndo() { if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; } }
-            function executeRedo() { if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; } }
             btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
 
             function getHandle(x, y, path) {
                 const s = 60; 
                 const hx = path.x, hy = path.y, hw = path.w, hh = path.h;
                 const cx = hx + hw/2, cy = hy + hh/2;
-
                 if (Math.abs(x - hx) < s && Math.abs(y - hy) < s) return 'tl';
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - hy) < s) return 'tr';
                 if (Math.abs(x - hx) < s && Math.abs(y - (hy + hh)) < s) return 'bl';
@@ -712,23 +761,29 @@
                 return null;
             }
 
-            function startPosition(e) {
+            // POINT EVENTS (ATTACHED TO CANVAS AREA)
+            canvasArea.addEventListener('pointerdown', (e) => {
+                if(e.target.closest('.zoom-toolbar') || e.target.closest('.action-bar') || e.target.closest('.sidebar')) return;
+                
+                const areaRect = canvasArea.getBoundingClientRect();
+                const mouseX = e.clientX - areaRect.left;
+                const mouseY = e.clientY - areaRect.top;
                 const coords = getCoordinates(e);
 
-                // INTERACCIÓN CON GUÍAS (SI ESTÁN ACTIVAS)
+                // LÓGICA DE REGLAS Y GUÍAS
                 if (showRulers && !isExporting) {
                     let hitGuide = false;
-                    for (let i = 0; i < guides.v.length; i++) {
-                        if (Math.abs(coords.x - guides.v[i]) < 40) { draggingGuide = { type: 'v', index: i }; hitGuide = true; break; }
+                    for(let i=0; i<guides.v.length; i++) {
+                         if (Math.abs(mouseX - getScreenX(guides.v[i])) < 10) { draggingGuide = { type: 'v', index: i }; hitGuide = true; break; }
                     }
                     if (!hitGuide) {
-                        for (let i = 0; i < guides.h.length; i++) {
-                            if (Math.abs(coords.y - guides.h[i]) < 40) { draggingGuide = { type: 'h', index: i }; hitGuide = true; break; }
-                        }
+                         for(let i=0; i<guides.h.length; i++) {
+                             if (Math.abs(mouseY - getScreenY(guides.h[i])) < 10) { draggingGuide = { type: 'h', index: i }; hitGuide = true; break; }
+                         }
                     }
                     if (!hitGuide) {
-                        if (coords.x < RULER_SIZE) { guides.v.push(coords.x); draggingGuide = { type: 'v', index: guides.v.length - 1 }; hitGuide = true; } 
-                        else if (coords.y < RULER_SIZE) { guides.h.push(coords.y); draggingGuide = { type: 'h', index: guides.h.length - 1 }; hitGuide = true; }
+                        if (mouseX < RULER_SIZE) { guides.v.push(coords.x); draggingGuide = { type: 'v', index: guides.v.length - 1 }; hitGuide = true; } 
+                        else if (mouseY < RULER_SIZE) { guides.h.push(coords.y); draggingGuide = { type: 'h', index: guides.h.length - 1 }; hitGuide = true; }
                     }
                     if (hitGuide) { isDrawing = false; needsRedraw = true; return; }
                 }
@@ -740,7 +795,7 @@
                     if (selectedPath && selectedPath.mode === 'image') {
                         const handle = getHandle(coords.x, coords.y, selectedPath);
                         if (handle) {
-                            isDrawing = true; transformAction = handle;
+                            isDrawing = true; transformAction = handle; isStateChanged = true;
                             tStartX = coords.x; tStartY = coords.y;
                             tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
                             tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
@@ -753,7 +808,7 @@
                         const p = paths[i];
                         if (p.layerId === activeLayerId && p.mode === 'image') {
                             if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
-                                isDrawing = true; selectedPath = p; transformAction = 'move';
+                                isDrawing = true; selectedPath = p; transformAction = 'move'; isStateChanged = true;
                                 tStartX = coords.x; tStartY = coords.y; tStartImgX = p.x; tStartImgY = p.y;
                                 hitImage = true; needsRedraw = true; break;
                             }
@@ -764,7 +819,7 @@
                 }
 
                 // BRUSH TOOL
-                isDrawing = true; needsRedraw = true; redoStack.length = 0; 
+                isDrawing = true; needsRedraw = true; isStateChanged = true;
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
                     color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
@@ -775,24 +830,18 @@
                 rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
                 pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
                 paths.push(pathData);
-            }
+            });
 
-            function endPosition() { 
-                isDrawing = false; transformAction = null; 
-                if (draggingGuide) {
-                    if (draggingGuide.type === 'v' && guides.v[draggingGuide.index] < RULER_SIZE) guides.v.splice(draggingGuide.index, 1);
-                    else if (draggingGuide.type === 'h' && guides.h[draggingGuide.index] < RULER_SIZE) guides.h.splice(draggingGuide.index, 1);
-                    draggingGuide = null;
-                }
-                needsRedraw = true; 
-            }
-
-            canvas.addEventListener('pointermove', (e) => {
-                const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
+            canvasArea.addEventListener('pointermove', (e) => {
+                const areaRect = canvasArea.getBoundingClientRect();
+                const mouseX = e.clientX - areaRect.left;
+                const mouseY = e.clientY - areaRect.top;
+                const coords = getCoordinates(e); 
+                let rawX = coords.x; let rawY = coords.y;
 
                 if (draggingGuide) {
-                    if (draggingGuide.type === 'v') { guides.v[draggingGuide.index] = coords.x; canvas.style.cursor = 'col-resize'; } 
-                    else { guides.h[draggingGuide.index] = coords.y; canvas.style.cursor = 'row-resize'; }
+                    if (draggingGuide.type === 'v') { guides.v[draggingGuide.index] = coords.x; canvasArea.style.cursor = 'col-resize'; } 
+                    else { guides.h[draggingGuide.index] = coords.y; canvasArea.style.cursor = 'row-resize'; }
                     needsRedraw = true; return;
                 }
 
@@ -832,6 +881,17 @@
                         needsRedraw = true;
                     } else if (!isDrawing) {
                         let cursorStyle = 'default';
+                        
+                        // Check Rulers
+                        if (showRulers && !isExporting) {
+                            if (mouseX < RULER_SIZE) { canvasArea.style.cursor = 'col-resize'; return; }
+                            if (mouseY < RULER_SIZE) { canvasArea.style.cursor = 'row-resize'; return; }
+                            let hoverGuide = false;
+                            for(let i=0; i<guides.v.length; i++) { if (Math.abs(mouseX - getScreenX(guides.v[i])) < 6) { canvasArea.style.cursor = 'col-resize'; hoverGuide = true; break; } }
+                            if (!hoverGuide) { for(let i=0; i<guides.h.length; i++) { if (Math.abs(mouseY - getScreenY(guides.h[i])) < 6) { canvasArea.style.cursor = 'row-resize'; hoverGuide = true; break; } } }
+                            if (hoverGuide) return;
+                        }
+
                         if (selectedPath) {
                             const handle = getHandle(coords.x, coords.y, selectedPath);
                             if (handle === 'tl' || handle === 'br') cursorStyle = 'nwse-resize';
@@ -848,13 +908,13 @@
                                 }
                             }
                         }
-                        canvas.style.cursor = cursorStyle;
+                        canvasArea.style.cursor = cursorStyle;
                     }
                     return;
                 }
 
                 // BRUSH LOGIC 
-                canvas.style.cursor = 'none'; customCursor.style.display = 'block';
+                canvasArea.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
 
@@ -893,6 +953,65 @@
                 }
             });
 
+            window.addEventListener('pointerup', (e) => {
+                if (draggingGuide) {
+                    const areaRect = canvasArea.getBoundingClientRect();
+                    const mouseX = e.clientX - areaRect.left;
+                    const mouseY = e.clientY - areaRect.top;
+                    
+                    if (draggingGuide.type === 'v' && mouseX < RULER_SIZE) guides.v.splice(draggingGuide.index, 1);
+                    else if (draggingGuide.type === 'h' && mouseY < RULER_SIZE) guides.h.splice(draggingGuide.index, 1);
+                    
+                    draggingGuide = null;
+                    saveState(); 
+                    needsRedraw = true;
+                }
+
+                if (isDrawing && isStateChanged) saveState();
+                
+                isDrawing = false; transformAction = null; isStateChanged = false; needsRedraw = true;
+            });
+
+            function drawRulersAndGuides() {
+                uiCtx.save();
+                const isDark = document.body.classList.contains('dark-theme');
+                
+                // Guides
+                uiCtx.strokeStyle = '#e74c3c'; uiCtx.lineWidth = 1.5; uiCtx.setLineDash([4, 4]); 
+                guides.v.forEach(canvasX => { const screenX = getScreenX(canvasX); uiCtx.beginPath(); uiCtx.moveTo(screenX, 0); uiCtx.lineTo(screenX, uiCanvas.height); uiCtx.stroke(); });
+                guides.h.forEach(canvasY => { const screenY = getScreenY(canvasY); uiCtx.beginPath(); uiCtx.moveTo(0, screenY); uiCtx.lineTo(uiCanvas.width, screenY); uiCtx.stroke(); });
+                uiCtx.setLineDash([]);
+                
+                // Rulers BG
+                uiCtx.fillStyle = isDark ? '#2a2a2a' : '#eaeaea';
+                uiCtx.fillRect(0, 0, uiCanvas.width, RULER_SIZE); uiCtx.fillRect(0, 0, RULER_SIZE, uiCanvas.height);
+                
+                // Ticks
+                uiCtx.fillStyle = isDark ? '#888888' : '#555555'; uiCtx.font = '10px var(--font-main)';
+                
+                const artRect = canvas.getBoundingClientRect(); const areaRect = canvasArea.getBoundingClientRect();
+                const canvasLeft = artRect.left - areaRect.left; const canvasTop = artRect.top - areaRect.top;
+                const scaleX = artRect.width / canvas.width; const scaleY = artRect.height / canvas.height;
+                const step = 200; 
+                
+                for(let x = 0; x <= canvas.width; x += step) {
+                    const screenX = canvasLeft + x * scaleX;
+                    if (screenX > RULER_SIZE && screenX < uiCanvas.width) { uiCtx.fillRect(screenX, RULER_SIZE - 6, 1, 6); uiCtx.fillText(x, screenX + 3, RULER_SIZE - 4); }
+                }
+                uiCtx.textAlign = 'center';
+                for(let y = 0; y <= canvas.height; y += step) {
+                    const screenY = canvasTop + y * scaleY;
+                    if (screenY > RULER_SIZE && screenY < uiCanvas.height) {
+                        uiCtx.fillRect(RULER_SIZE - 6, screenY, 6, 1);
+                        uiCtx.save(); uiCtx.translate(RULER_SIZE - 12, screenY + 4); uiCtx.rotate(-Math.PI / 2); uiCtx.fillText(y, 0, 0); uiCtx.restore();
+                    }
+                }
+                
+                // Corner Square
+                uiCtx.fillStyle = isDark ? '#1e1e1e' : '#d1d1d1'; uiCtx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
+                uiCtx.restore();
+            }
+
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
                 
@@ -906,6 +1025,7 @@
 
                 if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording && !isExporting) { return; }
                 
+                uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
                 ctx.save(); fillBackground(); 
                 
                 for (let i = 0; i < layers.length; i++) {
@@ -915,7 +1035,6 @@
                 }
                 
                 drawGrid(); 
-                if (showRulers && !isExporting) drawRulersAndGuides();
 
                 if (activeTool === 'select' && selectedPath && !isRecording && !isExporting) {
                     ctx.save();
@@ -937,6 +1056,9 @@
                 }
 
                 ctx.restore();
+                
+                if (showRulers && !isExporting && !isRecording) drawRulersAndGuides();
+
                 if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
             }
 
@@ -966,14 +1088,7 @@
                         if (path.hasOutline) { ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke(); }
                         ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') ctx.stroke();
                     } else if (path.type === 'charcoal') {
-                        if(path.color !== 'transparent') { 
-                            ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; 
-                            for(let k = 1; k <= 3; k++) { 
-                                ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); 
-                                for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); 
-                            } 
-                            ctx.globalAlpha = 1.0; 
-                        }
+                        if(path.color !== 'transparent') { ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; for(let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); } ctx.globalAlpha = 1.0; }
                     }
                 } else if (path.stamps) {
                     for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed); }
@@ -1010,7 +1125,7 @@
                     mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); 
                 } else { 
                     const oldGrid = gridToggle.checked; gridToggle.checked = false; 
-                    isExporting = true; // Oculta UI de seleccion y reglas
+                    isExporting = true; 
                     
                     let mimeType = 'video/webm'; let ext = 'webm'; 
                     if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } 
@@ -1024,15 +1139,12 @@
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
                 } 
             }
-
-            canvas.addEventListener('pointerdown', startPosition); canvas.addEventListener('pointerup', endPosition); canvas.addEventListener('pointerleave', () => { endPosition(); customCursor.style.display = 'none'; }); canvas.addEventListener('pointercancel', endPosition);
             
             document.addEventListener('keydown', (e) => { 
                 if (e.target.tagName === 'INPUT') return; 
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
-                // ATAJO: SHIFT + R para mostrar/ocultar reglas
                 if (e.key.toLowerCase() === 'r' && e.shiftKey) { e.preventDefault(); showRulers = !showRulers; needsRedraw = true; return; }
 
                 if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
@@ -1041,23 +1153,21 @@
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 
                 if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
-                    paths = paths.filter(p => p !== selectedPath); selectedPath = null; needsRedraw = true; return;
+                    paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return;
                 }
 
                 if (e.key.toLowerCase() === 'v' && !modifier) setTool('select');
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
             
-            formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
-            brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
-            
-            btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
+            btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } saveState(); needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
             function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; } function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
             
-            initCanvas(); requestAnimationFrame(renderAllPaths); 
+            initCanvas(); 
+            saveState(); // Guarda el estado en blanco inicial
+            requestAnimationFrame(renderAllPaths); 
         });
     </script>
 </body>
