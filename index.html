@@ -72,7 +72,10 @@
 
         .control-group { margin-bottom: 14px; }
         .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
-        .flex-label { display: flex; justify-content: space-between; align-items: center; }
+        .flex-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .flex-label label { margin-bottom: 0; }
+        .val-display { font-size: 11px; font-weight: bold; color: var(--text-color); }
+        
         .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .checkbox-group input { cursor: pointer; width: 14px; height: 14px; accent-color: var(--text-color);}
         .checkbox-group label { margin-bottom: 0; cursor: pointer; }
@@ -150,7 +153,7 @@
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
@@ -201,7 +204,6 @@
                 </div>
             </div>
 
-            <!-- MODULE 1: BRUSH -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">1. Brush</h2>
@@ -225,7 +227,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 2: LAYERS -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">2. Layers</h2>
@@ -241,7 +242,6 @@
                 </div>
             </section>
 
-            <!-- MODULE 3: COLOR & STYLE CONFIGURATION -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">3. Color & Style</h2>
@@ -264,7 +264,10 @@
                     </div>
 
                     <div class="control-group" id="stroke-width-group">
-                        <div class="flex-label"><label>Outline Width</label><span id="outline-width-val" style="font-size: 11px; font-weight: bold;">26px</span></div>
+                        <div class="flex-label">
+                            <label>Outline Width</label>
+                            <span class="val-display" id="outline-width-val">26px</span>
+                        </div>
                         <input type="range" id="outline-width" min="1" max="50" value="26">
                     </div>
 
@@ -276,25 +279,30 @@
                     <div class="control-group" id="brush-size-group">
                         <div class="flex-label">
                             <label>Brush Size</label>
-                            <label style="text-transform: none; font-size: 10px;">[ ] to adjust</label>
+                            <span class="val-display" id="brush-size-val">104</span>
                         </div>
                         <input type="range" id="brush-size" min="10" max="200" value="104">
                     </div>
 
                     <div class="control-group">
-                        <label>Spacing (Modular)</label>
+                        <div class="flex-label">
+                            <label>Spacing (Modular)</label>
+                            <span class="val-display" id="brush-spacing-val">160</span>
+                        </div>
                         <input type="range" id="brush-spacing" min="20" max="300" value="160"> 
                     </div>
 
                     <div class="control-group" id="brush-fidelity-group" style="margin-bottom: 0;">
-                        <div class="flex-label"><label>Smoothness</label></div>
+                        <div class="flex-label">
+                            <label>Smoothness</label>
+                            <span class="val-display" id="stroke-fidelity-val">50</span>
+                        </div>
                         <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
                         <p style="font-size: 10px; color: #888; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
                     </div>
                 </div>
             </section>
 
-            <!-- MODULE 4: SPECIAL EFFECTS -->
             <section class="module-section collapsed">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">4. Special Effects</h2>
@@ -302,7 +310,10 @@
                 </header>
                 <div class="module-content">
                     <div class="control-group" style="margin-top: 4px;">
-                        <label>Blur Intensity</label>
+                        <div class="flex-label">
+                            <label>Blur Intensity</label>
+                            <span class="val-display" id="brush-blur-val">0</span>
+                        </div>
                         <input type="range" id="brush-blur" min="0" max="40" value="0">
                     </div>
                     <div class="control-group">
@@ -318,13 +329,13 @@
                     <div class="control-group" style="margin-top: 12px; margin-bottom: 0;">
                         <div class="flex-label">
                             <label>Effect Intensity</label>
+                            <span class="val-display" id="motion-intensity-val">50</span>
                         </div>
                         <input type="range" id="motion-intensity" min="1" max="100" value="50">
                     </div>
                 </div>
             </section>
 
-            <!-- MODULE 5: CANVAS FORMAT -->
             <section class="module-section collapsed" style="border-bottom: none;">
                 <header class="module-header" onclick="this.parentElement.classList.toggle('collapsed')">
                     <h2 class="module-title">5. Canvas Format</h2>
@@ -373,7 +384,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Aceleración por Hardware (desynchronized) y optimización de memoria (alpha: false)
             const canvas = document.getElementById('art-canvas');
             const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
@@ -391,10 +401,17 @@
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
             let isExporting = false;
 
+            // Rulers & Guides
+            let showRulers = false;
+            let guides = { h: [], v: [] };
+            let draggingGuide = null; // { type: 'h'|'v', index: number }
+            const RULER_SIZE = 80;
+
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
                 if(e.target.checked) document.body.classList.add('dark-theme');
                 else document.body.classList.remove('dark-theme');
+                needsRedraw = true;
             });
 
             function setTool(tool) {
@@ -549,7 +566,7 @@
                 e.target.value = ''; 
             });
 
-            // --- GRID LOGIC ---
+            // --- GRID & RULERS LOGIC ---
             const gridToggle = document.getElementById('toggle-grid');
             gridToggle.addEventListener('change', () => { needsRedraw = true; });
 
@@ -569,8 +586,45 @@
                 ctx.stroke(); ctx.restore();
             }
 
+            function drawRulersAndGuides() {
+                ctx.save();
+                
+                // Dibujar Guías Rojas
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 2;
+                guides.v.forEach(x => { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); });
+                guides.h.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); });
+
+                // Dibujar fondo de reglas
+                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#2a2a2a' : '#eaeaea';
+                ctx.fillRect(0, 0, canvas.width, RULER_SIZE); 
+                ctx.fillRect(0, 0, RULER_SIZE, canvas.height); 
+
+                // Ticks de reglas
+                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#888888' : '#555555';
+                ctx.font = '24px var(--font-main)';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+
+                for (let x = 0; x < canvas.width; x += 200) {
+                    ctx.fillRect(x, RULER_SIZE - 20, 2, 20);
+                    if (x > 0) ctx.fillText(x, x, 10);
+                }
+                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                for (let y = 0; y < canvas.height; y += 200) {
+                    ctx.fillRect(RULER_SIZE - 20, y, 20, 2);
+                    if (y > 0) {
+                        ctx.save(); ctx.translate(15, y); ctx.rotate(-Math.PI / 2); ctx.fillText(y, 0, 0); ctx.restore();
+                    }
+                }
+                
+                // Cuadro esquina
+                ctx.fillStyle = document.body.classList.contains('dark-theme') ? '#1e1e1e' : '#d1d1d1';
+                ctx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
+
+                ctx.restore();
+            }
+
             // --- VARIABLES & UI ELEMENTS ---
-            let mediaRecorder; let recordedChunks = []; let isRecording = false;
             let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 26 } };
 
             const brushTypeInput = document.getElementById('brush-type'); const bgColorInput = document.getElementById('bg-color');
@@ -622,6 +676,21 @@
             resetColorsBtn.addEventListener('click', (e) => { e.stopPropagation(); colorState.fill = { color: '#808080', active: true }; colorState.stroke = { color: '#808080', active: false, width: colorState.stroke.width }; updateColorUI(); });
             applyNoneBtn.addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
 
+            // SLIDER VALUES LIVE UPDATE
+            brushSizeInput.addEventListener('input', (e) => { document.getElementById('brush-size-val').textContent = e.target.value; needsRedraw = true; });
+            brushSpacingInput.addEventListener('input', (e) => { document.getElementById('brush-spacing-val').textContent = e.target.value; needsRedraw = true; });
+            strokeFidelityInput.addEventListener('input', (e) => { document.getElementById('stroke-fidelity-val').textContent = e.target.value; needsRedraw = true; });
+            brushBlurInput.addEventListener('input', (e) => { 
+                document.getElementById('brush-blur-val').textContent = e.target.value; 
+                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); 
+                needsRedraw = true; 
+            });
+            motionIntensityInput.addEventListener('input', (e) => { 
+                document.getElementById('motion-intensity-val').textContent = e.target.value; 
+                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); 
+                needsRedraw = true; 
+            });
+
             function executeUndo() { if (paths.length > 0) { redoStack.push(paths.pop()); needsRedraw = true; } }
             function executeRedo() { if (redoStack.length > 0) { paths.push(redoStack.pop()); needsRedraw = true; } }
             btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
@@ -639,22 +708,39 @@
                 if (Math.abs(x - cx) < s && Math.abs(y - (hy + hh)) < s) return 'b';
                 if (Math.abs(x - hx) < s && Math.abs(y - cy) < s) return 'l';
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - cy) < s) return 'r';
-
                 if (x > hx && x < hx + hw && y > hy && y < hy + hh) return 'move';
                 return null;
             }
 
             function startPosition(e) {
-                const activeLayerInfo = layers.find(l => l.id === activeLayerId);
-                if(!activeLayerInfo || !activeLayerInfo.visible) return;
                 const coords = getCoordinates(e);
 
+                // INTERACCIÓN CON GUÍAS (SI ESTÁN ACTIVAS)
+                if (showRulers && !isExporting) {
+                    let hitGuide = false;
+                    for (let i = 0; i < guides.v.length; i++) {
+                        if (Math.abs(coords.x - guides.v[i]) < 40) { draggingGuide = { type: 'v', index: i }; hitGuide = true; break; }
+                    }
+                    if (!hitGuide) {
+                        for (let i = 0; i < guides.h.length; i++) {
+                            if (Math.abs(coords.y - guides.h[i]) < 40) { draggingGuide = { type: 'h', index: i }; hitGuide = true; break; }
+                        }
+                    }
+                    if (!hitGuide) {
+                        if (coords.x < RULER_SIZE) { guides.v.push(coords.x); draggingGuide = { type: 'v', index: guides.v.length - 1 }; hitGuide = true; } 
+                        else if (coords.y < RULER_SIZE) { guides.h.push(coords.y); draggingGuide = { type: 'h', index: guides.h.length - 1 }; hitGuide = true; }
+                    }
+                    if (hitGuide) { isDrawing = false; needsRedraw = true; return; }
+                }
+
+                const activeLayerInfo = layers.find(l => l.id === activeLayerId);
+                if(!activeLayerInfo || !activeLayerInfo.visible) return;
+                
                 if (activeTool === 'select') {
                     if (selectedPath && selectedPath.mode === 'image') {
                         const handle = getHandle(coords.x, coords.y, selectedPath);
                         if (handle) {
-                            isDrawing = true;
-                            transformAction = handle;
+                            isDrawing = true; transformAction = handle;
                             tStartX = coords.x; tStartY = coords.y;
                             tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
                             tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
@@ -691,11 +777,24 @@
                 paths.push(pathData);
             }
 
-            function endPosition() { isDrawing = false; transformAction = null; needsRedraw = true; }
+            function endPosition() { 
+                isDrawing = false; transformAction = null; 
+                if (draggingGuide) {
+                    if (draggingGuide.type === 'v' && guides.v[draggingGuide.index] < RULER_SIZE) guides.v.splice(draggingGuide.index, 1);
+                    else if (draggingGuide.type === 'h' && guides.h[draggingGuide.index] < RULER_SIZE) guides.h.splice(draggingGuide.index, 1);
+                    draggingGuide = null;
+                }
+                needsRedraw = true; 
+            }
 
-            // BUCLE ÚNICO OPTIMIZADO PARA CURSOR Y DIBUJO 
             canvas.addEventListener('pointermove', (e) => {
                 const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
+
+                if (draggingGuide) {
+                    if (draggingGuide.type === 'v') { guides.v[draggingGuide.index] = coords.x; canvas.style.cursor = 'col-resize'; } 
+                    else { guides.h[draggingGuide.index] = coords.y; canvas.style.cursor = 'row-resize'; }
+                    needsRedraw = true; return;
+                }
 
                 if (activeTool === 'select') {
                     customCursor.style.display = 'none';
@@ -709,30 +808,22 @@
                         } 
                         else if (['l', 'r'].includes(transformAction)) {
                             let newW = transformAction === 'r' ? tStartImgW + (alt ? 2*dx : dx) : tStartImgW - (alt ? 2*dx : dx);
-                            if (newW < 20) newW = 20;
-                            selectedPath.w = newW;
+                            if (newW < 20) newW = 20; selectedPath.w = newW;
                             selectedPath.x = transformAction === 'l' ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
                         }
                         else if (['t', 'b'].includes(transformAction)) {
                             let newH = transformAction === 'b' ? tStartImgH + (alt ? 2*dy : dy) : tStartImgH - (alt ? 2*dy : dy);
-                            if (newH < 20) newH = 20;
-                            selectedPath.h = newH;
+                            if (newH < 20) newH = 20; selectedPath.h = newH;
                             selectedPath.y = transformAction === 't' ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
                         }
                         else { 
-                            let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1;
-                            let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
-                            
-                            let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX);
-                            let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
+                            let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1; let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
+                            let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX); let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
 
                             if (shift) {
-                                let scale = Math.max(newW / tStartImgW, newH / tStartImgH);
-                                if (scale < 0.1) scale = 0.1;
+                                let scale = Math.max(newW / tStartImgW, newH / tStartImgH); if (scale < 0.1) scale = 0.1;
                                 newW = tStartImgW * scale; newH = tStartImgH * scale;
-                            } else {
-                                if (newW < 20) newW = 20; if (newH < 20) newH = 20;
-                            }
+                            } else { if (newW < 20) newW = 20; if (newH < 20) newH = 20; }
 
                             selectedPath.w = newW; selectedPath.h = newH;
                             selectedPath.x = (factorX === -1) ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
@@ -753,10 +844,7 @@
                             for (let i = paths.length - 1; i >= 0; i--) {
                                 const p = paths[i];
                                 if (p.layerId === activeLayerId && p.mode === 'image') {
-                                    if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
-                                        cursorStyle = 'pointer'; 
-                                        break;
-                                    }
+                                    if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) { cursorStyle = 'pointer'; break; }
                                 }
                             }
                         }
@@ -765,7 +853,7 @@
                     return;
                 }
 
-                // BRUSH LOGIC (Sin asignación de memoria basura Array.reduce o slice)
+                // BRUSH LOGIC 
                 canvas.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
@@ -777,18 +865,12 @@
                 rawPointsBuffer.push([rawX, rawY]);
                 
                 const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
-                
-                // Promedio matemático ultra-rápido
-                let sumX = 0; let sumY = 0;
-                let count = Math.min(rawPointsBuffer.length, lookbackCount);
-                for (let i = rawPointsBuffer.length - count; i < rawPointsBuffer.length; i++) {
-                    sumX += rawPointsBuffer[i][0]; sumY += rawPointsBuffer[i][1];
-                }
+                let sumX = 0; let sumY = 0; let count = Math.min(rawPointsBuffer.length, lookbackCount);
+                for (let i = rawPointsBuffer.length - count; i < rawPointsBuffer.length; i++) { sumX += rawPointsBuffer[i][0]; sumY += rawPointsBuffer[i][1]; }
                 let smoothX = sumX / count; let smoothY = sumY / count;
 
                 if (currentPath.points.length > 0) { 
                     const lastP = currentPath.points[currentPath.points.length - 1]; 
-                    // Límite a 12px para 4K, elimina millones de operaciones
                     if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 12) return; 
                 }
                 
@@ -814,13 +896,10 @@
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
                 
-                // Chequeo ultra rápido de animaciones
                 let hasAnimatedPaths = false;
                 for (let j = 0; j < paths.length; j++) {
                     if (paths[j].motionType !== 'none') {
-                        for (let i = 0; i < layers.length; i++) {
-                            if (layers[i].id === paths[j].layerId && layers[i].visible) { hasAnimatedPaths = true; break; }
-                        }
+                        for (let i = 0; i < layers.length; i++) { if (layers[i].id === paths[j].layerId && layers[i].visible) { hasAnimatedPaths = true; break; } }
                     }
                     if (hasAnimatedPaths) break;
                 }
@@ -829,17 +908,14 @@
                 
                 ctx.save(); fillBackground(); 
                 
-                // Renderizado ordenado libre de Arrays basura
                 for (let i = 0; i < layers.length; i++) {
                     const layer = layers[i];
                     if (!layer.visible) continue;
-                    for (let j = 0; j < paths.length; j++) {
-                        const path = paths[j];
-                        if (path.layerId === layer.id) renderPath(path);
-                    }
+                    for (let j = 0; j < paths.length; j++) { const path = paths[j]; if (path.layerId === layer.id) renderPath(path); }
                 }
                 
                 drawGrid(); 
+                if (showRulers && !isExporting) drawRulersAndGuides();
 
                 if (activeTool === 'select' && selectedPath && !isRecording && !isExporting) {
                     ctx.save();
@@ -892,7 +968,7 @@
                     } else if (path.type === 'charcoal') {
                         if(path.color !== 'transparent') { 
                             ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; 
-                            for(let k = 1; k <= 3; k++) { // Optimizado a 3 bucles
+                            for(let k = 1; k <= 3; k++) { 
                                 ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); 
                                 for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); 
                             } 
@@ -934,6 +1010,8 @@
                     mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); 
                 } else { 
                     const oldGrid = gridToggle.checked; gridToggle.checked = false; 
+                    isExporting = true; // Oculta UI de seleccion y reglas
+                    
                     let mimeType = 'video/webm'; let ext = 'webm'; 
                     if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } 
                     const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = []; 
@@ -941,7 +1019,7 @@
                     mediaRecorder.onstop = function() { 
                         const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); 
                         const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
-                        gridToggle.checked = oldGrid; needsRedraw = true; 
+                        gridToggle.checked = oldGrid; isExporting = false; needsRedraw = true; 
                     }; 
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
                 } 
@@ -954,10 +1032,13 @@
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
+                // ATAJO: SHIFT + R para mostrar/ocultar reglas
+                if (e.key.toLowerCase() === 'r' && e.shiftKey) { e.preventDefault(); showRulers = !showRulers; needsRedraw = true; return; }
+
                 if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
                 if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); return;} 
-                if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); needsRedraw = true; return;} 
-                if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); needsRedraw = true; return;} 
+                if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
+                if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 
                 if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
                     paths = paths.filter(p => p !== selectedPath); selectedPath = null; needsRedraw = true; return;
@@ -967,13 +1048,8 @@
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
             
-            // Reactividad de sliders
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            brushSpacingInput.addEventListener('input', () => { needsRedraw = true; }); strokeFidelityInput.addEventListener('input', () => { needsRedraw = true; });
-            brushSizeInput.addEventListener('input', () => { needsRedraw = true; });
             motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; needsRedraw = true; }); 
-            motionIntensityInput.addEventListener('input', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; }); 
-            brushBlurInput.addEventListener('input', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); needsRedraw = true; });
             brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
             
             btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } needsRedraw = true; }); 
