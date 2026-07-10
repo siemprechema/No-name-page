@@ -153,7 +153,7 @@
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
         .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
@@ -195,10 +195,10 @@
 
             <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                    <button class="btn btn-outline" id="btn-undo" title="Undo (Cmd+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
-                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Shift+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Cmd+Shift+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
                         Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
@@ -354,6 +354,10 @@
                         <label for="toggle-grid" style="font-size: 11px;">Show Align Grid</label>
                     </div>
                     <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                        <input type="checkbox" id="toggle-rulers">
+                        <label for="toggle-rulers" style="font-size: 11px;">Show Rulers & Guides (Shift+R)</label>
+                    </div>
+                    <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-dark-mode" checked>
                         <label for="toggle-dark-mode" style="font-size: 11px;">Enable Dark Mode</label>
                     </div>
@@ -412,10 +416,11 @@
             let tStartX = 0; let tStartY = 0;
             let tStartImgX = 0; let tStartImgY = 0; let tStartImgW = 0; let tStartImgH = 0;
             let isExporting = false;
-            let isStateChanged = false; // Bandera para guardar estado en pointerup
+            let isStateChanged = false; // Bandera para saber si se modificó algo y debemos guardar
 
-            // Variables de Reglas
+            // Reglas
             let showRulers = false;
+            const toggleRulersInput = document.getElementById('toggle-rulers');
             let draggingGuide = null; 
             const RULER_SIZE = 24;
 
@@ -428,11 +433,18 @@
 
             function resizeUICanvas() {
                 const rect = canvasArea.getBoundingClientRect();
+                if(rect.width === 0) return;
                 uiCanvas.width = rect.width;
                 uiCanvas.height = rect.height;
                 needsRedraw = true;
             }
             window.addEventListener('resize', resizeUICanvas);
+
+            toggleRulersInput.addEventListener('change', (e) => {
+                showRulers = e.target.checked;
+                if(showRulers) resizeUICanvas();
+                needsRedraw = true;
+            });
 
             function setTool(tool) {
                 activeTool = tool;
@@ -547,7 +559,6 @@
                 layers.push(newLayer); activeLayerId = newLayer.id; 
                 saveState(); renderLayersUI();
             });
-            
 
             // --- IMAGE IMPORT LOGIC ---
             const btnImport = document.getElementById('btn-import');
@@ -639,6 +650,7 @@
                         points: p.points ? p.points.map(pt => [...pt]) : [], 
                         stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
                     })),
+                    // Deep copy local para guías
                     guides: { h: [...state.guides.h], v: [...state.guides.v] },
                     activeLayerId: state.activeLayerId
                 };
@@ -770,7 +782,6 @@
                 const mouseY = e.clientY - areaRect.top;
                 const coords = getCoordinates(e);
 
-                // LÓGICA DE REGLAS Y GUÍAS
                 if (showRulers && !isExporting) {
                     let hitGuide = false;
                     for(let i=0; i<guides.v.length; i++) {
@@ -818,7 +829,6 @@
                     return; 
                 }
 
-                // BRUSH TOOL
                 isDrawing = true; needsRedraw = true; isStateChanged = true;
                 const pathData = {
                     layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
@@ -882,7 +892,6 @@
                     } else if (!isDrawing) {
                         let cursorStyle = 'default';
                         
-                        // Check Rulers
                         if (showRulers && !isExporting) {
                             if (mouseX < RULER_SIZE) { canvasArea.style.cursor = 'col-resize'; return; }
                             if (mouseY < RULER_SIZE) { canvasArea.style.cursor = 'row-resize'; return; }
@@ -913,7 +922,6 @@
                     return;
                 }
 
-                // BRUSH LOGIC 
                 canvasArea.style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
@@ -976,17 +984,14 @@
                 uiCtx.save();
                 const isDark = document.body.classList.contains('dark-theme');
                 
-                // Guides
                 uiCtx.strokeStyle = '#e74c3c'; uiCtx.lineWidth = 1.5; uiCtx.setLineDash([4, 4]); 
                 guides.v.forEach(canvasX => { const screenX = getScreenX(canvasX); uiCtx.beginPath(); uiCtx.moveTo(screenX, 0); uiCtx.lineTo(screenX, uiCanvas.height); uiCtx.stroke(); });
                 guides.h.forEach(canvasY => { const screenY = getScreenY(canvasY); uiCtx.beginPath(); uiCtx.moveTo(0, screenY); uiCtx.lineTo(uiCanvas.width, screenY); uiCtx.stroke(); });
                 uiCtx.setLineDash([]);
                 
-                // Rulers BG
                 uiCtx.fillStyle = isDark ? '#2a2a2a' : '#eaeaea';
                 uiCtx.fillRect(0, 0, uiCanvas.width, RULER_SIZE); uiCtx.fillRect(0, 0, RULER_SIZE, uiCanvas.height);
                 
-                // Ticks
                 uiCtx.fillStyle = isDark ? '#888888' : '#555555'; uiCtx.font = '10px var(--font-main)';
                 
                 const artRect = canvas.getBoundingClientRect(); const areaRect = canvasArea.getBoundingClientRect();
@@ -1007,7 +1012,6 @@
                     }
                 }
                 
-                // Corner Square
                 uiCtx.fillStyle = isDark ? '#1e1e1e' : '#d1d1d1'; uiCtx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
                 uiCtx.restore();
             }
@@ -1112,11 +1116,12 @@
             
             function exportImage() { 
                 isExporting = true;
-                const oldGrid = gridToggle.checked; gridToggle.checked = false; drawGrid(); 
-                renderAllPaths(); 
+                needsRedraw = true; // Forzar redibujo sin UI
+                renderAllPaths(); // Asegurar que todo se pinte limpio
+                
                 setTimeout(() => {
                     const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); 
-                    gridToggle.checked = oldGrid; isExporting = false; needsRedraw = true; 
+                    isExporting = false; needsRedraw = true; 
                 }, 100);
             }
 
@@ -1124,8 +1129,7 @@
                 if (isRecording) { 
                     mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); 
                 } else { 
-                    const oldGrid = gridToggle.checked; gridToggle.checked = false; 
-                    isExporting = true; 
+                    isExporting = true; needsRedraw = true; renderAllPaths(); 
                     
                     let mimeType = 'video/webm'; let ext = 'webm'; 
                     if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } 
@@ -1134,28 +1138,39 @@
                     mediaRecorder.onstop = function() { 
                         const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); 
                         const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
-                        gridToggle.checked = oldGrid; isExporting = false; needsRedraw = true; 
+                        isExporting = false; needsRedraw = true; 
                     }; 
                     mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
                 } 
             }
             
             document.addEventListener('keydown', (e) => { 
-                if (e.target.tagName === 'INPUT') return; 
+                // SOLUCIÓN: Si estás en un input de tipo texto (escribiendo un nombre), ignora los atajos de teclado
+                if (e.target.tagName === 'INPUT' && e.target.type === 'text') return; 
 
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
                 
-                if (e.key.toLowerCase() === 'r' && e.shiftKey) { e.preventDefault(); showRulers = !showRulers; needsRedraw = true; return; }
+                // Mostrar/Ocultar Reglas
+                if (e.key.toLowerCase() === 'r' && e.shiftKey && !modifier) { 
+                    e.preventDefault(); showRulers = !showRulers; toggleRulersInput.checked = showRulers;
+                    if(showRulers) resizeUICanvas(); 
+                    needsRedraw = true; return; 
+                }
 
-                if (modifier && e.key === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
-                if ((modifier && e.shiftKey && e.key === 'z') || (modifier && e.key === 'y')) { e.preventDefault(); executeRedo(); return;} 
+                // Historial
+                if (modifier && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
+                if ((modifier && e.shiftKey && e.key.toLowerCase() === 'z') || (modifier && e.key.toLowerCase() === 'y')) { e.preventDefault(); executeRedo(); return;} 
+                
+                // Ajuste de Brocha
                 if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 
+                // Eliminar imagen seleccionada
                 if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
                     paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return;
                 }
 
+                // Herramientas
                 if (e.key.toLowerCase() === 'v' && !modifier) setTool('select');
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
@@ -1166,7 +1181,7 @@
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
             
             initCanvas(); 
-            saveState(); // Guarda el estado en blanco inicial
+            saveState(); // Guardar el lienzo blanco base en el historial
             requestAnimationFrame(renderAllPaths); 
         });
     </script>
