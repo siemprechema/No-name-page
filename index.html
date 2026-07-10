@@ -53,7 +53,7 @@
 
         .sidebar {
             width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 100;
+            display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
             box-shadow: 2px 0 15px var(--shadow-color); transition: background-color 0.3s, border-color 0.3s;
         }
 
@@ -148,14 +148,14 @@
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
-        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; opacity: 0.9; }
+        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 10; opacity: 0.9; }
         .zoom-toolbar button { background: transparent; border: none; padding: 6px 14px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
         .zoom-toolbar button:hover { background: var(--hover-color); }
         .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; position: relative; z-index: 1; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; z-index: 1; }
-        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
+        #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; }
 
-        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 100; transition: background-color 0.3s; position: relative; }
+        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; position: relative; }
         .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
         .btn-outline:hover { background-color: var(--hover-color); }
@@ -354,10 +354,6 @@
                         <label for="toggle-grid" style="font-size: 11px;">Show Align Grid</label>
                     </div>
                     <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
-                        <input type="checkbox" id="toggle-rulers">
-                        <label for="toggle-rulers" style="font-size: 11px;">Show Rulers & Guides (Shift+R)</label>
-                    </div>
-                    <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-dark-mode" checked>
                         <label for="toggle-dark-mode" style="font-size: 11px;">Enable Dark Mode</label>
                     </div>
@@ -366,9 +362,6 @@
         </aside>
 
         <main class="canvas-area">
-            <!-- UI Canvas (Rulers & Guides) sobrepuesto con PODER ABSOLUTO Z-INDEX: 99 -->
-            <canvas id="ui-canvas" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 99;"></canvas>
-
             <div class="zoom-toolbar">
                 <button id="btn-zoom-out">Zoom Out</button>
                 <button id="btn-zoom-fit">Fit Screen</button>
@@ -391,26 +384,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const canvasArea = document.querySelector('.canvas-area');
             const canvas = document.getElementById('art-canvas');
             const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true }); 
             const canvasWrapper = document.getElementById('canvas-wrapper');
-            
-            const uiCanvas = document.getElementById('ui-canvas');
-            const uiCtx = uiCanvas.getContext('2d');
-
             const customCursor = document.getElementById('dynamic-cursor');
             const activeToolDisplay = document.getElementById('active-tool-display');
             
             let isDrawing = false; let currentZoom = 1; let needsRedraw = true; 
             
-            // --- GLOBAL STATE (UNDO / REDO) ---
+            // --- HISTORIAL ---
             let undoStack = []; let redoStack = [];
             let paths = []; 
-            let guides = { h: [], v: [] };
             let rawPointsBuffer = []; 
             
-            let draggedLayerId = null;
             let activeTool = 'brush'; 
             let selectedPath = null;
             let transformAction = null; 
@@ -419,12 +405,6 @@
             let isExporting = false;
             let isStateChanged = false;
 
-            // Reglas
-            let showRulers = false;
-            const toggleRulersInput = document.getElementById('toggle-rulers');
-            let draggingGuide = null; 
-            const RULER_SIZE = 30; // Más grueso para dar clic fácil
-
             const darkToggle = document.getElementById('toggle-dark-mode');
             darkToggle.addEventListener('change', (e) => {
                 if(e.target.checked) document.body.classList.add('dark-theme');
@@ -432,36 +412,14 @@
                 needsRedraw = true;
             });
 
-            function resizeUICanvas() {
-                const rect = canvasArea.getBoundingClientRect();
-                if(rect.width === 0) return;
-                
-                // Soporte para pantallas Retina / 4K para reglas ultra nítidas
-                const dpr = window.devicePixelRatio || 1;
-                uiCanvas.width = rect.width * dpr;
-                uiCanvas.height = rect.height * dpr;
-                uiCanvas.style.width = rect.width + 'px';
-                uiCanvas.style.height = rect.height + 'px';
-                
-                uiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                needsRedraw = true;
-            }
-            window.addEventListener('resize', resizeUICanvas);
-
-            toggleRulersInput.addEventListener('change', (e) => {
-                showRulers = e.target.checked;
-                resizeUICanvas(); 
-                needsRedraw = true;
-            });
-
             function setTool(tool) {
                 activeTool = tool;
                 if (tool === 'select') {
                     customCursor.style.display = 'none';
-                    canvasArea.style.cursor = 'default';
+                    document.querySelector('.canvas-area').style.cursor = 'default';
                     activeToolDisplay.textContent = 'CURRENT TOOL: SELECT (V)';
                 } else {
-                    canvasArea.style.cursor = 'none';
+                    document.querySelector('.canvas-area').style.cursor = 'none';
                     customCursor.style.display = 'block';
                     selectedPath = null; 
                     activeToolDisplay.textContent = 'CURRENT TOOL: BRUSH (B)';
@@ -513,17 +471,13 @@
                         e.stopPropagation();
                         const nameSpan = div.querySelector('.layer-name-span');
                         if (nameSpan.querySelector('input')) return; 
-                        
                         div.setAttribute('draggable', false); 
-                        
                         const oldName = layer.name;
                         nameSpan.innerHTML = `<input type="text" class="layer-rename-input" value="${oldName}" />`;
                         const input = nameSpan.querySelector('input');
                         input.focus(); input.select();
-                        
                         input.addEventListener('click', (evt) => evt.stopPropagation());
                         input.addEventListener('mousedown', (evt) => evt.stopPropagation());
-                        
                         const finishRename = () => {
                             layer.name = input.value.trim() || oldName;
                             div.setAttribute('draggable', true); 
@@ -540,7 +494,6 @@
                         e.preventDefault(); const targetId = layer.id;
                         if (draggedLayerId && draggedLayerId !== targetId) reorderLayers(draggedLayerId, targetId);
                     });
-
                     layersListEl.appendChild(div);
                 });
             }
@@ -567,8 +520,9 @@
                 layers.push(newLayer); activeLayerId = newLayer.id; 
                 saveState(); renderLayersUI();
             });
+            renderLayersUI();
 
-            // --- IMAGE IMPORT LOGIC ---
+            // --- IMAGE IMPORT ---
             const btnImport = document.getElementById('btn-import');
             const importFile = document.getElementById('import-file');
             btnImport.addEventListener('click', () => importFile.click());
@@ -582,22 +536,10 @@
                     img.onload = () => {
                         let w = img.width; let h = img.height;
                         const maxW = canvas.width * 0.6; const maxH = canvas.height * 0.6;
-                        if (w > maxW || h > maxH) {
-                            const ratio = Math.min(maxW / w, maxH / h);
-                            w *= ratio; h *= ratio;
-                        }
+                        if (w > maxW || h > maxH) { const ratio = Math.min(maxW / w, maxH / h); w *= ratio; h *= ratio; }
                         const x = (canvas.width - w) / 2; const y = (canvas.height - h) / 2;
-
-                        const imgPath = {
-                            layerId: activeLayerId, mode: 'image', img: img, type: 'image',
-                            x: x, y: y, w: w, h: h,
-                            blur: parseInt(brushBlurInput.value), createdAt: performance.now(),
-                            motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
-                        };
-                        paths.push(imgPath);
-                        selectedPath = imgPath;
-                        setTool('select'); 
-                        saveState(); needsRedraw = true;
+                        const imgPath = { layerId: activeLayerId, mode: 'image', img: img, type: 'image', x: x, y: y, w: w, h: h, blur: parseInt(brushBlurInput.value), createdAt: performance.now(), motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value) };
+                        paths.push(imgPath); selectedPath = imgPath; setTool('select'); saveState(); needsRedraw = true;
                     };
                     img.src = event.target.result;
                 };
@@ -605,65 +547,34 @@
                 e.target.value = ''; 
             });
 
-            // --- GLOBAL UNDO / REDO LOGIC ---
+            // --- GLOBAL UNDO / REDO ---
             function cloneState() {
                 return {
                     layers: layers.map(l => ({...l})),
                     paths: paths.map(p => ({
-                        ...p, 
-                        points: p.points ? p.points.map(pt => [...pt]) : [], 
-                        stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
+                        ...p, points: p.points ? p.points.map(pt => [...pt]) : [], stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
                     })),
-                    guides: { h: [...guides.h], v: [...guides.v] },
                     activeLayerId: activeLayerId
                 };
             }
-            
-            function saveState() {
-                redoStack.length = 0;
-                undoStack.push(cloneState());
-            }
-
-            function executeUndo() {
-                if (undoStack.length > 1) {
-                    redoStack.push(undoStack.pop());
-                    restoreState(undoStack[undoStack.length - 1]);
-                }
-            }
-
-            function executeRedo() {
-                if (redoStack.length > 0) {
-                    const state = redoStack.pop();
-                    undoStack.push(state);
-                    restoreState(state);
-                }
-            }
-
+            function saveState() { redoStack.length = 0; undoStack.push(cloneState()); }
+            function executeUndo() { if (undoStack.length > 1) { redoStack.push(undoStack.pop()); restoreState(undoStack[undoStack.length - 1]); } }
+            function executeRedo() { if (redoStack.length > 0) { const state = redoStack.pop(); undoStack.push(state); restoreState(state); } }
             function restoreState(state) {
-                const cloned = cloneStateFrom(state);
-                layers = cloned.layers;
-                paths = cloned.paths;
-                guides = cloned.guides;
-                activeLayerId = cloned.activeLayerId;
-                selectedPath = null; 
-                renderLayersUI();
-                needsRedraw = true;
+                const cloned = cloneStateFrom(state); layers = cloned.layers; paths = cloned.paths; activeLayerId = cloned.activeLayerId;
+                selectedPath = null; renderLayersUI(); needsRedraw = true;
             }
-
             function cloneStateFrom(state) {
                  return {
                     layers: state.layers.map(l => ({...l})),
                     paths: state.paths.map(p => ({
-                        ...p, 
-                        points: p.points ? p.points.map(pt => [...pt]) : [], 
-                        stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
+                        ...p, points: p.points ? p.points.map(pt => [...pt]) : [], stamps: p.stamps ? p.stamps.map(st => ({...st})) : []
                     })),
-                    guides: { h: [...state.guides.h], v: [...state.guides.v] },
                     activeLayerId: state.activeLayerId
                 };
             }
 
-            // --- GRID LOGIC ---
+            // --- GRID ---
             const gridToggle = document.getElementById('toggle-grid');
             gridToggle.addEventListener('change', () => { needsRedraw = true; });
 
@@ -679,53 +590,30 @@
                 ctx.stroke(); ctx.restore();
             }
 
-            // --- VARIABLES & UI ELEMENTS ---
+            // --- UI CONTROLS ---
             let colorState = { activeMode: 'fill', fill: { color: '#808080', active: true }, stroke: { color: '#808080', active: false, width: 26 } };
-
             const brushTypeInput = document.getElementById('brush-type'); const bgColorInput = document.getElementById('bg-color');
             const brushSizeInput = document.getElementById('brush-size'); const brushSpacingInput = document.getElementById('brush-spacing');
             const strokeFidelityInput = document.getElementById('stroke-fidelity'); const brushBlurInput = document.getElementById('brush-blur');
             const motionTypeInput = document.getElementById('motion-type'); const motionIntensityInput = document.getElementById('motion-intensity');
             const formatSelect = document.getElementById('canvas-format');
-            
-            const btnClear = document.getElementById('btn-clear'); const btnExport = document.getElementById('btn-export');
-            const btnRecord = document.getElementById('btn-record'); const btnUndo = document.getElementById('btn-undo'); const btnRedo = document.getElementById('btn-redo'); 
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn'); const sidebar = document.getElementById('sidebar'); 
-
+            const btnUndo = document.getElementById('btn-undo'); const btnRedo = document.getElementById('btn-redo'); 
             const fillSwatch = document.getElementById('color-fill-swatch'); const strokeSwatch = document.getElementById('color-stroke-swatch');
             const fillColorInput = document.getElementById('fill-color-input'); const strokeColorInput = document.getElementById('stroke-color-input');
             const outlineWidthInput = document.getElementById('outline-width'); const outlineWidthVal = document.getElementById('outline-width-val');
             const swapColorsBtn = document.getElementById('swap-colors-btn'); const resetColorsBtn = document.getElementById('reset-colors-btn');
-            const applyNoneBtn = document.getElementById('apply-none-btn');
-            
-            mobileMenuBtn.addEventListener('click', () => { sidebar.classList.toggle('active'); });
 
             function initCanvas() {
                 const format = formatSelect.value;
                 if(format === '3:4') { canvas.width = 2160; canvas.height = 2880; canvas.style.aspectRatio = "3/4"; canvas.style.maxHeight = "80vh"; canvas.style.maxWidth = "auto"; } 
                 else { canvas.width = 3840; canvas.height = 2160; canvas.style.aspectRatio = "16/9"; canvas.style.maxHeight = "auto"; canvas.style.maxWidth = "80vw"; }
-                resetZoom(); updateColorUI(); resizeUICanvas(); needsRedraw = true;
+                resetZoom(); updateColorUI(); needsRedraw = true;
             }
-
             function fillBackground() { ctx.fillStyle = bgColorInput.value; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-            
             function getCoordinates(e) { 
                 const rect = canvas.getBoundingClientRect(); 
-                const scaleX = canvas.width / rect.width; 
-                const scaleY = canvas.height / rect.height; 
+                const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; 
                 return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY }; 
-            }
-            
-            function getScreenX(canvasX) {
-                const artRect = canvas.getBoundingClientRect();
-                const areaRect = canvasArea.getBoundingClientRect();
-                return (artRect.left - areaRect.left) + (canvasX * (artRect.width / canvas.width));
-            }
-            
-            function getScreenY(canvasY) {
-                const artRect = canvas.getBoundingClientRect();
-                const areaRect = canvasArea.getBoundingClientRect();
-                return (artRect.top - areaRect.top) + (canvasY * (artRect.height / canvas.height));
             }
 
             function updateColorUI() {
@@ -746,28 +634,18 @@
             outlineWidthInput.addEventListener('input', (e) => { colorState.stroke.width = parseInt(e.target.value); if(outlineWidthVal) outlineWidthVal.textContent = colorState.stroke.width + 'px'; needsRedraw = true; });
             swapColorsBtn.addEventListener('click', (e) => { e.stopPropagation(); const tempColor = colorState.fill.color; colorState.fill.color = colorState.stroke.color; colorState.stroke.color = tempColor; const tempActive = colorState.fill.active; colorState.fill.active = colorState.stroke.active; colorState.stroke.active = tempActive; updateColorUI(); });
             resetColorsBtn.addEventListener('click', (e) => { e.stopPropagation(); colorState.fill = { color: '#808080', active: true }; colorState.stroke = { color: '#808080', active: false, width: colorState.stroke.width }; updateColorUI(); });
-            applyNoneBtn.addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
+            document.getElementById('apply-none-btn').addEventListener('click', () => { if (colorState.activeMode === 'fill') { colorState.fill.active = false; } else { colorState.stroke.active = false; } updateColorUI(); });
 
             brushSizeInput.addEventListener('input', (e) => { document.getElementById('brush-size-val').textContent = e.target.value; needsRedraw = true; });
             brushSpacingInput.addEventListener('input', (e) => { document.getElementById('brush-spacing-val').textContent = e.target.value; needsRedraw = true; });
             strokeFidelityInput.addEventListener('input', (e) => { document.getElementById('stroke-fidelity-val').textContent = e.target.value; needsRedraw = true; });
-            brushBlurInput.addEventListener('input', (e) => { 
-                document.getElementById('brush-blur-val').textContent = e.target.value; 
-                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); 
-                needsRedraw = true; 
-            });
-            motionIntensityInput.addEventListener('input', (e) => { 
-                document.getElementById('motion-intensity-val').textContent = e.target.value; 
-                if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); 
-                needsRedraw = true; 
-            });
+            brushBlurInput.addEventListener('input', (e) => { document.getElementById('brush-blur-val').textContent = e.target.value; if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.blur = parseInt(e.target.value); needsRedraw = true; });
+            motionIntensityInput.addEventListener('input', (e) => { document.getElementById('motion-intensity-val').textContent = e.target.value; if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionIntensity = parseInt(e.target.value); needsRedraw = true; });
 
             btnUndo.addEventListener('click', executeUndo); btnRedo.addEventListener('click', executeRedo);
 
             function getHandle(x, y, path) {
-                const s = 60; 
-                const hx = path.x, hy = path.y, hw = path.w, hh = path.h;
-                const cx = hx + hw/2, cy = hy + hh/2;
+                const s = 60; const hx = path.x, hy = path.y, hw = path.w, hh = path.h; const cx = hx + hw/2, cy = hy + hh/2;
                 if (Math.abs(x - hx) < s && Math.abs(y - hy) < s) return 'tl';
                 if (Math.abs(x - (hx + hw)) < s && Math.abs(y - hy) < s) return 'tr';
                 if (Math.abs(x - hx) < s && Math.abs(y - (hy + hh)) < s) return 'bl';
@@ -780,99 +658,38 @@
                 return null;
             }
 
-            // POINT EVENTS
-            canvasArea.addEventListener('pointerdown', (e) => {
+            canvas.parentElement.parentElement.addEventListener('pointerdown', (e) => {
                 if(e.target.closest('.zoom-toolbar') || e.target.closest('.action-bar') || e.target.closest('.sidebar')) return;
-                
-                const areaRect = canvasArea.getBoundingClientRect();
-                const mouseX = e.clientX - areaRect.left;
-                const mouseY = e.clientY - areaRect.top;
                 const coords = getCoordinates(e);
-
-                if (showRulers && !isExporting) {
-                    let hitGuide = false;
-                    for(let i=0; i<guides.v.length; i++) {
-                         if (Math.abs(mouseX - getScreenX(guides.v[i])) < 10) { draggingGuide = { type: 'v', index: i }; hitGuide = true; break; }
-                    }
-                    if (!hitGuide) {
-                         for(let i=0; i<guides.h.length; i++) {
-                             if (Math.abs(mouseY - getScreenY(guides.h[i])) < 10) { draggingGuide = { type: 'h', index: i }; hitGuide = true; break; }
-                         }
-                    }
-                    if (!hitGuide) {
-                        // Click en las reglas para crear nueva guía
-                        if (mouseX < RULER_SIZE) { guides.v.push(coords.x); draggingGuide = { type: 'v', index: guides.v.length - 1 }; hitGuide = true; } 
-                        else if (mouseY < RULER_SIZE) { guides.h.push(coords.y); draggingGuide = { type: 'h', index: guides.h.length - 1 }; hitGuide = true; }
-                    }
-                    if (hitGuide) { isDrawing = false; needsRedraw = true; return; }
-                }
-
                 const activeLayerInfo = layers.find(l => l.id === activeLayerId);
                 if(!activeLayerInfo || !activeLayerInfo.visible) return;
-                
                 if (activeTool === 'select') {
                     if (selectedPath && selectedPath.mode === 'image') {
                         const handle = getHandle(coords.x, coords.y, selectedPath);
-                        if (handle) {
-                            isDrawing = true; transformAction = handle; isStateChanged = true;
-                            tStartX = coords.x; tStartY = coords.y;
-                            tStartImgX = selectedPath.x; tStartImgY = selectedPath.y;
-                            tStartImgW = selectedPath.w; tStartImgH = selectedPath.h;
-                            return; 
-                        }
+                        if (handle) { isDrawing = true; transformAction = handle; isStateChanged = true; tStartX = coords.x; tStartY = coords.y; tStartImgX = selectedPath.x; tStartImgY = selectedPath.y; tStartImgW = selectedPath.w; tStartImgH = selectedPath.h; return; }
                     }
-
                     let hitImage = false;
                     for (let i = paths.length - 1; i >= 0; i--) {
-                        const p = paths[i];
-                        if (p.layerId === activeLayerId && p.mode === 'image') {
-                            if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) {
-                                isDrawing = true; selectedPath = p; transformAction = 'move'; isStateChanged = true;
-                                tStartX = coords.x; tStartY = coords.y; tStartImgX = p.x; tStartImgY = p.y;
-                                hitImage = true; needsRedraw = true; break;
-                            }
+                        const p = paths[i]; if (p.layerId === activeLayerId && p.mode === 'image') {
+                            if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) { isDrawing = true; selectedPath = p; transformAction = 'move'; isStateChanged = true; tStartX = coords.x; tStartY = coords.y; tStartImgX = p.x; tStartImgY = p.y; hitImage = true; needsRedraw = true; break; }
                         }
                     }
                     if (!hitImage) { selectedPath = null; needsRedraw = true; }
                     return; 
                 }
-
                 isDrawing = true; needsRedraw = true; isStateChanged = true;
-                const pathData = {
-                    layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value,
-                    color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value),
-                    hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(),
-                    motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value)
-                };
-
-                rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value);
-                pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
+                const pathData = { layerId: activeLayerId, mode: 'brush', type: brushTypeInput.value, color: colorState.fill.active ? colorState.fill.color : 'transparent', blur: parseInt(brushBlurInput.value), hasOutline: colorState.stroke.active, outlineColor: colorState.stroke.color, outlineWidth: colorState.stroke.width, origin: [coords.x, coords.y], createdAt: performance.now(), motionType: motionTypeInput.value, motionIntensity: parseInt(motionIntensityInput.value) };
+                rawPointsBuffer = [[coords.x, coords.y]]; pathData.size = parseInt(brushSizeInput.value); pathData.spacing = parseInt(brushSpacingInput.value); pathData.fidelity = parseInt(strokeFidelityInput.value); pathData.points = []; pathData.stamps = []; pathData.lastStampPoint = null;
                 paths.push(pathData);
             });
 
-            canvasArea.addEventListener('pointermove', (e) => {
-                const areaRect = canvasArea.getBoundingClientRect();
-                const mouseX = e.clientX - areaRect.left;
-                const mouseY = e.clientY - areaRect.top;
-                const coords = getCoordinates(e); 
-                let rawX = coords.x; let rawY = coords.y;
-
-                if (draggingGuide) {
-                    if (draggingGuide.type === 'v') { guides.v[draggingGuide.index] = coords.x; canvasArea.style.cursor = 'col-resize'; } 
-                    else { guides.h[draggingGuide.index] = coords.y; canvasArea.style.cursor = 'row-resize'; }
-                    needsRedraw = true; return;
-                }
-
+            canvas.parentElement.parentElement.addEventListener('pointermove', (e) => {
+                const coords = getCoordinates(e); let rawX = coords.x; let rawY = coords.y;
                 if (activeTool === 'select') {
                     customCursor.style.display = 'none';
                     if (isDrawing && transformAction && selectedPath) {
-                        const dx = rawX - tStartX; const dy = rawY - tStartY;
-                        const alt = e.altKey; const shift = e.shiftKey;
-                        const ratio = tStartImgW / tStartImgH;
-
-                        if (transformAction === 'move') {
-                            selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy;
-                        } 
+                        const dx = rawX - tStartX; const dy = rawY - tStartY; const alt = e.altKey; const shift = e.shiftKey; const ratio = tStartImgW / tStartImgH;
+                        if (transformAction === 'move') { selectedPath.x = tStartImgX + dx; selectedPath.y = tStartImgY + dy; } 
                         else if (['l', 'r'].includes(transformAction)) {
                             let newW = transformAction === 'r' ? tStartImgW + (alt ? 2*dx : dx) : tStartImgW - (alt ? 2*dx : dx);
                             if (newW < 20) newW = 20; selectedPath.w = newW;
@@ -886,12 +703,7 @@
                         else { 
                             let factorX = (transformAction === 'tr' || transformAction === 'br') ? 1 : -1; let factorY = (transformAction === 'bl' || transformAction === 'br') ? 1 : -1;
                             let newW = tStartImgW + (alt ? 2 * dx * factorX : dx * factorX); let newH = tStartImgH + (alt ? 2 * dy * factorY : dy * factorY);
-
-                            if (shift) {
-                                let scale = Math.max(newW / tStartImgW, newH / tStartImgH); if (scale < 0.1) scale = 0.1;
-                                newW = tStartImgW * scale; newH = tStartImgH * scale;
-                            } else { if (newW < 20) newW = 20; if (newH < 20) newH = 20; }
-
+                            if (shift) { let scale = Math.max(newW / tStartImgW, newH / tStartImgH); if (scale < 0.1) scale = 0.1; newW = tStartImgW * scale; newH = tStartImgH * scale; } else { if (newW < 20) newW = 20; if (newH < 20) newH = 20; }
                             selectedPath.w = newW; selectedPath.h = newH;
                             selectedPath.x = (factorX === -1) ? (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX + (tStartImgW - newW)) : (alt ? tStartImgX - (newW - tStartImgW)/2 : tStartImgX);
                             selectedPath.y = (factorY === -1) ? (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY + (tStartImgH - newH)) : (alt ? tStartImgY - (newH - tStartImgH)/2 : tStartImgY);
@@ -899,194 +711,55 @@
                         needsRedraw = true;
                     } else if (!isDrawing) {
                         let cursorStyle = 'default';
-                        
-                        if (showRulers && !isExporting) {
-                            if (mouseX < RULER_SIZE) { canvasArea.style.cursor = 'col-resize'; return; }
-                            if (mouseY < RULER_SIZE) { canvasArea.style.cursor = 'row-resize'; return; }
-                            let hoverGuide = false;
-                            for(let i=0; i<guides.v.length; i++) { if (Math.abs(mouseX - getScreenX(guides.v[i])) < 6) { canvasArea.style.cursor = 'col-resize'; hoverGuide = true; break; } }
-                            if (!hoverGuide) { for(let i=0; i<guides.h.length; i++) { if (Math.abs(mouseY - getScreenY(guides.h[i])) < 6) { canvasArea.style.cursor = 'row-resize'; hoverGuide = true; break; } } }
-                            if (hoverGuide) return;
-                        }
-
-                        if (selectedPath) {
-                            const handle = getHandle(coords.x, coords.y, selectedPath);
-                            if (handle === 'tl' || handle === 'br') cursorStyle = 'nwse-resize';
-                            else if (handle === 'tr' || handle === 'bl') cursorStyle = 'nesw-resize';
-                            else if (handle === 't' || handle === 'b') cursorStyle = 'ns-resize';
-                            else if (handle === 'l' || handle === 'r') cursorStyle = 'ew-resize';
-                            else if (handle === 'move') cursorStyle = 'move';
-                        }
-                        if (cursorStyle === 'default') {
-                            for (let i = paths.length - 1; i >= 0; i--) {
-                                const p = paths[i];
-                                if (p.layerId === activeLayerId && p.mode === 'image') {
-                                    if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) { cursorStyle = 'pointer'; break; }
-                                }
-                            }
-                        }
-                        canvasArea.style.cursor = cursorStyle;
+                        if (selectedPath) { const handle = getHandle(coords.x, coords.y, selectedPath); if (handle === 'tl' || handle === 'br') cursorStyle = 'nwse-resize'; else if (handle === 'tr' || handle === 'bl') cursorStyle = 'nesw-resize'; else if (handle === 't' || handle === 'b') cursorStyle = 'ns-resize'; else if (handle === 'l' || handle === 'r') cursorStyle = 'ew-resize'; else if (handle === 'move') cursorStyle = 'move'; }
+                        if (cursorStyle === 'default') { for (let i = paths.length - 1; i >= 0; i--) { const p = paths[i]; if (p.layerId === activeLayerId && p.mode === 'image') { if (coords.x >= p.x && coords.x <= p.x + p.w && coords.y >= p.y && coords.y <= p.y + p.h) { cursorStyle = 'pointer'; break; } } } }
+                        document.querySelector('.canvas-area').style.cursor = cursorStyle;
                     }
                     return;
                 }
-
-                canvasArea.style.cursor = 'none'; customCursor.style.display = 'block';
+                document.querySelector('.canvas-area').style.cursor = 'none'; customCursor.style.display = 'block';
                 const rect = canvas.getBoundingClientRect(); const scaleX = rect.width / canvas.width; const visualSize = parseInt(brushSizeInput.value) * scaleX;
                 customCursor.style.width = visualSize + 'px'; customCursor.style.height = visualSize + 'px'; customCursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-
                 if (!isDrawing) return; e.preventDefault(); needsRedraw = true;
                 const currentPath = paths[paths.length - 1]; 
-
                 if (e.shiftKey) { const startX = currentPath.origin[0]; const startY = currentPath.origin[1]; const dx = rawX - startX; const dy = rawY - startY; const angle = Math.atan2(dy, dx); const snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4); const dist = Math.hypot(dx, dy); rawX = startX + Math.cos(snapAngle) * dist; rawY = startY + Math.sin(snapAngle) * dist; }
                 rawPointsBuffer.push([rawX, rawY]);
-                
                 const fidelityVal = 101 - currentPath.fidelity; const lookbackCount = Math.max(1, Math.floor(fidelityVal / 5)); 
                 let sumX = 0; let sumY = 0; let count = Math.min(rawPointsBuffer.length, lookbackCount);
                 for (let i = rawPointsBuffer.length - count; i < rawPointsBuffer.length; i++) { sumX += rawPointsBuffer[i][0]; sumY += rawPointsBuffer[i][1]; }
                 let smoothX = sumX / count; let smoothY = sumY / count;
-
-                if (currentPath.points.length > 0) { 
-                    const lastP = currentPath.points[currentPath.points.length - 1]; 
-                    if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 12) return; 
-                }
-                
+                if (currentPath.points.length > 0) { const lastP = currentPath.points[currentPath.points.length - 1]; if (Math.hypot(smoothX - lastP[0], smoothY - lastP[1]) < 12) return; }
                 currentPath.points.push([smoothX, smoothY]);
-
                 if (currentPath.type !== 'line' && currentPath.type !== 'charcoal') {
                     if (!currentPath.lastStampPoint) { currentPath.lastStampPoint = [smoothX, smoothY]; currentPath.stamps.push({ x: smoothX, y: smoothY, angle: 0, seed: 0 }); } 
                     else {
                         let lastX = currentPath.lastStampPoint[0]; let lastY = currentPath.lastStampPoint[1]; let dist = Math.hypot(smoothX - lastX, smoothY - lastY);
                         if (dist >= currentPath.spacing) {
                             let stampsCount = Math.floor(dist / currentPath.spacing);
-                            for (let j = 1; j <= stampsCount; j++) {
-                                let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount);
-                                let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j;
-                                currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed });
-                            }
+                            for (let j = 1; j <= stampsCount; j++) { let nextX = lastX + (smoothX - lastX) * (j / stampsCount); let nextY = lastY + (smoothY - lastY) * (j / stampsCount); let angle = Math.atan2(smoothY - lastY, smoothX - lastX); let seed = (currentPath.points.length * 100) + j; currentPath.stamps.push({ x: nextX, y: nextY, angle: angle, seed: seed }); }
                             currentPath.lastStampPoint = [smoothX, smoothY];
                         }
                     }
                 }
             });
 
-            window.addEventListener('pointerup', (e) => {
-                if (draggingGuide) {
-                    const areaRect = canvasArea.getBoundingClientRect();
-                    const mouseX = e.clientX - areaRect.left;
-                    const mouseY = e.clientY - areaRect.top;
-                    
-                    // Si se suelta en la zona de reglas, se elimina la guía
-                    if (draggingGuide.type === 'v' && mouseX < RULER_SIZE) guides.v.splice(draggingGuide.index, 1);
-                    else if (draggingGuide.type === 'h' && mouseY < RULER_SIZE) guides.h.splice(draggingGuide.index, 1);
-                    
-                    draggingGuide = null;
-                    saveState(); 
-                    needsRedraw = true;
-                }
-
-                if (isDrawing && isStateChanged) saveState();
-                
-                isDrawing = false; transformAction = null; isStateChanged = false; needsRedraw = true;
-            });
-
-            function drawRulersAndGuides() {
-                uiCtx.save();
-                const isDark = document.body.classList.contains('dark-theme');
-                
-                // Color rojo Figma
-                uiCtx.strokeStyle = '#ff0000'; uiCtx.lineWidth = 1.5; 
-                guides.v.forEach(canvasX => { const screenX = getScreenX(canvasX); uiCtx.beginPath(); uiCtx.moveTo(screenX, 0); uiCtx.lineTo(screenX, uiCanvas.height); uiCtx.stroke(); });
-                guides.h.forEach(canvasY => { const screenY = getScreenY(canvasY); uiCtx.beginPath(); uiCtx.moveTo(0, screenY); uiCtx.lineTo(uiCanvas.width, screenY); uiCtx.stroke(); });
-                
-                // Fondo reglas
-                uiCtx.fillStyle = isDark ? '#2a2a2a' : '#eaeaea';
-                const uRect = uiCanvas.getBoundingClientRect();
-                uiCtx.fillRect(0, 0, uRect.width, RULER_SIZE); uiCtx.fillRect(0, 0, RULER_SIZE, uRect.height);
-                
-                uiCtx.fillStyle = isDark ? '#888888' : '#555555'; 
-                uiCtx.font = '10px sans-serif';
-                
-                const artRect = canvas.getBoundingClientRect(); const areaRect = canvasArea.getBoundingClientRect();
-                const canvasLeft = artRect.left - areaRect.left; const canvasTop = artRect.top - areaRect.top;
-                const scaleX = artRect.width / canvas.width; const scaleY = artRect.height / canvas.height;
-                const step = 200; 
-                
-                uiCtx.textAlign = 'left';
-                uiCtx.textBaseline = 'bottom';
-                for(let x = 0; x <= canvas.width; x += step) {
-                    const screenX = canvasLeft + x * scaleX;
-                    if (screenX > RULER_SIZE && screenX < uRect.width) { 
-                        uiCtx.fillRect(screenX, RULER_SIZE - 6, 1, 6); 
-                        uiCtx.fillText(x, screenX + 3, RULER_SIZE - 4); 
-                    }
-                }
-                for(let y = 0; y <= canvas.height; y += step) {
-                    const screenY = canvasTop + y * scaleY;
-                    if (screenY > RULER_SIZE && screenY < uRect.height) {
-                        uiCtx.fillRect(RULER_SIZE - 6, screenY, 6, 1);
-                        uiCtx.save(); 
-                        uiCtx.translate(RULER_SIZE - 12, screenY + 4); 
-                        uiCtx.rotate(-Math.PI / 2); 
-                        uiCtx.textAlign = 'left';
-                        uiCtx.textBaseline = 'bottom';
-                        uiCtx.fillText(y, 0, 0); 
-                        uiCtx.restore();
-                    }
-                }
-                
-                uiCtx.fillStyle = isDark ? '#1e1e1e' : '#d1d1d1'; uiCtx.fillRect(0, 0, RULER_SIZE, RULER_SIZE);
-                uiCtx.restore();
-            }
+            window.addEventListener('pointerup', () => { if (isDrawing && isStateChanged) saveState(); isDrawing = false; transformAction = null; isStateChanged = false; needsRedraw = true; });
 
             function renderAllPaths() {
                 requestAnimationFrame(renderAllPaths);
-                
                 let hasAnimatedPaths = false;
-                for (let j = 0; j < paths.length; j++) {
-                    if (paths[j].motionType !== 'none') {
-                        for (let i = 0; i < layers.length; i++) { if (layers[i].id === paths[j].layerId && layers[i].visible) { hasAnimatedPaths = true; break; } }
-                    }
-                    if (hasAnimatedPaths) break;
-                }
-
+                for (let j = 0; j < paths.length; j++) { if (paths[j].motionType !== 'none') { for (let i = 0; i < layers.length; i++) { if (layers[i].id === paths[j].layerId && layers[i].visible) { hasAnimatedPaths = true; break; } } } if (hasAnimatedPaths) break; }
                 if (!hasAnimatedPaths && !isDrawing && !needsRedraw && !isRecording && !isExporting) { return; }
-                
-                const uRect = uiCanvas.getBoundingClientRect();
-                uiCtx.clearRect(0, 0, uRect.width, uRect.height);
                 ctx.save(); fillBackground(); 
-                
-                for (let i = 0; i < layers.length; i++) {
-                    const layer = layers[i];
-                    if (!layer.visible) continue;
-                    for (let j = 0; j < paths.length; j++) { const path = paths[j]; if (path.layerId === layer.id) renderPath(path); }
-                }
-                
+                for (let i = 0; i < layers.length; i++) { const layer = layers[i]; if (!layer.visible) continue; for (let j = 0; j < paths.length; j++) { const path = paths[j]; if (path.layerId === layer.id) renderPath(path); } }
                 drawGrid(); 
-
                 if (activeTool === 'select' && selectedPath && !isRecording && !isExporting) {
-                    ctx.save();
-                    ctx.strokeStyle = '#000000'; ctx.lineWidth = 3;
-                    ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
-                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
-                    ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
-                    
-                    const s = 18; 
-                    const drawH = (hx, hy) => { 
-                        ctx.fillStyle = '#000000'; ctx.fillRect(hx - s/2, hy - s/2, s, s); 
-                        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(hx - s/2, hy - s/2, s, s); 
-                    };
-                    const hx = selectedPath.x, hy = selectedPath.y, hw = selectedPath.w, hh = selectedPath.h;
-                    const cx = hx + hw/2, cy = hy + hh/2;
-                    drawH(hx, hy); drawH(hx + hw, hy); drawH(hx, hy + hh); drawH(hx + hw, hy + hh);
-                    drawH(cx, hy); drawH(cx, hy + hh); drawH(hx, cy); drawH(hx + hw, cy);
-                    ctx.restore();
+                    ctx.save(); ctx.strokeStyle = '#000000'; ctx.lineWidth = 3; ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.strokeRect(selectedPath.x, selectedPath.y, selectedPath.w, selectedPath.h);
+                    const s = 18; const drawH = (hx, hy) => { ctx.fillStyle = '#000000'; ctx.fillRect(hx - s/2, hy - s/2, s, s); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.strokeRect(hx - s/2, hy - s/2, s, s); };
+                    const hx = selectedPath.x, hy = selectedPath.y, hw = selectedPath.w, hh = selectedPath.h; const cx = hx + hw/2, cy = hy + hh/2;
+                    drawH(hx, hy); drawH(hx + hw, hy); drawH(hx, hy + hh); drawH(hx + hw, hy + hh); drawH(cx, hy); drawH(cx, hy + hh); drawH(hx, cy); drawH(hx + hw, cy); ctx.restore();
                 }
-
-                ctx.restore();
-                
-                if (showRulers && !isExporting && !isRecording) drawRulersAndGuides();
-
-                if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
+                ctx.restore(); if (!hasAnimatedPaths && !isDrawing) { needsRedraw = false; }
             }
 
             function renderPath(path) {
@@ -1094,32 +767,16 @@
                 const motionType = path.motionType || 'none'; const intensity = (path.motionIntensity || 50) / 50; 
                 const time = performance.now(); let currentSize = path.size || 0;
                 ctx.save();
-
-                if (motionType === 'pulse') { 
-                    const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); 
-                    if (path.mode === 'image') {
-                        ctx.translate(path.x + path.w/2, path.y + path.h/2); ctx.scale(scaleFactor, scaleFactor); ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2));
-                    } else { currentSize = path.size * scaleFactor; }
-                } 
+                if (motionType === 'pulse') { const scaleFactor = 1 + (Math.sin(time * 0.003) * 0.35 * intensity); if (path.mode === 'image') { ctx.translate(path.x + path.w/2, path.y + path.h/2); ctx.scale(scaleFactor, scaleFactor); ctx.translate(-(path.x + path.w/2), -(path.y + path.h/2)); } else { currentSize = path.size * scaleFactor; } } 
                 else if (motionType === 'vibrate') { ctx.translate((Math.random() - 0.5) * 6 * intensity, (Math.random() - 0.5) * 6 * intensity); } 
                 else if (motionType === 'wave') { ctx.translate(Math.sin(time * 0.002 + path.createdAt) * 10 * intensity, Math.cos(time * 0.0015 + path.createdAt) * 10 * intensity); } 
                 else if (motionType === 'gravity') { const bounceAmplitude = 300; const drop = bounceAmplitude * (1 - Math.abs(Math.cos((time - path.createdAt) * 0.002 * intensity))); ctx.translate(0, drop); }
-                
                 if (path.blur > 0) ctx.filter = `blur(${path.blur}px)`;
                 ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-
-                if (path.mode === 'image') {
-                    ctx.drawImage(path.img, path.x, path.y, path.w, path.h);
-                } else if (path.type === 'line' || path.type === 'charcoal') {
-                    if (path.type === 'line') {
-                        if (path.hasOutline) { ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke(); }
-                        ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') ctx.stroke();
-                    } else if (path.type === 'charcoal') {
-                        if(path.color !== 'transparent') { ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; for(let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); } ctx.globalAlpha = 1.0; }
-                    }
-                } else if (path.stamps) {
-                    for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed); }
-                }
+                if (path.mode === 'image') { ctx.drawImage(path.img, path.x, path.y, path.w, path.h); } else if (path.type === 'line' || path.type === 'charcoal') {
+                    if (path.type === 'line') { if (path.hasOutline) { ctx.lineWidth = currentSize + (path.outlineWidth * 2); ctx.strokeStyle = path.outlineColor; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); ctx.stroke(); } ctx.lineWidth = currentSize; ctx.strokeStyle = path.color; ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) ctx.lineTo(path.points[i][0], path.points[i][1]); if(path.color !== 'transparent') ctx.stroke(); } 
+                    else if (path.type === 'charcoal') { if(path.color !== 'transparent') { ctx.lineWidth = currentSize * 0.2; ctx.strokeStyle = path.color; ctx.globalAlpha = 0.4; for(let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.moveTo(path.points[0][0], path.points[0][1]); for(let i = 1; i < path.points.length; i++) { let offsetX = Math.sin(i * k * 12.3) * currentSize * 0.4; let offsetY = Math.cos(i * k * 14.5) * currentSize * 0.4; ctx.lineTo(path.points[i][0] + offsetX, path.points[i][1] + offsetY); } ctx.stroke(); } ctx.globalAlpha = 1.0; } }
+                } else if (path.stamps) { for(let i = 0; i < path.stamps.length; i++) { let s = path.stamps[i]; drawStampOnPoint(path, s.x, s.y, s.angle, currentSize, s.seed); } }
                 ctx.restore();
             }
 
@@ -1134,78 +791,28 @@
                 else if (type === 'disordered') { for(let i = 0; i < 5; i++) { ctx.save(); let rA = Math.abs(Math.sin(seedBase + i * 13)); let rB = Math.abs(Math.cos(seedBase + i * 17)); const rW = size * (0.8 + rA * 0.4); const rH = size * (0.4 + rB * 1.5); const pX = -(rW/2) + (rA - 0.5) * size * 0.3; const pY = -(rH/2) + (rB - 0.5) * size * 0.3; if(path.color !== 'transparent') { ctx.fillStyle = path.color; ctx.fillRect(pX, pY, rW, rH); } if(path.hasOutline) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.strokeRect(pX, pY, rW, rH); } ctx.restore(); } }
                 ctx.restore();
             }
-            
             function strokeShape(path) { ctx.lineWidth = path.outlineWidth; ctx.strokeStyle = path.outlineColor; ctx.lineJoin = 'miter'; ctx.stroke(); }
-            
-            function exportImage() { 
-                isExporting = true;
-                needsRedraw = true; 
-                renderAllPaths(); 
-                
-                setTimeout(() => {
-                    const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); 
-                    isExporting = false; needsRedraw = true; 
-                }, 100);
-            }
+            function exportImage() { isExporting = true; needsRedraw = true; renderAllPaths(); setTimeout(() => { const link = document.createElement('a'); link.download = `DDM_Static_${new Date().getTime()}.png`; link.href = canvas.toDataURL('image/png', 1.0); link.click(); isExporting = false; needsRedraw = true; }, 100); }
+            function toggleRecording() { if (isRecording) { mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); } else { isExporting = true; needsRedraw = true; renderAllPaths(); let mimeType = 'video/webm'; let ext = 'webm'; if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = []; mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); }; mediaRecorder.onstop = function() { const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); isExporting = false; needsRedraw = true; }; mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; } }
 
-            function toggleRecording() { 
-                if (isRecording) { 
-                    mediaRecorder.stop(); isRecording = false; btnRecord.textContent = 'Record Video'; btnRecord.classList.remove('recording'); 
-                } else { 
-                    isExporting = true; needsRedraw = true; renderAllPaths(); 
-                    
-                    let mimeType = 'video/webm'; let ext = 'webm'; 
-                    if (MediaRecorder.isTypeSupported('video/mp4')) { mimeType = 'video/mp4'; ext = 'mp4'; } 
-                    const stream = canvas.captureStream(60); mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType }); recordedChunks = []; 
-                    mediaRecorder.ondataavailable = function(e) { if (e.data.size > 0) recordedChunks.push(e.data); }; 
-                    mediaRecorder.onstop = function() { 
-                        const url = URL.createObjectURL(new Blob(recordedChunks, { type: mimeType })); 
-                        const link = document.createElement('a'); link.download = `DDM_Animated_${new Date().getTime()}.${ext}`; link.href = url; link.click(); URL.revokeObjectURL(url); 
-                        isExporting = false; needsRedraw = true; 
-                    }; 
-                    mediaRecorder.start(); isRecording = true; btnRecord.textContent = 'Stop Recording...'; btnRecord.classList.add('recording'); needsRedraw = true; 
-                } 
-            }
-            
             document.addEventListener('keydown', (e) => { 
                 if (e.target.tagName === 'INPUT' && e.target.type === 'text') return; 
-
                 const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0; const modifier = isMac ? e.metaKey : e.ctrlKey; 
-                
-                // ATAJO: SHIFT + R para mostrar/ocultar reglas. Bloqueado de manera segura.
-                if (e.key.toLowerCase() === 'r' && e.shiftKey && !modifier) { 
-                    e.preventDefault(); 
-                    toggleRulersInput.checked = !toggleRulersInput.checked;
-                    toggleRulersInput.dispatchEvent(new Event('change'));
-                    return; 
-                }
-
                 if (modifier && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); executeUndo(); return; } 
                 if ((modifier && e.shiftKey && e.key.toLowerCase() === 'z') || (modifier && e.key.toLowerCase() === 'y')) { e.preventDefault(); executeRedo(); return;} 
-                
                 if (e.key === '[') { brushSizeInput.value = Math.max(parseInt(brushSizeInput.min), parseInt(brushSizeInput.value) - 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
                 if (e.key === ']') { brushSizeInput.value = Math.min(parseInt(brushSizeInput.max), parseInt(brushSizeInput.value) + 2); document.getElementById('brush-size-val').textContent = brushSizeInput.value; needsRedraw = true; return;} 
-                
-                if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) {
-                    paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return;
-                }
-
+                if ((e.key === 'Backspace' || e.key === 'Delete') && activeTool === 'select' && selectedPath) { paths = paths.filter(p => p !== selectedPath); selectedPath = null; saveState(); needsRedraw = true; return; }
                 if (e.key.toLowerCase() === 'v' && !modifier) setTool('select');
                 if (e.key.toLowerCase() === 'b' && !modifier) setTool('brush');
             });
-            
             formatSelect.addEventListener('change', initCanvas); bgColorInput.addEventListener('input', () => { needsRedraw = true; }); 
-            motionTypeInput.addEventListener('change', (e) => { if(activeTool === 'select' && selectedPath && selectedPath.mode === 'image') selectedPath.motionType = e.target.value; saveState(); needsRedraw = true; }); 
             brushTypeInput.addEventListener('change', () => { selectedPath = null; needsRedraw = true; });
-            
-            btnClear.addEventListener('click', () => { for (let i = paths.length - 1; i >= 0; i--) { if (paths[i].layerId === activeLayerId) { paths.splice(i, 1); } } saveState(); needsRedraw = true; }); 
+            btnClear.addEventListener('click', () => { paths = []; saveState(); needsRedraw = true; }); 
             btnExport.addEventListener('click', exportImage); btnRecord.addEventListener('click', toggleRecording); 
-            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; resizeUICanvas(); } function resetZoom() { currentZoom = 1; applyZoom(); }
+            function applyZoom() { canvasWrapper.style.transform = `scale(${currentZoom})`; needsRedraw = true; } function resetZoom() { currentZoom = 1; applyZoom(); }
             document.getElementById('btn-zoom-in').addEventListener('click', () => { currentZoom += 0.2; applyZoom(); }); document.getElementById('btn-zoom-out').addEventListener('click', () => { if(currentZoom > 0.4) { currentZoom -= 0.2; applyZoom(); } }); document.getElementById('btn-zoom-fit').addEventListener('click', resetZoom);
-            
-            initCanvas(); 
-            saveState(); 
-            requestAnimationFrame(renderAllPaths); 
+            initCanvas(); saveState(); requestAnimationFrame(renderAllPaths); 
         });
     </script>
 </body>
