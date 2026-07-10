@@ -52,36 +52,36 @@
         .mobile-toggle svg { fill: var(--text-color); display: block; }
 
         .sidebar {
-            width: 320px; min-width: 320px; height: 100%; border-right: 1px solid var(--border-color);
+            width: 340px; min-width: 340px; height: 100%; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; background-color: var(--bg-color); overflow-y: auto; z-index: 10;
             box-shadow: 2px 0 15px var(--shadow-color); transition: background-color 0.3s, border-color 0.3s;
         }
 
-        .header-brand { padding: 20px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg); transition: background-color 0.3s; }
+        .header-brand { padding: 24px 24px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg); transition: background-color 0.3s; }
         .header-brand h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 2px; }
+        .header-brand p { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 4px; }
 
         .module-section { background-color: var(--panel-bg); border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; transition: background-color 0.3s, border-color 0.3s;}
-        .module-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
+        .module-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; transition: background-color 0.2s; }
         .module-header:hover { background-color: var(--hover-color); }
         .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-color); margin: 0; pointer-events: none;}
         .chevron-icon { width: 12px; height: 12px; fill: #888; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
-        .module-content { padding: 0 20px 20px 20px; display: block; }
+        .module-content { padding: 0 24px 24px 24px; display: block; }
         .module-section.collapsed .module-content { display: none; }
         .module-section.collapsed .chevron-icon { transform: rotate(-90deg); }
 
-        .control-group { margin-bottom: 14px; }
-        .control-group label { display: block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; color: #777; }
-        .flex-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .control-group { margin-bottom: 20px; }
+        .control-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; color: #777; }
+        .flex-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .flex-label label { margin-bottom: 0; }
         .val-display { font-size: 11px; font-weight: bold; color: var(--text-color); }
         
-        .checkbox-group { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-        .checkbox-group input { cursor: pointer; width: 14px; height: 14px; accent-color: var(--text-color);}
+        .checkbox-group { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .checkbox-group input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--text-color);}
         .checkbox-group label { margin-bottom: 0; cursor: pointer; }
 
         select, input[type="color"]:not(.illustrator-swatch input) {
-            width: 100%; padding: 10px; border: 1.5px solid var(--border-color); color: var(--text-color);
+            width: 100%; padding: 12px; border: 1.5px solid var(--border-color); color: var(--text-color);
             background: var(--bg-color); font-family: var(--font-main); font-size: 13px; font-weight: 500;
             cursor: pointer; outline: none; border-radius: var(--radius-soft); transition: border-color 0.2s, background-color 0.3s;
             -webkit-appearance: none; -moz-appearance: none; appearance: none;
@@ -92,33 +92,33 @@
         body:not(.dark-theme) select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
         body.dark-theme select { background-image: url('data:image/svg+xml;utf8,<svg fill="%23eee" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position-x: 96%; background-position-y: 50%; background-size: 18px; }
 
-        input[type="color"]:not(.illustrator-swatch input) { height: 38px; padding: 3px; }
+        input[type="color"]:not(.illustrator-swatch input) { height: 42px; padding: 4px; }
         input[type="color"]:not(.illustrator-swatch input)::-webkit-color-swatch-wrapper { padding: 0; border-radius: 4px;}
         input[type="color"]:not(.illustrator-swatch input)::-webkit-color-swatch { border: none; border-radius: 4px; }
 
-        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 4px; margin-bottom: 4px;}
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 6px; margin-bottom: 6px;}
         input[type="range"]::-webkit-slider-thumb { 
-            -webkit-appearance: none; height: 16px; width: 16px; background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            -webkit-appearance: none; height: 18px; width: 18px; background: var(--text-color); cursor: pointer; border-radius: 50%; margin-top: -7px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
 
-        .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 180px; overflow-y: auto;}
-        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: grab; transition: background 0.2s, opacity 0.2s; user-select: none;}
+        .layers-container { border: 1px solid var(--border-color); border-radius: var(--radius-soft); overflow: hidden; background: var(--bg-color); max-height: 220px; overflow-y: auto;}
+        .layer-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); cursor: grab; transition: background 0.2s, opacity 0.2s; user-select: none;}
         .layer-item:active { cursor: grabbing; }
         .layer-item.dragging { opacity: 0.4; background: var(--accent-color); }
         .layer-item:last-child { border-bottom: none; }
         .layer-item:hover { background: var(--hover-color); }
-        .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 7px; }
-        .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 11px; width: 100%; overflow: hidden; cursor: text;}
+        .layer-item.active { background: var(--hover-color); border-left: 3px solid var(--text-color); padding-left: 11px; }
+        .layer-info { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 12px; width: 100%; overflow: hidden; cursor: text;}
         .layer-name-span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
-        .layer-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .layer-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .layer-vis-btn, .layer-del-btn { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 0; display: flex; align-items: center; justify-content: center;}
         .layer-vis-btn:hover, .layer-del-btn:hover { opacity: 1; }
         .layer-del-btn:hover { color: #e74c3c; }
         .layer-vis-btn.hidden-layer { opacity: 0.2; }
-        .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 100%; outline: none;}
+        .layer-rename-input { background: var(--panel-bg); border: 1px solid var(--border-color); color: var(--text-color); font-family: inherit; font-size: 12px; padding: 4px 6px; border-radius: 4px; width: 100%; outline: none;}
 
-        #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 16px; padding: 10px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
+        #color-ui-container { display: flex; align-items: center; justify-content: flex-start; gap: 20px; padding: 16px; background: var(--bg-color); border-radius: var(--radius-soft); border: 1px solid var(--border-color); }
         .swatch-area { position: relative; width: 55px; height: 55px; }
         .illustrator-swatch { position: absolute; width: 34px; height: 34px; border: 2px solid var(--panel-bg); border-radius: 4px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s, z-index 0s; }
         #color-stroke-swatch { top: 20px; left: 20px; z-index: 1; }
@@ -148,15 +148,15 @@
         .canvas-area { flex-grow: 1; display: flex; flex-direction: column; background-color: #eeeeee; position: relative; overflow: hidden; }
         body.dark-theme .canvas-area { background-color: #0a0a0a; } 
         
-        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: var(--panel-bg); padding: 4px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
-        .zoom-toolbar button { background: transparent; border: none; padding: 6px 14px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
+        .zoom-toolbar { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: var(--panel-bg); padding: 6px; border-radius: var(--radius-round); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 5; opacity: 0.9; }
+        .zoom-toolbar button { background: transparent; border: none; padding: 8px 16px; font-family: var(--font-main); font-weight: 700; font-size: 11px; cursor: pointer; color: var(--text-color); border-radius: var(--radius-round); transition: background 0.2s; }
         .zoom-toolbar button:hover { background: var(--hover-color); }
-        .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px 20px 20px; overflow: auto; }
+        .canvas-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 80px 24px 24px 24px; overflow: auto; }
         .canvas-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; box-shadow: 0 15px 50px rgba(0,0,0,0.15); border-radius: 4px; overflow: hidden; position: relative; }
         #art-canvas { display: block; max-width: 100%; max-height: 80vh; touch-action: none; background-color: #ffffff; cursor: crosshair; }
 
-        .action-bar { padding: 20px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 12px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
-        .btn { padding: 10px 20px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-color); }
+        .action-bar { padding: 24px; border-top: 1px solid var(--border-color); background-color: var(--panel-bg); display: flex; gap: 16px; justify-content: flex-end; z-index: 10; transition: background-color 0.3s; }
+        .btn { padding: 12px 24px; font-family: var(--font-main); font-weight: 700; font-size: 12px; cursor: pointer; border-radius: var(--radius-soft); transition: all 0.2s ease; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-color); }
         .btn-outline { background-color: var(--bg-color); border: 1.5px solid var(--border-color); }
         .btn-outline:hover { background-color: var(--hover-color); }
         .btn-solid { background-color: var(--text-color); color: var(--panel-bg); border: 1.5px solid var(--text-color); }
@@ -165,11 +165,11 @@
         .btn-record.recording { animation: pulse-red 1.5s infinite; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); } 70% { box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
 
-        .tool-indicator { font-size: 10px; color: #888; margin-top: 6px; font-weight: 600; letter-spacing: 0.5px;}
+        .tool-indicator { font-size: 10px; color: #888; margin-top: 8px; font-weight: 600; letter-spacing: 0.5px;}
 
         @media (max-width: 900px) {
             .mobile-toggle { display: block; }
-            .sidebar { position: absolute; left: -340px; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 20px rgba(0,0,0,0.2); }
+            .sidebar { position: absolute; left: -360px; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 0 20px rgba(0,0,0,0.2); }
             .sidebar.active { left: 0; }
             .canvas-area { width: 100vw; }
             .zoom-toolbar { top: 16px; left: auto; right: 16px; transform: none; }
@@ -193,13 +193,13 @@
                 <p>Pro Experimental Tool</p>
             </header>
 
-            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
+            <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); background-color: var(--panel-bg);">
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn btn-outline" id="btn-undo" title="Undo (Ctrl+Z)" style="flex: 1; padding: 12px 8px; border-color: var(--border-color);">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.48 10.9 16.89 8 12.5 8z"/></svg> Undo
                     </button>
-                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 10px 4px; border-color: var(--border-color);">
-                        Redo <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
+                    <button class="btn btn-outline" id="btn-redo" title="Redo (Ctrl+Y)" style="flex: 1; padding: 12px 8px; border-color: var(--border-color);">
+                        Redo <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.39 0-7.98 2.9-9.37 6.93l2.37.78c1.05-3.19 4.06-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13.6 16H22V7l-3.6 3.6z"/></svg>
                     </button>
                 </div>
             </div>
@@ -235,8 +235,8 @@
                 <div class="module-content">
                     <div class="control-group" style="margin-bottom: 0; margin-top: 4px;">
                         <div class="layers-container" id="layers-list"></div>
-                        <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 8px; padding: 6px; font-size: 11px;">+ New Layer</button>
-                        <button class="btn btn-outline" id="btn-import" style="width: 100%; margin-top: 6px; padding: 6px; font-size: 11px; border-color: var(--border-color);">📥 Import Image</button>
+                        <button class="btn btn-outline" id="btn-add-layer" style="width: 100%; margin-top: 12px; padding: 10px; font-size: 11px;">+ New Layer</button>
+                        <button class="btn btn-outline" id="btn-import" style="width: 100%; margin-top: 8px; padding: 10px; font-size: 11px; border-color: var(--border-color);">📥 Import Image</button>
                         <input type="file" id="import-file" accept="image/*" style="display:none;">
                     </div>
                 </div>
@@ -298,7 +298,7 @@
                             <span class="val-display" id="stroke-fidelity-val">50</span>
                         </div>
                         <input type="range" id="stroke-fidelity" min="1" max="100" value="50">
-                        <p style="font-size: 10px; color: #888; margin-top: 6px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
+                        <p style="font-size: 11px; color: #888; margin-top: 8px;">💡 Hold <b>Shift</b> while drawing for 45°/90° lines.</p>
                     </div>
                 </div>
             </section>
@@ -326,7 +326,7 @@
                             <option value="gravity">Gravity</option>
                         </select>
                     </div>
-                    <div class="control-group" style="margin-top: 12px; margin-bottom: 0;">
+                    <div class="control-group" style="margin-top: 16px; margin-bottom: 0;">
                         <div class="flex-label">
                             <label>Effect Intensity</label>
                             <span class="val-display" id="motion-intensity-val">50</span>
@@ -349,13 +349,13 @@
                             <option value="16:9">Horizontal 16:9</option>
                         </select>
                     </div>
-                    <div class="control-group checkbox-group" style="padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                    <div class="control-group checkbox-group" style="padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-grid">
-                        <label for="toggle-grid" style="font-size: 11px;">Show Align Grid</label>
+                        <label for="toggle-grid" style="font-size: 12px;">Show Align Grid</label>
                     </div>
-                    <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 10px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
+                    <div class="control-group checkbox-group" style="margin-bottom: 0; margin-top: 12px; padding: 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--radius-soft);">
                         <input type="checkbox" id="toggle-dark-mode" checked>
-                        <label for="toggle-dark-mode" style="font-size: 11px;">Enable Dark Mode</label>
+                        <label for="toggle-dark-mode" style="font-size: 12px;">Enable Dark Mode</label>
                     </div>
                 </div>
             </section>
